@@ -35,7 +35,7 @@ app.use(express.json());
   
   // Middleware
   app.use(cors({
-    origin: 'https://bhajan-bank1.vercel.app/', // Your frontend URL
+    origin: 'https://bhajan-bank1.vercel.app', // Your frontend URL
     credentials: true
   }));
   
