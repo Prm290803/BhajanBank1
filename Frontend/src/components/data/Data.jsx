@@ -116,7 +116,7 @@ function Data() {
       
       <div className="max-w-7xl mx-auto space-y-8 relative">
         {/* Divine Presence */}
-        <SwaminarayanIcon className="absolute -top-10 -right-10 opacity-10 w-64 h-64" />
+        
 
         {/* Header */}
         <header className="flex justify-between items-center relative">
