@@ -18,7 +18,7 @@ const [token, setToken] = useState(localStorage.getItem('token') || '');
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
 
-    axios.get('http://localhost:5000/api/user')
+    axios.get(`${import.meta.env.BACKENDURL}/api/user`)
       .then(res => {
         setUser(res.data);
       })
@@ -37,7 +37,7 @@ const [token, setToken] = useState(localStorage.getItem('token') || '');
 
 const login = async (email, password) => {
   try {
-    const res = await axios.post(`${process.env.BACKENDURL}/api/login`, { email, password });
+    const res = await axios.post(`${import.meta.env.BACKENDURL}/api/login`, { email, password });
 
 
     // Save token to localStorage and state
@@ -75,7 +75,7 @@ const login = async (email, password) => {
 
   const register = async (name, email, password) => {
   try {
-    const res = await axios.post(`${process.env.BACKENDURL}/api/register`, {
+    const res = await axios.post(`${import.meta.env.BACKENDURL}/api/register`, {
       name,
       email,
       password
