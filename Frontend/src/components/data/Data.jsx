@@ -55,6 +55,7 @@ const winnerVariants = {
 
 function Data() {
   const { user, token, logout } = useAuth();
+  const backend_url = import.meta.env.VITE_BACKENDURL
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [tasks, setTasks] = useState([{ task: '', points: 1, count: 1 }]);
@@ -102,7 +103,7 @@ function Data() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`${process.env.BACKENDURL}/api/tasks`, {
+      await axios.post(`${backend_url}/api/tasks`, {
         date: new Date(),       
         tasks                     
       });
@@ -116,7 +117,7 @@ function Data() {
   // Fetch data from server
   const fetchData = async () => {
     try {
-      const tasksRes = await fetch(`${process.env.BACKENDURL}/api/tasks`, {
+      const tasksRes = await fetch(`${backend_url}/api/tasks`, {
         method: 'GET',
         headers: { 'Authorization': `Bearer ${token}` },
         credentials: 'include'

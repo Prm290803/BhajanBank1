@@ -4,13 +4,12 @@ import axios from 'axios';
 
 const AuthContext = createContext();
 
+
 export function AuthProvider({ children }) {
+  const backend_url = import.meta.env.VITE_BACKENDURL
   const [user, setUser] = useState(null);
 const [token, setToken] = useState(localStorage.getItem('token') || '');
   const [loading, setLoading] = useState(true);
-  
-
-
   
  useEffect(() => {
   if (token) {
@@ -18,7 +17,7 @@ const [token, setToken] = useState(localStorage.getItem('token') || '');
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
 
-    axios.get(`${import.meta.env.BACKENDURL}/api/user`)
+    axios.get(`${backend_url}/api/user`)
       .then(res => {
         setUser(res.data);
       })
@@ -37,7 +36,7 @@ const [token, setToken] = useState(localStorage.getItem('token') || '');
 
 const login = async (email, password) => {
   try {
-    const res = await axios.post(`${import.meta.env.BACKENDURL}/api/login`, { email, password });
+    const res = await axios.post(`${backend_url}/api/login`, { email, password });
 
 
     // Save token to localStorage and state
@@ -75,7 +74,7 @@ const login = async (email, password) => {
 
   const register = async (name, email, password) => {
   try {
-    const res = await axios.post(`${import.meta.env.BACKENDURL}/api/register`, {
+    const res = await axios.post(`${backend_url}/api/register`, {
       name,
       email,
       password
