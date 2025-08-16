@@ -103,6 +103,7 @@ function Data() {
       console.error(err);
     }
   };
+
  useEffect(() => {
     if (!token) {
       navigate('/login');
@@ -110,6 +111,8 @@ function Data() {
       fetchData();
     }
   }, [token, navigate]);
+
+
 // useEffect(() => {
 //   if (!token) {
 //     const storedToken = localStorage.getItem('authToken');
@@ -300,22 +303,28 @@ function Data() {
             </h2>
             
             {todayWinner && (
-              <motion.div 
-                className="mb-6 p-4 bg-gold-50 border border-gold-300 rounded-lg relative overflow-hidden"
-                variants={glow}
-              >
-                <div className="absolute -top-10 -right-10 w-20 h-20 bg-yellow-200 rounded-full filter blur-xl opacity-40"></div>
-                <h3 className="text-lg font-semibold text-bhagwa-800 flex items-center gap-2">
-                  <span className="text-yellow-500 text-xl">👑</span>
-                  Today's Divine Champion
-                </h3>
-                <p className="flex justify-between items-center mt-2">
-                  <span className="font-medium text-bhagwa-700">{todayWinner.name}</span>
-                  <span className="px-3 py-1 bg-bhagwa-100 text-bhagwa-800 rounded-full font-bold">
-                    {todayWinner.points} पुण्य
-                  </span>
-                </p>
-              </motion.div>
+              <motion.div
+      className="relative p-6 rounded-2xl shadow-2xl 
+                 bg-white/10 backdrop-blur-2xl
+                 border border-white/30
+                 overflow-hidden"
+      variants={fadeUp}
+      initial="hidden"
+      animate="visible"
+    >
+      {/* Liquid glass highlights */}
+      <div className="absolute -top-20 -left-20 w-40 h-40 bg-yellow-300 rounded-full blur-3xl opacity-20"></div>
+      <div className="absolute -bottom-20 -right-20 w-40 h-40 bg-orange-400 rounded-full blur-3xl opacity-20"></div>
+
+      {/* Heading */}
+      <h2 className="text-2xl font-semibold text-orange-900 mb-4 flex items-center gap-2 relative z-10">
+        <span className="text-yellow-400">📿</span>
+        Satsangi Seva Board
+      </h2>
+
+     
+     
+    </motion.div>
             )}
             
             {users.length > 0 ? (
