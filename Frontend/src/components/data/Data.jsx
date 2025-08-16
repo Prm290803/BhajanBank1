@@ -103,20 +103,26 @@ function Data() {
       console.error(err);
     }
   };
-
-useEffect(() => {
-  if (!token) {
-    const storedToken = localStorage.getItem('authToken');
-    if (storedToken) {
-      // Token exists in storage but not context - reload properly
-      window.location.reload();
-    } else {
+ useEffect(() => {
+    if (!token) {
       navigate('/login');
+    } else {
+      fetchData();
     }
-  } else {
-    fetchData();
-  }
-}, [token, navigate]);
+  }, [token, navigate]);
+// useEffect(() => {
+//   if (!token) {
+//     const storedToken = localStorage.getItem('authToken');
+//     if (storedToken) {
+//       // Token exists in storage but not context - reload properly
+//       window.location.reload();
+//     } else {
+//       navigate('/login');
+//     }
+//   } else {
+//     fetchData();
+//   }
+// }, [token, navigate]);
 
   return (
     <div className="min-h-screen   bg-[url('/temple2.jpeg')] bg-cover bg-center  p-6">
