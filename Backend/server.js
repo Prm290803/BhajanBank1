@@ -11,7 +11,7 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 
 import jwt from 'jsonwebtoken';
-import User from './models/User.js';
+import User from './models/user.js';
 import Task from './models/Task.js';
 import authMiddleware from './middleware/auth.js';
 
