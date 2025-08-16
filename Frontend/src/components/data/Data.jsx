@@ -171,7 +171,7 @@ useEffect(() => {
   <h1 className="text-4xl md:text-5xl font-bold text-[#FF7722] font-serif">
     <span className="text-gold-500">श्री</span> Bhajan Bank
   </h1>
-  <p className="text-[#ffffff] italic text-base md:text-lg mt-2">
+  <p className="text-gray-200 italic text-base md:text-lg mt-2">
     "Your daily bhajan recorded as divine offering"
   </p>
 </div>
@@ -181,7 +181,7 @@ useEffect(() => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left: Seva Offering */}
           <motion.div
-            className="space-y-8 bg-white/10 backdrop-blur-xl p-10 border rounded-2xl shadow-2xl border border-white/20 z-10 mx-4"
+            className=" bg-white/20 backdrop-blur-xl p-6 rounded-2xl shadow-xl border space-y-8 bg-white/10 backdrop-blur-xl p-10"
             variants={fadeUp}
             initial="hidden"
             animate="visible"

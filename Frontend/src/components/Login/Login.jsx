@@ -33,7 +33,7 @@ function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[url('\temple.jpg')] bg-cover bg-center">
+    <div className="min-h-screen flex items-center justify-center bg-[url('/temple.jpg')] bg-cover bg-center">
       {/* Divine overlay */}
       <div className="absolute inset-0 bg-[#FF7722]/20 "></div>
       
