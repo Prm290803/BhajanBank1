@@ -50,9 +50,9 @@ function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[url('/temple.jpg')] bg-cover bg-center">
+    <div className="min-h-screen flex items-center justify-center bg-[url('/temple2.jpeg')] bg-cover bg-center">
       {/* Divine overlay */}
-       <div className="absolute inset-0 bg-[#FF7722]/20 "></div>
+       <div className="absolute inset-0  "></div>
       
       <div className="relative max-w-md w-full space-y-8 bg-white/10 backdrop-blur-xl p-10 rounded-2xl shadow-2xl border border-white/20 z-10 mx-4">
         {/* Divine header */}

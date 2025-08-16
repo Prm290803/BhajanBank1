@@ -119,7 +119,7 @@ useEffect(() => {
 }, [token, navigate]);
 
   return (
-    <div className="min-h-screen   bg-[url('')] bg-cover bg-center  p-6">
+    <div className="min-h-screen   bg-[url('/temple2.jpeg')] bg-cover bg-center  p-6">
       {/* Divine Glow Effect */}
       <div className="fixed inset-0 bg-radial-gradient from-yellow-100/20 via-transparent to-transparent  pointer-events-none"></div>
       
@@ -128,7 +128,7 @@ useEffect(() => {
         
 
   {/* Header */}
-<header className="w-full flex items-center justify-between py-4 px-6 bg-white/30 backdrop-blur-md shadow-md fixed top-0 left-0 z-50">
+<header className="max-w-screen w-full  flex items-center justify-between py-4 px-6 bg-white/10 backdrop-blur shadow-sm fixed top-0 left-0 z-50">
   {/* Left: Icon / Logo */}
   <div className="flex items-center gap-2">
     <img
@@ -181,7 +181,7 @@ useEffect(() => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left: Seva Offering */}
           <motion.div
-            className=" bg-white/20 backdrop-blur-xl p-6 rounded-2xl shadow-xl border space-y-8 bg-white/10 backdrop-blur-xl p-10"
+            className=" bg-white/20 backdrop-blur-xl p-6 rounded-2xl shadow-xl border border-white/30"
             variants={fadeUp}
             initial="hidden"
             animate="visible"
@@ -224,7 +224,7 @@ useEffect(() => {
                       <select
                         value={t.task}
                         onChange={(e) => handleTaskChange(i, "task", e.target.value)}
-                        className="w-full px-3 py-2 border border-gold-300 rounded-lg focus:ring-2 focus:ring-bhagwa-400 bg-white-20"
+                        className="w-full px-3 py-2 border border-gold-300 rounded-lg focus:ring-2 focus:ring-[#FF9933] focus:border-[#FF9933]"
                         required
                       >
                         <option value="">Select your devotional offering</option>
@@ -245,15 +245,15 @@ useEffect(() => {
                         type="text"
                         value={t.count}
                         onChange={(e) => handleTaskChange(i, "count", e.target.value)}
-                        className="w-full px-3 py-2 border border-gold-300 rounded-lg focus:ring-2 focus:ring-bhagwa-400"
+                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#FF9933] focus:border-[#FF9933]"
                         required
                       />
                       {t.count === "" && (
-                        <p className="text-sm text-[#b33a3a] mt-1">Please enter count</p>
+                        <p className="text-sm text-red-500 mt-1">Please enter count</p>
                       )}
                     </div>
 
-                    <div className="bg-peacock-50 p-3 rounded-lg text-[#096C6C] font-medium border border-peacock-100">
+                    <div className="bg-peacock-50 p-3 rounded-lg text-[#fffff] font-medium border border-peacock-100">
                       {t.task.includes("Mantra Japp")
                         ? `${t.count || 0} japps = ${Math.floor((t.count || 0) / 10)} punya`
                         : `Punya: ${t.count || 0} × ${t.points} = ${(t.count || 0) * t.points}`}
@@ -273,7 +273,7 @@ useEffect(() => {
 
               <button
                 type="submit"
-                className="w-full py-3 bg-[#FF9933] text-white rounded-lg hover:bg-bhagwa-700 flex items-center justify-center gap-2 font-bold text-lg shadow-lg transition-all hover:shadow-bhagwa-200/50"
+                className="w-full py-3  backdrop-blur-xl text-white rounded-lg hover:bg-[#FF9933] flex items-center justify-center gap-2 font-bold text-lg shadow-lg transition-all hover:shadow-[#FF9933]/50"
               >
                 Offer to Maharaj
                 <span className="text-xl">🪔</span>
@@ -358,7 +358,7 @@ useEffect(() => {
 
             {/* Daily Inspiration */}
             <div className="mt-8 p-4 bg-peacock-50 bg-opacity-70 rounded-lg border border-peacock-200">
-              <p className="text-peacock-800 italic text-center">
+              <p className=" text-[#FF9933] italic font-semibold text-center">
                 "Regular bhajan is the key to eternal peace and divine bliss."<br />
                 - Shriji Maharaj
               </p>
@@ -367,7 +367,7 @@ useEffect(() => {
         </div>
 
         {/* Footer */}
-        <footer className="text-center  text-sm mt-12">
+        <footer className="text-center text-[#FF9933] text-sm mt-12">
           <LotusDivider className="mb-4" />
           <p>श्री स्वामिनारायणाय नमः</p>
           <p>May your devotion blossom like a lotus in the divine light</p>

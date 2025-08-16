@@ -33,9 +33,9 @@ function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[url('/temple.jpg')] bg-cover bg-center">
+    <div className="min-h-screen flex items-center justify-center bg-[url('/temple2.jpeg')] bg-cover bg-center">
       {/* Divine overlay */}
-      <div className="absolute inset-0 bg-[#FF7722]/20 "></div>
+      <div className="absolute inset-0 "></div>
       
       <div className="relative max-w-md w-full space-y-8 bg-white/10 backdrop-blur-xl p-10 rounded-2xl shadow-2xl border border-white/20 z-10 mx-4">
         {/* Divine header */}
@@ -73,7 +73,7 @@ function Login() {
                 type="email"
                 autoComplete="email"
                 required
-                className="block w-full px-4 py-3 border border-bhagwa-200 rounded-lg shadow-sm focus:ring-bhagwa-500 focus:border-bhagwa-500 placeholder-bhagwa-300"
+                className="block w-full px-4 py-3 border border-[#FF9933] rounded-lg shadow-sm focus:ring-[#FF9933] focus:border-[#FF9933] placeholder-bhagwa-300"
                 placeholder="your@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -98,7 +98,7 @@ function Login() {
                 type={showPassword ? 'text' : 'password'}
                 autoComplete="current-password"
                 required
-                className="block w-full px-4 py-3 border border-bhagwa-200 rounded-lg shadow-sm focus:ring-bhagwa-500 focus:border-bhagwa-500 placeholder-bhagwa-300"
+                className="block w-full px-4 py-3 border border-[#FF9933] rounded-lg shadow-sm focus:ring-bhagwa-500 focus:border-bhagwa-500 placeholder-bhagwa-300"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -107,11 +107,11 @@ function Login() {
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute inset-y-0 right-0 flex items-center pr-3 text-bhagwa-500 hover:text-bhagwa-700"
-              >
+              > 
                 {showPassword ? (
                   <EyeIcon className="h-5 w-5" />
                 ) : (
-                  <EyeSlashIcon className="h-5 w-5" />
+                  <EyeSlashIcon className="h-5 w-5" /> 
                 )}
               </button>
             </div>
