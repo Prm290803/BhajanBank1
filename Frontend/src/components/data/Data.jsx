@@ -112,7 +112,7 @@ function Data() {
     }
   }, [token, navigate]);
 
-
+  
 // useEffect(() => {
 //   if (!token) {
 //     const storedToken = localStorage.getItem('authToken');
@@ -322,7 +322,7 @@ function Data() {
         Satsangi Seva Board
       </h2>
 
-     
+      {/* Leaderboard List */}
      
     </motion.div>
             )}
