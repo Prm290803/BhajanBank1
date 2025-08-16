@@ -292,94 +292,108 @@ function Data() {
 
           {/* Right: Satsangi Seva Board */}
                <motion.div
-                      className="bg-white/20 backdrop-blur-xl p-6 rounded-2xl shadow-xl border border-white/30"
-                      variants={fadeUp}
-                      initial="hidden"
-                      animate="visible"
-                >
-            <h2 className="text-2xl font-semibold text-bhagwa-800 mb-4 flex items-center gap-2">
-              <span className="text-gold-500">📿</span>
-              Satsangi Seva Board
-            </h2>
-            
-            {todayWinner && (
-              <motion.div
-      className="relative p-6 rounded-2xl shadow-2xl 
-                 bg-white/10 backdrop-blur-2xl
-                 border border-white/30
-                 overflow-hidden"
+      className="relative bg-white/20 backdrop-blur-xl p-8 rounded-3xl shadow-2xl border border-white/30 overflow-hidden"
       variants={fadeUp}
       initial="hidden"
       animate="visible"
     >
       {/* Liquid glass highlights */}
-      <div className="absolute -top-20 -left-20 w-40 h-40 bg-yellow-300 rounded-full blur-3xl opacity-20"></div>
-      <div className="absolute -bottom-20 -right-20 w-40 h-40 bg-orange-400 rounded-full blur-3xl opacity-20"></div>
+      <div className="absolute -top-32 -left-32 w-64 h-64 bg-yellow-300 rounded-full blur-3xl opacity-20"></div>
+      <div className="absolute -bottom-32 -right-32 w-64 h-64 bg-orange-400 rounded-full blur-3xl opacity-20"></div>
 
       {/* Heading */}
-      <h2 className="text-2xl font-semibold text-orange-900 mb-4 flex items-center gap-2 relative z-10">
-        <span className="text-yellow-400">📿</span>
+      <h2 className="text-3xl font-bold text-bhagwa-800 mb-6 flex items-center gap-2 relative z-10">
+        <span className="text-yellow-500 text-2xl">📿</span>
         Satsangi Seva Board
       </h2>
 
-      {/* Leaderboard List */}
-     
-    </motion.div>
-            )}
-            
-            {users.length > 0 ? (
-              <ul className="space-y-3">
-                {users.map((u, i) => (
-                  <motion.li
-                    key={i}
-                    className={`flex justify-between items-center p-4 rounded-lg ${
-                      i === 0 
-                        ? "bg-gradient-to-r from-gold-100 to-yellow-50 border border-gold-300 shadow-sm" 
-                        : "bg-saffron-50 border border-saffron-200"
-                    } relative overflow-hidden`}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                  >
-                    {i === 0 && (
-                      <div className="absolute -top-5 -right-5 w-16 h-16 bg-yellow-200 rounded-full filter blur-lg opacity-30"></div>
-                    )}
-                    <div className="flex items-center gap-3">
-                      {i === 0 ? (
-                        <div className="relative">
-                          <span className="text-yellow-500 text-2xl">👑</span>
-                          <div className="absolute inset-0 rounded-full bg-yellow-300 animate-ping opacity-30"></div>
-                        </div>
-                      ) : (
-                        <span className="text-bhagwa-500">{i + 1}.</span>
-                      )}
-                      <span className={i === 0 ? "text-bhagwa-700 font-semibold" : "text-bhagwa-600"}>
-                        {u.name}
-                      </span>
-                    </div>
-                    <span className={`px-3 py-1 rounded-full font-semibold ${
-                      i === 0 ? "bg-yellow-100 text-bhagwa-700" : "bg-saffron-100 text-bhagwa-600"
-                    }`}>
-                      {u.points} पुण्य
-                    </span>
-                  </motion.li>
-                ))}
-              </ul>
-            ) : (
-              <div className="text-center py-8 text-bhagwa-600">
-                <p className="text-lg">No seva offerings recorded yet</p>
-                <p className="mt-2 text-sm">Be the first to offer your devotion!</p>
-              </div>
-            )}
+      {/* Today’s Winner */}
+      {todayWinner && (
+        <motion.div
+          className="mb-8 p-5 rounded-2xl bg-gradient-to-r from-yellow-100/70 to-gold-50/50 border border-yellow-300 relative overflow-hidden shadow-lg"
+          variants={fadeUp}
+        >
+          <div className="absolute -top-10 -right-10 w-28 h-28 bg-yellow-200 rounded-full blur-2xl opacity-30"></div>
+          <h3 className="text-xl font-semibold text-bhagwa-800 flex items-center gap-2 relative z-10">
+            <span className="text-yellow-500 text-2xl">👑</span>
+            Today’s Divine Champion
+          </h3>
+          <p className="flex justify-between items-center mt-2 relative z-10">
+            <span className="font-medium text-bhagwa-700">{todayWinner.name}</span>
+            <span className="px-4 py-1 bg-bhagwa-100 text-bhagwa-800 rounded-full font-bold">
+              {todayWinner.points} पुण्य
+            </span>
+          </p>
+        </motion.div>
+      )}
 
-            {/* Daily Inspiration */}
-            <div className="mt-8 p-4 bg-peacock-50 bg-opacity-70 rounded-lg border border-peacock-200">
-              <p className=" text-[#FF9933] italic font-semibold text-center">
-                "Regular bhajan is the key to eternal peace and divine bliss."<br />
-                - Shriji Maharaj
-              </p>
-            </div>
-          </motion.div>
+      {/* Leaderboard */}
+      {users.length > 0 ? (
+        <ul className="space-y-4 relative z-10">
+          {users.map((u, i) => (
+            <motion.li
+              key={i}
+              className={`flex justify-between items-center p-4 rounded-xl relative overflow-hidden backdrop-blur-md ${
+                i === 0
+                  ? "bg-gradient-to-r from-gold-100 to-yellow-50 border border-gold-300 shadow-md"
+                  : "bg-saffron-50/80 border border-saffron-200"
+              }`}
+              initial={{ opacity: 0, x: -15 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: i * 0.1 }}
+            >
+              {i === 0 && (
+                <div className="absolute -top-6 -right-6 w-20 h-20 bg-yellow-300 rounded-full blur-xl opacity-30"></div>
+              )}
+
+              <div className="flex items-center gap-3">
+                {i === 0 ? (
+                  <div className="relative">
+                    <span className="text-yellow-500 text-2xl">👑</span>
+                    <div className="absolute inset-0 rounded-full bg-yellow-300 animate-ping opacity-30"></div>
+                  </div>
+                ) : (
+                  <span className="text-bhagwa-500 font-semibold">{i + 1}.</span>
+                )}
+                <span
+                  className={`${
+                    i === 0
+                      ? "text-bhagwa-800 font-semibold"
+                      : "text-bhagwa-700"
+                  }`}
+                >
+                  {u.name}
+                </span>
+              </div>
+
+              <span
+                className={`px-3 py-1 rounded-full font-semibold ${
+                  i === 0
+                    ? "bg-yellow-100 text-bhagwa-800"
+                    : "bg-saffron-100 text-bhagwa-700"
+                }`}
+              >
+                {u.points} पुण्य
+              </span>
+            </motion.li>
+          ))}
+        </ul>
+      ) : (
+        <div className="text-center py-10 text-bhagwa-600 relative z-10">
+          <p className="text-lg">No seva offerings recorded yet</p>
+          <p className="mt-2 text-sm">Be the first to offer your devotion!</p>
         </div>
+      )}
+
+      {/* Daily Inspiration */}
+      <div className="mt-10 p-5 bg-peacock-50/70 backdrop-blur-lg rounded-xl border border-peacock-200 shadow-inner relative z-10">
+        <p className="text-[#FF9933] italic font-semibold text-center">
+          "Regular bhajan is the key to eternal peace and divine bliss."
+          <br />– Shriji Maharaj
+        </p>
+      </div>
+    </motion.div>
+    </div>
 
         {/* Footer */}
         <footer className="text-center text-[#FF9933] text-sm mt-12">
