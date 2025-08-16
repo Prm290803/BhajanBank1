@@ -71,6 +71,9 @@ app.post('/api/register', async (req, res) => {
   if (password.length < 6) {
     return res.status(400).json({ error: "Password must be at least 6 characters!" });
   }
+  else{
+    console.log("Password must be long enough to 6")
+  }
 
     // Check if user exists
     let user = await User.findOne({ email });

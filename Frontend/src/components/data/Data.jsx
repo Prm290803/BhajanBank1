@@ -104,60 +104,98 @@ function Data() {
     }
   };
 
-  useEffect(() => {
-    if (!token) navigate("/login");
-    else fetchData();
-  }, [token, navigate]);
+useEffect(() => {
+  if (!token) {
+    const storedToken = localStorage.getItem('authToken');
+    if (storedToken) {
+      // Token exists in storage but not context - reload properly
+      window.location.reload();
+    } else {
+      navigate('/login');
+    }
+  } else {
+    fetchData();
+  }
+}, [token, navigate]);
 
   return (
-    <div className="min-h-screen bg-saffron-50 bg-opacity-20 bg-[url('./assets/temple-bg-pattern.svg')] bg-repeat p-6">
+    <div className="min-h-screen   bg-[url('')] bg-cover bg-center  p-6">
       {/* Divine Glow Effect */}
-      <div className="fixed inset-0 bg-radial-gradient from-yellow-100/20 via-transparent to-transparent pointer-events-none"></div>
+      <div className="fixed inset-0 bg-radial-gradient from-yellow-100/20 via-transparent to-transparent  pointer-events-none"></div>
       
       <div className="max-w-7xl mx-auto space-y-8 relative">
         {/* Divine Presence */}
         
 
-        {/* Header */}
-        <header className="flex justify-between items-center relative">
-          <div className="text-center">
-            <h1 className="text-4xl font-bold text-bhagwa-700 font-serif">
-              <span className="text-gold-500">श्री</span> Bhajan Bank
-            </h1>
-            <p className="text-gray-600 italic">"Your daily bhajan recorded as divine offering"</p>
-          </div>
-          <div className="flex gap-4">
-          
-            <button
-              onClick={logout}
-              className="px-4 py-2 bg-red-400 text-white rounded-lg shadow hover:bg-maroon-700 flex items-center gap-2"
-            >
-              <span>Logout</span>
-            </button>
-          </div>
-        </header>
+  {/* Header */}
+<header className="w-full flex items-center justify-between py-4 px-6 bg-white/30 backdrop-blur-md shadow-md fixed top-0 left-0 z-50">
+  {/* Left: Icon / Logo */}
+  <div className="flex items-center gap-2">
+    <img
+      src="/1.png"
+      alt="App Logo"
+      className="w-10 h-10 rounded-full shadow-md"
+    />
+    <span className="text-lg font-semibold text-[#FF7722] font-serif">
+      Bhajan Bank
+    </span>
+  </div>
+
+  {/* Right: Logout Button */}
+  <div>
+    <button
+      onClick={logout}
+      className="px-4 py-2 bg-red-500 text-white rounded-lg shadow hover:bg-red-600 flex items-center gap-2 text-sm md:text-base"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth={1.5}
+        stroke="currentColor"
+        className="w-5 h-5"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6A2.25 2.25 0 005.25 5.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"
+        />
+      </svg>
+      <span className="hidden sm:inline">Logout</span>
+    </button>
+  </div>
+</header>
+
+{/* Center Title Section (below navbar) */}
+<div className="pt-28 text-center px-6">
+  <h1 className="text-4xl md:text-5xl font-bold text-[#FF7722] font-serif">
+    <span className="text-gold-500">श्री</span> Bhajan Bank
+  </h1>
+  <p className="text-[#ffffff] italic text-base md:text-lg mt-2">
+    "Your daily bhajan recorded as divine offering"
+  </p>
+</div>
 
         <LotusDivider className="my-8" />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left: Seva Offering */}
           <motion.div
-            className="bg-white bg-opacity-90 p-6 rounded-2xl shadow-lg border border-gold-200 relative overflow-hidden"
+            className="space-y-8 bg-white/10 backdrop-blur-xl p-10 border rounded-2xl shadow-2xl border border-white/20 z-10 mx-4"
             variants={fadeUp}
             initial="hidden"
             animate="visible"
           >
             {/* Divine light effect */}
-            <div className="absolute -top-20 -right-20 w-40 h-40 bg-yellow-100 rounded-full filter blur-3xl opacity-30"></div>
             
-            <h2 className="text-2xl font-semibold text-bhagwa-800 mb-4 flex items-center gap-2">
-              <span className="text-gold-500">🪔</span>
+            <h2 className="text-2xl font-semibold text-[#FF9933] mb-4 flex items-center gap-2">
+              <span className="text-gold-500">🙏</span>
               Daily Seva Offering
             </h2>
 
             {user && (
-              <p className="text-lg mb-6 text-maroon-600 font-medium">
-                Hari Om {user.name}! Maharaj awaits your devotion today. 🙏
+              <p className="text-lg mb-6 text-[#800000] font-medium">
+                Jay Swaminarayan{user.name}! Maharaj awaits your devotion today. 🙏
               </p>
             )}
 
@@ -166,7 +204,7 @@ function Data() {
                 {tasks.map((t, i) => (
                   <motion.div
                     key={i}
-                    className="p-4 bg-saffron-50 bg-opacity-50 rounded-xl shadow-sm space-y-4 relative border border-gold-200"
+                    className="p-4 bg-white-100 bg-opacity-50 rounded-xl shadow-sm space-y-4 relative border"
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -15 }}
@@ -175,9 +213,9 @@ function Data() {
                       <button
                         type="button"
                         onClick={() => removeTask(i)}
-                        className="absolute top-2 right-2 text-maroon-500 hover:text-maroon-700"
+                        className="absolute top-2 right-2 text-[#800000] hover:text-[#b33a3a]"
                       >
-                        X
+                        Remove
                       </button>
                     )}
 
@@ -186,7 +224,7 @@ function Data() {
                       <select
                         value={t.task}
                         onChange={(e) => handleTaskChange(i, "task", e.target.value)}
-                        className="w-full px-3 py-2 border border-gold-300 rounded-lg focus:ring-2 focus:ring-bhagwa-400 bg-white"
+                        className="w-full px-3 py-2 border border-gold-300 rounded-lg focus:ring-2 focus:ring-bhagwa-400 bg-white-20"
                         required
                       >
                         <option value="">Select your devotional offering</option>
@@ -211,11 +249,11 @@ function Data() {
                         required
                       />
                       {t.count === "" && (
-                        <p className="text-sm text-maroon-500 mt-1">Please enter count</p>
+                        <p className="text-sm text-[#b33a3a] mt-1">Please enter count</p>
                       )}
                     </div>
 
-                    <div className="bg-peacock-50 p-3 rounded-lg text-peacock-800 font-medium border border-peacock-100">
+                    <div className="bg-peacock-50 p-3 rounded-lg text-[#096C6C] font-medium border border-peacock-100">
                       {t.task.includes("Mantra Japp")
                         ? `${t.count || 0} japps = ${Math.floor((t.count || 0) / 10)} punya`
                         : `Punya: ${t.count || 0} × ${t.points} = ${(t.count || 0) * t.points}`}
@@ -227,7 +265,7 @@ function Data() {
               <button
                 type="button"
                 onClick={addNewTask}
-                className="w-full py-3 bg-green-400 text-white rounded-lg hover:bg-peacock-600 flex items-center justify-center gap-2 transition-all"
+                className="w-full py-3 bg-green-500 text-white rounded-lg hover:bg-peacock-600 flex items-center justify-center gap-2 transition-all"
               >
                 <span className="text-xl">+</span>
                 Add More Seva
@@ -244,12 +282,12 @@ function Data() {
           </motion.div>
 
           {/* Right: Satsangi Seva Board */}
-          <motion.div
-            className="bg-white bg-opacity-90 p-6 rounded-2xl shadow-lg border border-gold-200"
-            variants={fadeUp}
-            initial="hidden"
-            animate="visible"
-          >
+               <motion.div
+                      className="bg-white/20 backdrop-blur-xl p-6 rounded-2xl shadow-xl border border-white/30"
+                      variants={fadeUp}
+                      initial="hidden"
+                      animate="visible"
+                >
             <h2 className="text-2xl font-semibold text-bhagwa-800 mb-4 flex items-center gap-2">
               <span className="text-gold-500">📿</span>
               Satsangi Seva Board
@@ -329,7 +367,7 @@ function Data() {
         </div>
 
         {/* Footer */}
-        <footer className="text-center text-bhagwa-600 text-sm mt-12">
+        <footer className="text-center  text-sm mt-12">
           <LotusDivider className="mb-4" />
           <p>श्री स्वामिनारायणाय नमः</p>
           <p>May your devotion blossom like a lotus in the divine light</p>
