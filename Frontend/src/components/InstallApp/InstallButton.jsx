@@ -26,7 +26,7 @@ export default function InstallButton() {
     setDeferredPrompt(null); // clear
     setShowButton(false);    // hide after install
   };
-if (isStandalone || !deferredPrompt) return null;
+
   return (
     <>
       {showButton && (
