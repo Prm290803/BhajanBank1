@@ -214,7 +214,7 @@ function Data() {
 
             {user && (
               <p className="text-lg mb-6 text-[#800000] font-medium">
-                Jay Swaminarayan{user.name}! Maharaj awaits your devotion today. 🙏
+                Jay Swaminarayan  {user.name}! Maharaj awaits your devotion today. 🙏
               </p>
             )}
 
