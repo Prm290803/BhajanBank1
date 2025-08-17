@@ -6,6 +6,7 @@ import Data from './components/data/Data';
 import { AuthProvider } from '../src/Auth/AuthContext'; // ✅ Correct import
 import Login from './components/Login/Login';
 import Register from '../src/components/register/register'
+import InstallButton from "./components/InstallApp/InstallButton";
 
 
 

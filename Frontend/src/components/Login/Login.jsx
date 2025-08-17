@@ -39,6 +39,26 @@ function Login() {
       
       <div className="relative max-w-md w-full space-y-8 bg-white/10 backdrop-blur-xl p-10 rounded-2xl shadow-2xl border border-white/20 z-10 mx-4">
         {/* Divine header */}
+        <button
+          onClick={() => navigate("/")}
+          className="flex items-center gap-2 px-2 py- rounded-lg  text-[#E56210] font-medium shadow hover:bg-[#E56210]/20 "
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="w-5 h-5"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15.75 19.5L8.25 12l7.5-7.5"
+            />
+          </svg>
+          Back
+        </button>
         <div className="text-center">
           <div className="mx-auto w-24 h-24 bg-[#E56210] rounded-full flex items-center justify-center mb-4">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-12 h-12 text-bhagwa-600">
@@ -46,6 +66,7 @@ function Login() {
               <path d="M12 5.432l8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 01-.75-.75v-4.5a.75.75 0 00-.75-.75h-3a.75.75 0 00-.75.75V21a.75.75 0 01-.75.75H5.625a1.875 1.875 0 01-1.875-1.875v-6.198a2.29 2.29 0 00.091-.086L12 5.43z" />
             </svg>
           </div>
+          
           <h2 className="text-3xl font-bold text-[#E56210] font-serif">
             <span className="text-gold-500">श्री</span> Bhajan Bank
           </h2>
