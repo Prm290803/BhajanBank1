@@ -104,6 +104,16 @@ function Data() {
     }
   };
 
+  useEffect(() => {
+  fetchData(); // fetch initially
+
+  const interval = setInterval(() => {
+    fetchData();
+  }, 6000); // every 6 seconds
+
+  return () => clearInterval(interval); // cleanup on unmount
+}, []);
+
  useEffect(() => {
     if (!token) {
       navigate('/login');
