@@ -26,6 +26,36 @@ const app = express();
 
 app.use(express.json());
 
+// const webpush = require("web-push");
+// const bodyParser = require("body-parser");
+
+// app.use(bodyParser.json());
+
+// const vapidKeys = webpush.generateVAPIDKeys(); 
+// // Generate once, save keys in .env
+// webpush.setVapidDetails(
+//   "mailto:you@example.com",
+//   process.env.VAPID_PUBLIC_KEY,
+//   process.env.VAPID_PRIVATE_KEY
+// );
+
+// let subscriptions = [];
+
+// // Save subscription
+// app.post("/api/subscribe", (req, res) => {
+//   const subscription = req.body;
+//   subscriptions.push(subscription);
+//   res.status(201).json({});
+// });
+
+// // Send a test notification
+// app.post("/api/notify", (req, res) => {
+//   const payload = JSON.stringify({ title: "Hello", body: "This is a test!" });
+//   subscriptions.forEach(sub => {
+//     webpush.sendNotification(sub, payload).catch(err => console.error(err));
+//   });
+//   res.send("Notifications sent");
+// });
 
   
   // MongoDB Connection
@@ -206,21 +236,33 @@ app.post('/api/tasks', authMiddleware, async (req, res) => {
 app.get('/api/tasks', authMiddleware, async (req, res) => {
   try {
     const userId = req.userId;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const now = new Date();
+
+    // Create a boundary at 4 AM
+    let start = new Date(now);
+    start.setHours(4, 0, 0, 0);
+
+    let end = new Date(start);
+    end.setDate(end.getDate() + 1); // next day 4 AM
+
+    // If current time is before 4 AM, shift to previous day
+    if (now < start) {
+      start.setDate(start.getDate() - 1);
+      end.setDate(end.getDate() - 1);
+    }
 
     const tasks = await Task.find({
-      // user: userId,
-      date: { $gte: today }
+      // user: userId,  // keep if filtering by user
+      date: { $gte: start, $lt: end }
     }).populate('user', 'name');
-    // const tasks = await Task.find({}).populate('user', 'name');
-    
+
     res.json(tasks);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });
   }
 });
+
 
 app.get('/api/leaderboard', async (req, res) => {
   try {
