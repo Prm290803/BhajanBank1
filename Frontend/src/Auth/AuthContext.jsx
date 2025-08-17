@@ -9,59 +9,96 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(localStorage.getItem('token') || '');
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (token) {
-      // Save token & set axios header
-      localStorage.setItem('token', token);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  useEffect(() => { if (token) {
+    // Save token & set axios header
+    localStorage.setItem('token', token);
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
-      // Try to fetch user info
-      axios
-        .get(`${backend_url}/api/user`)
-        .then(res => {
-          setUser(res.data);
-        })
-        .catch(err => {
-          console.error('Failed to fetch user:', err);
-          logout(); // token invalid, log user out
-        })
-        .finally(() => setLoading(false));
-    } else {
-      // No token → clear everything
-      localStorage.removeItem('token');
-      delete axios.defaults.headers.common['Authorization'];
-      setUser(null);
-      setLoading(false);
+    axios .get(`${backend_url}/api/user`) .then(res => { setUser(res.data); })
+
+    .catch(err => { console.error('Failed to fetch user:', err); 
+      logout(); 
+      // token invalid, log user out 
+      })
+      .finally(() => setLoading(false)); 
     }
-  }, [token]);
+     else {
+        localStorage.removeItem('token');
+        delete axios.defaults.headers.common['Authorization'];
+        setUser(null); 
+        setLoading(false);
+        } }, 
+        [token]);
+//   useEffect(() => {
+//   if (token) {
+//     // Save token & set axios header
+//     localStorage.setItem('token', token);
+//     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+//     // Try to fetch user info
+//     axios
+//       .get(`${backend_url}/api/user`)
+//       .then(res => {
+//         setUser(res.data);
+//       })
+//       .catch(err => {
+//         console.error('Failed to fetch user:', err);
+//         logout(); // token invalid, log user out
+//       })
+//       .finally(() => setLoading(false));
+//   } else {
+//     // No token → clear everything
+//     localStorage.removeItem('token');
+//     delete axios.defaults.headers.common['Authorization'];
+//     setUser(null);
+//     setLoading(false);
+//   }
+// }, [token]);
 
 const login = async (email, password) => {
   try {
     const res = await axios.post(`${backend_url}/api/login`, { email, password });
 
-    // adjust based on backend response
-    const token = res.data.token || res.data.accessToken;
-    const user = res.data.user || null;
 
-    if (!token) throw new Error("No token received from backend");
+    // Save token to localStorage and state
+    localStorage.setItem('token', res.data.token);
+    setToken(res.data.token); // This will trigger useEffect
 
-    // Save token in state, localStorage, and axios header
-    setToken(token);
-    localStorage.setItem('token', token);
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-
-    // Save user if backend sends it
-    setUser(user);
-
-    return { success: true, user };
+    return { success: true, user: res.data.user };
   } catch (err) {
-    console.error("Login error:", err.response?.data || err.message);
     return {
       success: false,
-      message: err.response?.data?.message || err.response?.data?.error || 'Login failed',
+      message: err.response?.data?.message || 'Login failed'
     };
   }
 };
+// const login = async (email, password) => {
+//   try {
+//     const res = await axios.post(`${backend_url}/api/login`, { email, password });
+
+//     // adjust based on backend response
+//     const token = res.data.token || res.data.accessToken;
+//     const user = res.data.user || null;
+
+//     if (!token) throw new Error("No token received from backend");
+
+//     // Save token in state, localStorage, and axios header
+//     setToken(token);
+//     localStorage.setItem('token', token);
+//     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+//     // Save user if backend sends it
+//     setUser(user);
+
+//     return { success: true, user };
+//   } catch (err) {
+//     console.error("Login error:", err.response?.data || err.message);
+//     return {
+//       success: false,
+//       message: err.response?.data?.message || err.response?.data?.error || 'Login failed',
+//     };
+//   }
+// };
 
   const register = async (name, email, password) => {
     try {
