@@ -35,22 +35,33 @@ export function AuthProvider({ children }) {
     }
   }, [token]);
 
-  const login = async (email, password) => {
-    try {
-      const res = await axios.post(`${backend_url}/api/login`, { email, password });
+const login = async (email, password) => {
+  try {
+    const res = await axios.post(`${backend_url}/api/login`, { email, password });
 
-      // Save token in state and localStorage
-      setToken(res.data.token);
-      setUser(res.data.user);
+    // adjust based on backend response
+    const token = res.data.token || res.data.accessToken;
+    const user = res.data.user || null;
 
-      return { success: true, user: res.data.user };
-    } catch (err) {
-      return {
-        success: false,
-        message: err.response?.data?.message || 'Login failed',
-      };
-    }
-  };
+    if (!token) throw new Error("No token received from backend");
+
+    // Save token in state, localStorage, and axios header
+    setToken(token);
+    localStorage.setItem('token', token);
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+    // Save user if backend sends it
+    setUser(user);
+
+    return { success: true, user };
+  } catch (err) {
+    console.error("Login error:", err.response?.data || err.message);
+    return {
+      success: false,
+      message: err.response?.data?.message || err.response?.data?.error || 'Login failed',
+    };
+  }
+};
 
   const register = async (name, email, password) => {
     try {

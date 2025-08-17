@@ -184,10 +184,18 @@ app.post('/api/login', async (req, res) => {
 
 // Protected routes
 
-app.get('/api/user', async(req,res)=> {
- 
+app.get("/api/user", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).select("-password"); // hide password
+    if (!user) return res.status(404).json({ error: "User not found" });
 
-})
+    res.json(user);
+  } catch (err) {
+    console.error("Error fetching user:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 app.post('/api/tasks', authMiddleware, async (req, res) => {
   try {
     const { tasks } = req.body;
