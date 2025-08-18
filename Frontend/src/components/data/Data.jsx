@@ -452,7 +452,7 @@ useEffect(() => {
                     : "bg-saffron-100 text-bhagwa-700"
                 }`}
               >
-                {u.points} पुण्य
+                {u.points.toFixed(1)}पुण्य
               </span>
             </motion.li>
           ))}
