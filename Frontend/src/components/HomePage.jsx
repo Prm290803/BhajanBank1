@@ -30,38 +30,38 @@ function Home() {
 
   return (
     <div
-      className="min-h-screen flex flex-col justify-center items-center p-4"
+      className="min-h-screen flex flex-col justify-center p-4"
       style={{
-        backgroundImage: "url('/temple2.jpeg')",
+        backgroundImage: "url('/Maharaj.jpg')",
         backgroundSize: "cover",
         backgroundPosition: "center",
       }}
     >
       {/* Divine overlay - saffron with 10% opacity */}
       <div
-        className="absolute inset-0 backdrop-blur-sm"
-        style={{ backgroundColor: "rgba(255, 153, 51, 0.06)" }}
+        className="absolute inset-0 "
+        style={{ backgroundColor: "rgba(213, 117, 21, 0.11)" }}
       ></div>
 
-      <div className="relative z-10 text-center w-full max-w-2xl px-4">
+      <div className="relative flex justify-right align-right z-10 lg:text-center text-left w-full max-w-2xl px-4">
         <div className="flex flex-col items-center justify-center">
           {/* Animated welcome text */}
           <motion.h1
-            className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6 font-serif text-center"
+            className="text-4xl sm:text-5xl md:text-6xl font-bold mb-50 font-serif text-center"
             style={{ color: "#E56210" }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <span style={{ color: "#FFD700" }}>श्री</span> Welcome to Bhajan
+            <span style={{ color: "#e51010ff" }}>श्री</span> Welcome to Bhajan
             Bank
           </motion.h1>
 
-          <LotusDivider className="my-6 w-full max-w-xs" />
+          
 
           <motion.p
             className="text-lg sm:text-xl mb-8 italic text-center"
-            style={{ color: "#CC4D00" }}
+            style={{ color: "#ff6a00ff" }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3, duration: 0.8 }}
@@ -126,8 +126,8 @@ function Home() {
 
           {/* Footer blessing */}
           <motion.div
-            className="mt-12 text-sm w-full text-center"
-            style={{ color: "#FF9933" }}
+            className="mt-12 text-sm w-full font-semibold text-center"
+            style={{ color: "#ff8000ff" }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1, duration: 0.8 }}

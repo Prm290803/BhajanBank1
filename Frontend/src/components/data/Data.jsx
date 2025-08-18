@@ -27,18 +27,20 @@ function Data() {
   const [tasks, setTasks] = useState([{ task: "", points: 1, count: "" }]);
   const [todayWinner, setTodayWinner] = useState(null);
   const [musicPlaying, setMusicPlaying] = useState(false);
+  const [dailyQuote, setDailyQuote] = useState(null);
 
   // Divine tasks with Sanskrit names where appropriate
   const taskPoints = {
     "Vachnamrut (વચનામૃત)": 10,
     "BhaktChintamani (ભક્તચિંતામણિ)": 10,
     "Vandu Sahajanand (વંદુ સહજાનંદ)": 10,
-    "Janmangal Stotra/Namavali (જન્માંગળ સ્તોત્ર/નામાવલિ)": 10,
+    "Janmangal Stotra/Namavali (જનમંગલ સ્તોત્ર/નામાવલિ)": 10,
     "Parcha-Prakrn (પરચા-પ્રકરણ)": 10,
     "Bhram-Mohurat-Pooja (બ્રહ્મમુહૂર્ત પૂજા)": 50,
     "Mantra Japp (મંત્ર જપ)": 0.1,
     "Kirtan Bhajan (કીર્તન ભજન)": 5,
     "Satsang Participation (સત્સંગ સહભાગિતા)": 15,
+    "shikshapatri (શિક્ષાપત્રી વાંચન )": 5,
   };
 
   const toggleMusic = () => {
@@ -82,6 +84,73 @@ function Data() {
       console.error(err);
     }
   };
+const dailyQuotes = [
+  {
+    text: "Regular bhajan is the key to eternal peace and divine bliss.",
+    author: "Shriji Maharaj"
+  },
+  {
+    text: "The mind that constantly remembers God becomes pure like water in the Ganges.",
+    author: "Gunatitanand Swami"
+  },
+  {
+    text: "Just as a lamp cannot burn without oil, the soul cannot shine without bhajan.",
+    author: "Swaminarayan Bhagwan"
+  },
+  {
+    text: "God's name is the boat that carries us across the ocean of worldly existence.",
+    author: "Nishkulanand Swami"
+  },
+  {
+    text: "જે મન ઈશ્વરને સતત યાદ કરે છે, તે ગંગાના જળ જેવું શુદ્ધ બની જાય છે.",
+    author: "ગુણતીતાનંદ સ્વામી"
+  },
+  {
+    text: "One who remembers God with love will never be forsaken.",
+    author: "Swaminarayan Bhagwan"
+  },
+  {
+    text: "He who worships with faith and devotion will be granted divine bliss.",
+    author: "Shriji Maharaj"
+  },
+  {
+    text: "Bhakti without dharma is like a lamp without light.",
+    author: "Gunatitanand Swami"
+  },
+  {
+    text: "The soul finds peace only in the remembrance of God.",
+    author: "Muktanand Swami"
+  },
+  {
+    text: "ભગવાનનું નામ એવાં છે કે તે જ મનોવાંછિત ફળ આપે છે.",
+    author: "મુક્તાનંદ સ્વામી"
+  },
+  {
+    text: "Whoever chants 'Swaminarayan' even once with faith will be liberated.",
+    author: "Swaminarayan Bhagwan"
+  },
+  {
+    text: "Bhajan is the food of the soul; without it, the soul remains weak.",
+    author: "Nishkulanand Swami"
+  },
+  {
+    text: "સત્સંગી જે રોજ ભજન કરે છે, તેનું જીવન દિવ્ય બની જાય છે.",
+    author: "ગુણતીતાનંદ સ્વામી"
+  }
+];
+
+useEffect(() => {
+  // Get day of year to select quote (0-364)
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 0);
+  const diff = now - start;
+  const oneDay = 1000 * 60 * 60 * 24;
+  const dayOfYear = Math.floor(diff / oneDay);
+  
+  // Select quote based on day of year
+  const quoteIndex = dayOfYear % dailyQuotes.length;
+  setDailyQuote(dailyQuotes[quoteIndex]);
+}, []);
 
   const fetchData = async () => {
     try {
@@ -138,9 +207,9 @@ function Data() {
 // }, [token, navigate]);
 
   return (
-    <div className="min-h-screen   bg-[url('/temple2.jpeg')] bg-cover bg-center  p-6">
+    <div className="min-h-screen   bg-[url('/Maharaj.jpg')] bg-cover bg-center  p-6">
       {/* Divine Glow Effect */}
-      <div className="fixed inset-0 bg-radial-gradient from-yellow-100/20 via-transparent to-transparent  pointer-events-none"></div>
+      <div className="fixed inset-0 bg-radial-gradient from-yellow-100/30 via-transparent to-transparent  pointer-events-none"></div>
       
       <div className="max-w-7xl mx-auto space-y-8 relative">
         {/* Divine Presence */}
@@ -214,7 +283,7 @@ function Data() {
 
             {user && (
               <p className="text-lg mb-6 text-[#800000] font-medium">
-                Jay Swaminarayan  {user.name}! Maharaj awaits your devotion today. 🙏
+                Jay Swaminarayan {user.name} ! Maharaj awaits your devotion today. 🙏
               </p>
             )}
 
@@ -292,7 +361,7 @@ function Data() {
 
               <button
                 type="submit"
-                className="w-full py-3  backdrop-blur-xl text-white rounded-lg hover:bg-[#FF9933] flex items-center justify-center gap-2 font-bold text-lg shadow-lg transition-all hover:shadow-[#FF9933]/50"
+                className="w-full py-3 bg-[#FF7733] text-white rounded-lg hover:bg-[#FF9933] flex items-center justify-center gap-2 font-bold text-lg shadow-lg transition-all hover:shadow-[#FF9933]/50"
               >
                 Offer to Maharaj
                 <span className="text-xl">🪔</span>
@@ -330,7 +399,7 @@ function Data() {
           </h3>
           <p className="flex justify-between items-center mt-2 relative z-10">
             <span className="font-medium text-bhagwa-700">{todayWinner.name}</span>
-            <span className="px-4 py-1 bg-bhagwa-100 text-bhagwa-800 rounded-full font-bold">
+            <span className="px-4 py-1 bg-bhagwa-100 text-bhagwa-800 rounded-full font-bold text-sm">
               {todayWinner.points} पुण्य
             </span>
           </p>
@@ -368,8 +437,8 @@ function Data() {
                 <span
                   className={`${
                     i === 0
-                      ? "text-bhagwa-800 font-semibold"
-                      : "text-bhagwa-700"
+                      ? "text-[#FF9933] font-semibold"
+                      : "text-[#FF9933]"
                   }`}
                 >
                   {u.name}
@@ -396,17 +465,17 @@ function Data() {
       )}
 
       {/* Daily Inspiration */}
-      <div className="mt-10 p-5 bg-peacock-50/70 backdrop-blur-lg rounded-xl border border-peacock-200 shadow-inner relative z-10">
-        <p className="text-[#FF9933] italic font-semibold text-center">
-          "Regular bhajan is the key to eternal peace and divine bliss."
-          <br />– Shriji Maharaj
-        </p>
-      </div>
+      <div className="mt-10 p-5 bg-[#B3EDED]/70 backdrop-blur-lg rounded-xl border border-[#26BFBF] shadow-inner relative z-10">
+  <p className="text-[#003D3D] italic font-semibold text-center">
+    "{dailyQuote?.text || dailyQuotes[0].text}"
+    <br />– {dailyQuote?.author || dailyQuotes[0].author}
+  </p>
+</div>
     </motion.div>
     </div>
 
         {/* Footer */}
-        <footer className="text-center text-[#FF9933] text-sm mt-12">
+        <footer className="text-center text-[#FFFFFF] font-semibold text-sm mt-12">
           <LotusDivider className="mb-4" />
           <p>श्री स्वामिनारायणाय नमः</p>
           <p>May your devotion blossom like a lotus in the divine light</p>
