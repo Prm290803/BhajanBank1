@@ -446,13 +446,13 @@ useEffect(() => {
               </div>
 
               <span
-                className={`px-3 py-1 rounded-full font-semibold ${
+                className={`px-3 py-1 rounded-full text-sm font-semibold ${
                   i === 0
                     ? "bg-yellow-100 text-bhagwa-800"
                     : "bg-saffron-100 text-bhagwa-700"
                 }`}
               >
-                {u.points.toFixed(1)}पुण्य
+                {u.points.toFixed(1)} पुण्य
               </span>
             </motion.li>
           ))}
