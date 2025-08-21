@@ -40,7 +40,10 @@ function Data() {
     "Mantra Japp (મંત્ર જપ)": 0.1,
     "Kirtan Bhajan (કીર્તન ભજન)": 5,
     "Satsang Participation (સત્સંગ સહભાગિતા)": 15,
-    "shikshapatri (શિક્ષાપત્રી વાંચન )": 5,
+    "shikshapatri shlok Vanchan (શિક્ષાપત્રી શ્લોક વાંચન)": 5,
+    "Nitya Niyam (નિયમ-ચેષ્ટા)": 20,
+    "Harismruti (હરિસૃતિ)": 10,
+    "Pradakshina (પ્રદક્ષિણા)" : 5,
   };
 
   const toggleMusic = () => {
@@ -452,7 +455,7 @@ useEffect(() => {
                     : "bg-saffron-100 text-bhagwa-700"
                 }`}
               >
-                {u.points.toFixed(1)} पुण्य
+                {u.points.toFixed(0)} पुण्य
               </span>
             </motion.li>
           ))}
