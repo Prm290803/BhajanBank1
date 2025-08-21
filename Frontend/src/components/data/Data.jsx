@@ -42,7 +42,7 @@ function Data() {
     "Satsang Participation (સત્સંગ સહભાગિતા)": 15,
     "shikshapatri shlok Vanchan (શિક્ષાપત્રી શ્લોક વાંચન)": 5,
     "Nitya Niyam (નિયમ-ચેષ્ટા)": 20,
-    "Harismruti (હરિસૃતિ)": 10,
+    "Harismruti (હરિસ્મૃતિ)": 10,
     "Pradakshina (પ્રદક્ષિણા)" : 5,
   };
 
