@@ -60,7 +60,7 @@ function Login() {
         <img
           src="/1.png" // replace with your logo file
           alt="Logo"
-          className="absolute lg:top-4 top-11 lg:left-6 right-9 lg:w-14 lg:h-14 w-10 h-10"
+          className="absolute top-4 left-6  w-14 h-14 "
         />
 
         <div className="w-full max-w-md bg-gradient-to-b from-orange-200 to-orange-100 shadow-2xl rounded-2xl p-8 space-y-6">
