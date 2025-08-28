@@ -63,17 +63,17 @@ function Register() {
       </div>
 
       {/* Right Form Section */}
-      <div className="flex w-full md:w-1/2 items-center justify-center bg-gradient-to-b from-[#fffaf5] to-[#fff3e8] relative">
-      <img
-          src="/1.png" // replace with your logo file
-          alt="Logo"
-          className="absolute top-4 left-6 w-14 h-14 "
-        />
+      <div className="flex w-full md:w-1/2 items-center justify-center  bg-orange-100 relative">
+      
         <div className="w-full max-w-md bg-gradient-to-b from-orange-200 to-orange-100 shadow-2xl rounded-2xl p-8 space-y-6">
           {/* Header */}
           <div className="text-center mb-6">
-            <div className="mx-auto w-16 h-16 bg-[#E56210] rounded-full flex items-center justify-center mb-4 shadow-lg">
-              <span className="text-2xl text-white font-bold">श्री</span>
+            <div className="mx-auto w-16 h-16  rounded-full flex items-center justify-center mb-4">
+              <img
+                src="/1.png" // replace with your logo file
+                alt="Logo"
+                className=" w-14 h-14 "
+              />
             </div>
             <h2 className="text-3xl font-bold text-[#E56210]">Begin Your Journey</h2>
             <p className="mt-2 text-[#b14c0e] italic">Join our spiritual family</p>

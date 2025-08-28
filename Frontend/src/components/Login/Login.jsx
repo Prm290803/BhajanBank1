@@ -57,11 +57,7 @@ function Login() {
       <div className="w-full md:w-1/2 flex items-center justify-center p-6 md:p-12 relative">
         
         {/* Logo in Corner */}
-        <img
-          src="/1.png" // replace with your logo file
-          alt="Logo"
-          className="absolute top-4 left-6  w-14 h-14 "
-        />
+       
 
         <div className="w-full max-w-md bg-gradient-to-b from-orange-200 to-orange-100 shadow-2xl rounded-2xl p-8 space-y-6">
           {/* Back Button */}
@@ -74,21 +70,18 @@ function Login() {
 
           {/* Logo Icon (center piece inside card, optional) */}
           <div className="flex justify-center">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-r from-orange-500 to-yellow-400 flex items-center justify-center shadow-lg">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="white"
-                viewBox="0 0 24 24"
-                strokeWidth={2}
-                stroke="white"
-                className="w-8 h-8"
-              >
+            <div className="w-16 h-16 rounded-full  flex items-center justify-center">
+               <img
+          src="/1.png" // replace with your logo file
+          alt="Logo"
+          className=" w-14 h-14 "
+        />
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   d="M3 12l9-9 9 9M4 10v10a1 1 0 001 1h4m10-11v11a1 1 0 01-1 1h-4m-6 0h6"
                 />
-              </svg>
+             
             </div>
           </div>
 
