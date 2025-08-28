@@ -181,7 +181,7 @@ useEffect(() => {
 
   const interval = setInterval(() => {
     fetchData();
-  }, 6000); // every 6 seconds
+  }, 1000); // every 1 second
 
   return () => clearInterval(interval); // cleanup on unmount
 }, []);
