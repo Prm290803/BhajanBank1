@@ -63,8 +63,8 @@ app.use(express.json());
   
   // Middleware
   app.use(cors({
-    // origin: 'https://bhajan-bank1.vercel.app',
-    origin: ['http://localhost:5173'],
+    origin: 'https://bhajan-bank1.vercel.app',
+    // origin: ['http://localhost:5173'],
     credentials: true
   }));
   
