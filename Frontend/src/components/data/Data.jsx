@@ -3,9 +3,10 @@ import { useAuth } from "../../Auth/AuthContext";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-
+import Navbar from '../Navbar/Navbar';
+import LotusDivider from "../Data/LotusDivider";
 // Divine Motifs
-import LotusDivider from "./LotusDivider";
+
 
 
 // Motion Variants with devotional feel
@@ -217,11 +218,11 @@ useEffect(() => {
       <div className="max-w-7xl mx-auto space-y-8 relative">
         {/* Divine Presence */}
         
-
+<Navbar />
   {/* Header */}
-<header className="max-w-screen w-full  flex items-center justify-between py-4 px-6 bg-white/10 backdrop-blur shadow-sm fixed top-0 left-0 z-50">
+{/* <header className="max-w-screen w-full  flex items-center justify-between py-4 px-6 bg-white/10 backdrop-blur shadow-sm fixed top-0 left-0 z-50"> */}
   {/* Left: Icon / Logo */}
-  <div className="flex items-center gap-2">
+  {/* <div className="flex items-center gap-2">
     <img
       src="/1.png"
       alt="App Logo"
@@ -230,10 +231,10 @@ useEffect(() => {
     <span className="text-lg font-semibold text-[#FF7722] font-serif">
       Bhajan Bank
     </span>
-  </div>
+  </div> */}
 
   {/* Right: Logout Button */}
-  <div>
+  {/* <div>
     <button
       onClick={logout}
       className="px-4 py-2 bg-red-500 text-white rounded-lg shadow hover:bg-red-600 flex items-center gap-2 text-sm md:text-base"
@@ -255,7 +256,7 @@ useEffect(() => {
       <span className="hidden sm:inline">Logout</span>
     </button>
   </div>
-</header>
+</header> */}
 
 {/* Center Title Section (below navbar) */}
 <div className="pt-28 text-center px-6">

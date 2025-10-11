@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "dev": "concurrently \"nodemon server.js\" \"npm run frontend\"",
+    "dev": "npm run frontend",
     "frontend": "vite",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -20,8 +20,6 @@
     "express": "^4.21.2",
     "framer-motion": "^12.23.12",
     "jsonwebtoken": "^9.0.2",
-    "mongodb": "^6.17.0",
-    "mongoose": "^8.16.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.2",

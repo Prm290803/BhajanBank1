@@ -14,15 +14,12 @@ import jwt from 'jsonwebtoken';
 import User from './models/user.js';
 import Task from './models/Task.js';
 import authMiddleware from './middleware/auth.js';
-
 import bcrypt from 'bcryptjs';
-
-
-
 
 const app = express();
 
-
+import { nanoid } from 'nanoid';
+import Family from './models/Family.js';
 
 app.use(express.json());
 
@@ -57,6 +54,7 @@ app.use(express.json());
 //   res.send("Notifications sent");
 // });
 
+
   
   // MongoDB Connection
   mongoose.connect(process.env.MONGODB_URI)
@@ -65,31 +63,35 @@ app.use(express.json());
   
   // Middleware
   app.use(cors({
-    origin: 'https://bhajan-bank1.vercel.app',
-    //  origin: 'http://localhost:5173', // Your frontend URL
+    // origin: 'https://bhajan-bank1.vercel.app',
+    origin: ['http://localhost:5173'],
     credentials: true
   }));
   
+
 // Routes
 app.post('/api/register', async (req, res) => {
   try {
-    console.log(req.body, 'This is the request')
+    // console.log(req.body, 'This is the request')
     const { name, email, password } = req.body;
     
       if (!name || !email || !password) {
     return res.status(400).json({ error: "All fields are required!" });
   }
 
+
   // Check if email exists
   const userExists = await User.findOne({ email });
   if (userExists) {
     return res.status(400).json({ error: "Email already registered!" });
   }
-// Try now for registering ...>.  
 
+
+// Try now for registering ...>.  
   if (password.length < 6) {
     return res.status(400).json({ error: "Password must be at least 6 characters!" });
   }
+
 
     // Check if user exists
     let user = await User.findOne({ email });
@@ -97,22 +99,23 @@ app.post('/api/register', async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
+
     // Create new user
     user = new User({
       name,
       email,
       // password: await argon2.hash(password)
       // password: await bcrypt.hash(password,10) 
-      password: password
+      password: mopassword
     });
-    console.log(user,'This is the user')
+    // console.log(user,'This is the user')
     await user.save();
 
     // Create token
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
       expiresIn: '1d'
     });
-    console.log(token, 'This is the token')
+    // console.log(token, 'This is the token')
     res.status(201).json({ 
       token,
       user: { id: user._id, name: user.name, email: user.email }
@@ -123,6 +126,7 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
+//reset password
 app.post('/api/reset-password', async (req, res) => {
   try {
     const { email, newPassword } = req.body;
@@ -133,8 +137,11 @@ app.post('/api/reset-password', async (req, res) => {
 
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ error: 'User not found' });
-    user.password = await bcrypt.hash(newPassword);
-    // user.password = await argon2.hash(newPassword); // Argon2 hashing
+
+    // bcrypt requires saltRounds
+    const saltRounds = 10;
+    user.password = await bcrypt.hash(newPassword, saltRounds);
+
     await user.save();
     
     res.json({ message: 'Password updated successfully' });
@@ -144,6 +151,7 @@ app.post('/api/reset-password', async (req, res) => {
   }
 });
 
+//login 
 app.post('/api/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -182,8 +190,8 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// Protected routes
 
+// Protected routes
 app.get("/api/user", authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(req.userId).select("-password"); // hide password
@@ -195,6 +203,7 @@ app.get("/api/user", authMiddleware, async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
+
 
 app.post('/api/tasks', authMiddleware, async (req, res) => {
   try {
@@ -243,7 +252,7 @@ app.post('/api/tasks', authMiddleware, async (req, res) => {
 
 app.get('/api/tasks', authMiddleware, async (req, res) => {
   try {
-    const userId = req.userId;
+    // const userId = req.userId;
     const now = new Date();
 
     // Create a boundary at 4 AM
@@ -271,7 +280,7 @@ app.get('/api/tasks', authMiddleware, async (req, res) => {
   }
 });
 
-
+Z
 app.get('/api/leaderboard', async (req, res) => {
   try {
     const today = new Date();
@@ -287,6 +296,370 @@ app.get('/api/leaderboard', async (req, res) => {
     res.status(500).json([]);
   }
 });
+app.get("/api/taskuser", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.userId;
+    const now = new Date();
 
+    // Create a 4 AM day boundary
+    let start = new Date(now);
+    start.setHours(4, 0, 0, 0);
+
+    let end = new Date(start);
+    end.setDate(end.getDate() + 1); // next day 4 AM
+
+    // If current time is before 4 AM, shift to previous day
+    if (now < start) {
+      start.setDate(start.getDate() - 1);
+      end.setDate(end.getDate() - 1);
+    }
+
+    const tasks = await Task.find({
+      user: userId, // ✅ filter only tasks belonging to this user
+      date: { $gte: start, $lt: end },
+    }).populate("user", "name");
+
+    res.json(tasks);
+  } catch (err) {
+    console.error("Error fetching tasks:", err);
+    res.status(500).json({ error: "Failed to fetch tasks" });
+  }
+});
+
+
+// Delete entire task document by ID
+app.delete("/api/tasks/:id", authMiddleware, async (req, res) => {
+  try {
+    const taskDoc = await Task.findById(req.params.id);
+    if (!taskDoc) return res.status(404).json({ error: "Task not found" });
+
+    // only allow owner to delete
+    if (taskDoc.user.toString() !== req.userId) {
+      return res.status(403).json({ error: "Not authorized" });
+    }
+
+    await taskDoc.deleteOne();
+    res.json({ message: "Task deleted successfully" });
+  } catch (err) {
+    console.error("Task delete error:", err);
+    res.status(500).json({ error: "Failed to delete task" });
+  }
+});
+
+// Update subtask count
+app.put("/api/tasks/:taskId/:subtaskId", authMiddleware, async (req, res) => {
+  try {
+    const { count } = req.body;
+    const { taskId, subtaskId } = req.params;
+
+    if (typeof count !== "number" || count < 0) {
+      return res.status(400).json({ error: "Count must be a positive number" });
+    }
+
+    const taskDoc = await Task.findById(taskId);
+    if (!taskDoc) return res.status(404).json({ error: "Task not found" });
+
+    if (taskDoc.user.toString() !== req.userId) {
+      return res.status(403).json({ error: "Not authorized" });
+    }
+
+    const subtask = taskDoc.tasks.id(subtaskId);
+    if (!subtask) return res.status(404).json({ error: "Subtask not found" });
+
+    subtask.count = count;
+    subtask.totalPoints = subtask.points * count;
+
+    await taskDoc.save();
+    res.json(taskDoc);
+  } catch (err) {
+    console.error("Task update error:", err);
+    res.status(500).json({ error: "Failed to update task" });
+  }
+});
+
+
+//update family's totalPoints
+// utils/updateFamilyPoints.js
+
+
+export const updateFamilyPoints = async (familyId) => {
+  const family = await Family.findById(familyId).populate("members", "points");
+  if (!family) return null;
+
+  const totalPoints = family.members.reduce(
+    (sum, m) => sum + (m.points || 0),
+    0
+  );
+
+  family.totalPoints = totalPoints;
+  await family.save();
+
+  return family;
+};
+
+
+//family routes would go here
+//create family
+
+
+app.post("/api/create-family", async (req, res) => {
+  try {
+    const { userId, familyName } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    if (user.family) {
+      return res.status(400).json({ error: "User already belongs to a family" });
+    }
+
+    const code = nanoid(8);
+
+    const family = new Family({
+      name: familyName,
+      code,
+      members: [user._id],
+    });
+    await family.save();
+
+    user.family = family._id;
+    await user.save();
+
+    // 💡 Automatically recalculate after linking
+    const updatedFamily = await updateFamilyPoints(family._id);
+
+    res.json({
+      message: "Family created successfully",
+      familyCode: family.code,
+      familyId: family._id,
+      totalPoints: updatedFamily.totalPoints,
+    });
+  } catch (err) {
+    console.error("Create family error:", err);
+    res.status(500).json({ error: "Failed to create family" });
+  }
+});
+
+
+
+
+// app.post("/api/create-family", async (req, res) => {
+//   try {
+//     const { userId, familyName } = req.body;
+
+//     const user = await User.findById(userId);
+//     if (!user) return res.status(404).json({ error: "User not found" });
+
+//     // Check if user already in a family
+//     if (user.family) {
+//       return res.status(400).json({ error: "User already belongs to a family" });
+//     }
+
+    
+//     const code = nanoid(8);
+
+  
+//     const userPoints = user.points || 0;
+
+//     const family = new Family({
+//       name: familyName,
+//       code,
+//       members: [user._id],
+//       totalPoints: userPoints, // ← this is the fix
+//     });
+//     await family.save();
+
+//     // ✅ Link user to family
+//     user.family = family._id;
+//     await user.save();
+
+//     res.json({
+//       message: "Family created successfully",
+//       familyCode: code,
+//       familyId: family._id,
+//       totalPoints: family.totalPoints,
+//     });
+//   } catch (err) {
+//     console.error("Create family error:", err);
+//     res.status(500).json({ error: "Failed to create family" });
+//   }
+// });
+
+
+app.get("/api/families/:id", async (req, res) => {
+  try {
+    const family = await Family.findById(req.params.id).populate("members", "name points");
+    if (!family) return res.status(404).json({ error: "Family not found" });
+    res.json(family);
+  } catch (err) {
+    console.error("Fetch family error:", err);
+    res.status(500).json({ error: "Failed to fetch family" });
+  }
+});
+
+
+// //join family
+app.post("/api/join-family", async (req, res) => {
+  try {
+    const { userId, code } = req.body;  
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: "User not found" });    
+    const family = await Family.findOne({ code  });
+
+    if (!family) return res.status(404).json({ error: "Family not found" });    
+    if (user.family) {
+      return res.status(400).json({ error: "User already in a family" });
+    }   
+
+    // Add user to family   
+    family.members.push(user._id);
+    await family.save();    
+    user.family = family._id;
+    await user.save();    
+
+    // 💡 Auto update total points
+    const updatedFamily = await updateFamilyPoints(family._id);
+    res.json({
+      message: "Joined family successfully", 
+      totalPoints: updatedFamily.totalPoints,
+      familyId: family._id
+    });
+  } catch (err) {
+    console.error("Join family error:", err);
+    res.status(500).json({ error: "Failed to join family" });
+  } 
+});
+
+
+// app.post("/api/join-family", async (req, res) => {
+//   try {
+//     const { userId, code } = req.body;
+
+//     const user = await User.findById(userId);
+//     if (!user) return res.status(404).json({ error: "User not found" });
+
+//     const family = await Family.findOne({ code });
+//     if (!family) return res.status(404).json({ error: "Family not found" });
+
+//     if (user.family) {
+//       return res.status(400).json({ error: "User already in a family" });
+//     }
+
+//     // Add user to family
+//     family.members.push(user._id);
+//     await family.save();
+
+//     user.family = family._id;
+//     await user.save();
+
+//     // 💡 Auto update total points
+//     const updatedFamily = await updateFamilyPoints(family._id);
+
+//     res.json({
+//       message: "Joined family successfully",
+//       totalPoints: updatedFamily.totalPoints,
+//       familyId: family._id
+
+//     });
+//   } catch (err) {
+//     console.error("Join family error:", err);
+//     res.status(500).json({ error: "Failed to join family" });
+//   }
+// });
+
+
+
+//leave family
+app.post("/api/leave-family", async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: "User not found" });  
+    if (!user.family) {
+      return res.status(400).json({ error: "User not in a family" });
+    }
+
+    const family = await Family.findById(user.family);  
+    if (!family) {
+      user.family = null;
+      await user.save();
+      return res.status(404).json({ error: "Family not found" });
+    }
+    // 💡 Auto update total points
+  const updatedFamily = await updateFamilyPoints(family._id);
+
+    family.members = family.members.filter(
+      (memberId) => memberId.toString() !== user._id.toString()
+    );  
+    await family.save();
+    user.family = null;
+    await user.save();  
+    res.json({ message: "Left family successfully",
+    totalPoints: updatedFamily.totalPoints
+     });
+  } catch (err) {
+    console.error("Leave family error:", err);
+    res.status(500).json({ error: "Failed to leave family" });
+  }
+});
+// Example: user earns points
+app.post("/api/add-points", async (req, res) => {
+  const { userId, earnedPoints } = req.body;
+  try {
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    user.points += earnedPoints;
+    await user.save();
+
+    // 💡 Update the family’s total automatically
+    if (user.family) {
+      await updateFamilyPoints(user.family);
+    }
+
+    res.json({ message: "Points added successfully" });
+  } catch (err) {
+    console.error("Add points error:", err);
+    res.status(500).json({ error: "Failed to add points" });
+  }
+});
+
+
+
+//counting members points 
+app.get("/families", async (req, res) => {
+  try {
+    const families = await Family.find()
+      .populate("members", "name email points") // populate user details
+      .lean();
+
+    const familiesWithTotals = families.map((fam) => {
+      const totalPoints = fam.members.reduce(
+        (sum, member) => sum + (member.points || 0),
+        0
+      );
+
+      return {
+        _id: fam._id,
+        name: fam.name,
+        code: fam.code,
+        totalMembers: fam.members.length,
+        totalPoints,
+        members: fam.members,
+        createdAt: fam.createdAt,
+      };
+    });
+
+    res.json(familiesWithTotals);
+  } catch (error) {
+    console.error("Error fetching families:", error);
+    res.status(500).json({ error: "Failed to fetch families" });
+  }
+});
+
+
+
+
+// Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
