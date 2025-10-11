@@ -12,7 +12,7 @@ import Navbar from './components/Navbar/Navbar';
 import CreateFamily from './components/Family/CreateFamily';
 import JoinFamily from './components/Family/JoinFamily';
 import FamilyDashboard from './components/data/FamilyDashboard';
-import Family from '../../Backend/models/Family';
+import Family from './components/Family/Family';
 import TaskUpdatePage from './components/UpdateTask/TaskUpdatePage';
 
 
