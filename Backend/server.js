@@ -280,7 +280,6 @@ app.get('/api/tasks', authMiddleware, async (req, res) => {
   }
 });
 
-Z
 app.get('/api/leaderboard', async (req, res) => {
   try {
     const today = new Date();
