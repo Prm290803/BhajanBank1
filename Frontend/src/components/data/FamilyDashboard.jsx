@@ -21,7 +21,7 @@ const stagger = {
 function FamilyDashboard() {
   const [families, setFamilies] = useState([]);
   const [topFamily, setTopFamily] = useState(null);
-  const backend_url = import.meta.env.VITE_BACKENDURL || "http://localhost:5000";
+  const backend_url = import.meta.env.VITE_BACKENDURL;
 
   useEffect(() => {
     fetchFamilies();

@@ -478,7 +478,7 @@ const stagger = {
 
 function Data() {
   const { user, token } = useAuth();
-  const backend_url = import.meta.env.VITE_BACKENDURL || "http://localhost:5000";
+  const backend_url = import.meta.env.VITE_BACKENDURL ;
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [tasks, setTasks] = useState([{ task: "", points: 1, count: "" }]);

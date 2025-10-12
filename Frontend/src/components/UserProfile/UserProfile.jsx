@@ -6,7 +6,7 @@ import Navbar from '../Navbar/Navbar';
 
 const UserProfile = () => {
   const { user, token } = useAuth();
-  const backend_url = import.meta.env.VITE_BACKENDURL || "";
+  const backend_url = import.meta.env.VITE_BACKENDURL;
   const navigate = useNavigate();
 
   const [tasks, setTasks] = useState([]);
