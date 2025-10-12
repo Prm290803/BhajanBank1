@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
 import Navbar from "../Navbar/Navbar";
-import LotusDivider from "../Data/LotusDivider";
+import LotusDivider from "../Common/LotusDivider";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },

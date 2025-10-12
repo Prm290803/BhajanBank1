@@ -460,7 +460,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "../Navbar/Navbar";
-import LotusDivider from "../Data/LotusDivider";
+import LotusDivider from "../Common/LotusDivider";
 
 // Motion Variants
 const fadeUp = {
