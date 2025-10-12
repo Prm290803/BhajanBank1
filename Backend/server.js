@@ -1,25 +1,30 @@
 import dotenv from 'dotenv';
 dotenv.config();
-
-console.log('Environment Variables:', {
-  MONGODB_URI: process.env.MONGODB_URI,
-  JWT_SECRET: process.env.JWT_SECRET ? '***loaded***' : 'NOT LOADED',
-  PORT: process.env.PORT
-});
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
-
 import jwt from 'jsonwebtoken';
 import User from './models/user.js';
 import Task from './models/Task.js';
 import authMiddleware from './middleware/auth.js';
 import bcrypt from 'bcryptjs';
-
 const app = express();
-
 import { nanoid } from 'nanoid';
 import Family from './models/Family.js';
+
+import { v2 as cloudinary } from "cloudinary";
+import multer from "multer";
+import fs from "fs";
+
+// Cloudinary Config
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+// Multer config for temporary uploads
+const upload = multer({ dest: "uploads/" });
 
 app.use(express.json());
 
@@ -105,7 +110,7 @@ app.post('/api/register', async (req, res) => {
       name,
       email,
       // password: await argon2.hash(password)
-      // password: await bcrypt.hash(password,10) 
+      // password: await bcrypt.hash(password,10)
       password: mopassword
     });
     // console.log(user,'This is the user')
@@ -189,6 +194,62 @@ app.post('/api/login', async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
+
+// =============================
+// 📸 Profile Picture Management
+// =============================
+
+// Upload / Update Profile Photo
+app.post("/api/user/upload-photo", authMiddleware, upload.single("photo"), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const uploadResult = await cloudinary.uploader.upload(req.file.path, {
+      folder: "user_profiles",
+      public_id: `user_${user._id}`,
+      overwrite: true,
+    });
+
+    fs.unlinkSync(req.file.path);
+
+    user.profilePic = uploadResult.secure_url;
+    await user.save();
+
+    res.json({ message: "Profile picture updated successfully", profilePic: user.profilePic });
+  } catch (err) {
+    console.error("Upload photo error:", err);
+    res.status(500).json({ error: "Failed to upload photo" });
+  }
+});
+
+
+// Delete profile photo (revert to default)
+app.delete("/api/user/delete-photo", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    // Delete Cloudinary image if custom
+    if (user.profilePic && !user.profilePic.includes("default_profile")) {
+      const oldPublicId = user.profilePic.split("/").pop().split(".")[0];
+      await cloudinary.uploader.destroy(`user_profiles/${oldPublicId}`).catch(() => {});
+    }
+
+    // Set back to default
+    user.profilePic = "https://res.cloudinary.com/demo/image/upload/v1690000000/default_profile.jpg";
+    await user.save();
+
+    res.json({ message: "Profile picture reset to default", profilePic: user.profilePic });
+  } catch (err) {
+    console.error("Delete photo error:", err);
+    res.status(500).json({ error: "Failed to delete photo" });
+  }
+});
+
+
 
 
 // Protected routes
@@ -279,6 +340,7 @@ app.get('/api/tasks', authMiddleware, async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
+
 
 app.get('/api/leaderboard', async (req, res) => {
   try {
@@ -382,13 +444,34 @@ app.put("/api/tasks/:taskId/:subtaskId", authMiddleware, async (req, res) => {
 
 
 export const updateFamilyPoints = async (familyId) => {
-  const family = await Family.findById(familyId).populate("members", "points");
+  const family = await Family.findById(familyId).populate('members', '_id');
   if (!family) return null;
 
-  const totalPoints = family.members.reduce(
-    (sum, m) => sum + (m.points || 0),
-    0
-  );
+  const memberIds = family.members.map(m => m._id);
+  const now = new Date();
+  let start = new Date(now);
+  start.setHours(4, 0, 0, 0);
+
+  let end = new Date(start);
+  end.setDate(end.getDate() + 1);
+
+  // If current time is before 4 AM, shift window to previous day
+  if (now < start) {
+    start.setDate(start.getDate() - 1);
+    end.setDate(end.getDate() - 1);
+  }
+  // Sum all grandTotalPoints for tasks belonging to these members
+ const result = await Task.aggregate([
+    { 
+      $match: { 
+        user: { $in: memberIds },
+        date: { $gte: start, $lt: end }
+      } 
+    },
+    { $group: { _id: null, totalPoints: { $sum: "$summary.grandTotalPoints" } } }
+  ]);
+
+  const totalPoints = result.length ? result[0].totalPoints : 0;
 
   family.totalPoints = totalPoints;
   await family.save();
@@ -484,15 +567,19 @@ app.post("/api/create-family", async (req, res) => {
 //   }
 // });
 
-
 app.get("/api/families/:id", async (req, res) => {
   try {
-    const family = await Family.findById(req.params.id).populate("members", "name points");
-    if (!family) return res.status(404).json({ error: "Family not found" });
+    const family = await Family.findById(req.params.id)
+      .populate("members", "name email") // optional
+      .lean();
+
+    if (!family) {
+      return res.status(404).json({ message: "Family not found" });
+    }
+
     res.json(family);
   } catch (err) {
-    console.error("Fetch family error:", err);
-    res.status(500).json({ error: "Failed to fetch family" });
+    res.status(500).json({ message: "Server error", error: err.message });
   }
 });
 
@@ -601,6 +688,8 @@ app.post("/api/leave-family", async (req, res) => {
     res.status(500).json({ error: "Failed to leave family" });
   }
 });
+
+
 // Example: user earns points
 app.post("/api/add-points", async (req, res) => {
   const { userId, earnedPoints } = req.body;
@@ -624,38 +713,107 @@ app.post("/api/add-points", async (req, res) => {
 });
 
 
+//family leaderboard
+// GET family leaderboard
+app.get("/family-leaderboard", authMiddleware, async (req, res) => {
+  try {
+    // Find the logged-in user
+    const user = await User.findById(req.userId).populate("family");
+    if (!user || !user.family) {
+      return res.status(400).json({ error: "You are not part of any family" });
+    }
+
+    // Get the family and members
+    const family = await Family.findById(user.family._id).populate("members");
+
+    // Calculate points for each member
+    const membersWithPoints = await Promise.all(
+      family.members.map(async (member) => {
+        const tasks = await Task.find({ user: member._id });
+        const totalPoints = tasks.reduce(
+          (sum, t) => sum + (t.summary?.grandTotalPoints || 0),
+          0
+        );
+        return {
+          _id: member._id,
+          name: member.name,
+          points: totalPoints,
+        };
+      })
+    );
+
+    // Sort by points descending
+    membersWithPoints.sort((a, b) => b.points - a.points);
+
+    res.json({
+      familyName: family.name,
+      members: membersWithPoints,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+
 
 //counting members points 
-app.get("/families", async (req, res) => {
+app.get("/families/today", async (req, res) => {
   try {
     const families = await Family.find()
-      .populate("members", "name email points") // populate user details
+      .populate("members", "name email")
       .lean();
 
-    const familiesWithTotals = families.map((fam) => {
-      const totalPoints = fam.members.reduce(
-        (sum, member) => sum + (member.points || 0),
-        0
-      );
+    const now = new Date();
+    let start = new Date(now);
+    start.setHours(4, 0, 0, 0);
 
-      return {
+    let end = new Date(start);
+    end.setDate(end.getDate() + 1);
+
+    if (now < start) {
+      start.setDate(start.getDate() - 1);
+      end.setDate(end.getDate() - 1);
+    }
+
+    const familiesWithPoints = [];
+
+    for (let fam of families) {
+      const memberIds = fam.members.map(m => m._id);
+
+      const result = await Task.aggregate([
+        { 
+          $match: { 
+            user: { $in: memberIds },
+            date: { $gte: start, $lt: end }
+          } 
+        },
+        { $group: { _id: null, totalPoints: { $sum: "$summary.grandTotalPoints" } } }
+      ]);
+
+      const totalPoints = result.length > 0 ? result[0].totalPoints : 0;
+
+      familiesWithPoints.push({
         _id: fam._id,
         name: fam.name,
         code: fam.code,
         totalMembers: fam.members.length,
         totalPoints,
         members: fam.members,
-        createdAt: fam.createdAt,
-      };
-    });
+        createdAt: fam.createdAt
+      });
+    }
 
-    res.json(familiesWithTotals);
-  } catch (error) {
-    console.error("Error fetching families:", error);
-    res.status(500).json({ error: "Failed to fetch families" });
+    // Sort descending
+    familiesWithPoints.sort((a, b) => b.totalPoints - a.totalPoints);
+
+    res.json(familiesWithPoints);
+
+  } catch (err) {
+    console.error("Error fetching today's family points:", err);
+    res.status(500).json({ error: "Failed to fetch today's points" });
   }
 });
-
 
 
 

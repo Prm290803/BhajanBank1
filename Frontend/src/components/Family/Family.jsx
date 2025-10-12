@@ -1,149 +1,177 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { useAuth } from "../../Auth/AuthContext";
 import { motion } from "framer-motion";
-import Navbar from "../Navbar/Navbar";
-import LotusDivider from "../Data/LotusDivider";
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-};
 
-function FamilyDashboard() {
-  const [families, setFamilies] = useState([]);
-  const [topFamily, setTopFamily] = useState(null);
-  const backend_url = import.meta.env.VITE_BACKENDURL || "http://localhost:5000";
+const FamilyLeaderboard = () => {
+  const [members, setMembers] = useState([]);
+  const [familyName, setFamilyName] = useState("");
+  const [loading, setLoading] = useState(true);
+  const { user, token } = useAuth();
+const backend_url = import.meta.env.VITE_BACKENDURL || "http://localhost:5000";
+  
 
-  useEffect(() => {
-    fetchFamilies();
-  }, []);
+ useEffect(() => {
+    const fetchLeaderboard = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch(`${backend_url}/api/family/leaderboard`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
 
-  const fetchFamilies = async () => {
-    try {
-      const res = await axios.get(`${backend_url}/families`);
-      const sorted = res.data.sort((a, b) => b.totalPoints - a.totalPoints);
-      setFamilies(sorted);
-      setTopFamily(sorted[0]);
-    } catch (err) {
-      console.error("Error fetching families:", err);
-    }
-  };
+        if (res.ok) {
+          setFamilyName(data.familyName);
+          setMembers(data.members);
+        } else {
+          console.error(data.error);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (token) fetchLeaderboard();
+  }, [token, backend_url]);
+
+
+
+  if (loading) {
+    return (
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-orange-100 p-8">
+        <div className="flex justify-center items-center py-12">
+          <div className="flex items-center gap-3 text-gray-600">
+            <div className="w-6 h-6 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+            Loading leaderboard...
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-[url('/Maharaj.jpg')] bg-cover bg-center p-6">
-      {/* Divine Glow */}
-      <div className="fixed inset-0 bg-radial-gradient from-yellow-100/30 via-transparent to-transparent pointer-events-none"></div>
-
-      <div className="max-w-7xl mx-auto space-y-8 relative">
-        <Navbar />
-
-        {/* Title */}
-        <div className="pt-24 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold text-[#FF7722] font-serif">
-            <span className="text-gold-500">🙏</span> Family Points Dashboard
-          </h1>
-          <p className="text-gray-200 italic text-base md:text-lg mt-2">
-            “Where family devotion shines through seva.”
-          </p>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-orange-100 p-8"
+    >
+      {/* Header */}
+      <div className="text-center mb-8">
+        <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4">
+          <span className="text-2xl">🏆</span>
         </div>
-
-        <LotusDivider className="my-8" />
-
-        {/* Top Family */}
-        {topFamily && (
-          <motion.div
-            className="mb-10 p-6 bg-gradient-to-r from-yellow-100/70 to-orange-50/50 border border-yellow-300 rounded-2xl shadow-xl text-center"
-            variants={fadeUp}
-            initial="hidden"
-            animate="visible"
-          >
-            <h3 className="text-2xl font-bold text-[#FF9933] flex items-center justify-center gap-2">
-              <span className="text-yellow-500 text-2xl">👑</span> Divine Family of the Day
-            </h3>
-            <p className="mt-3 text-xl font-semibold text-[#800000]">{topFamily.name}</p>
-            <p className="text-[#FF7722] font-medium mt-1">Code: {topFamily.code}</p>
-            <p className="mt-3 text-lg font-bold text-[#FF7722]">
-              Total Points: {topFamily.totalPoints}
-            </p>
-          </motion.div>
-        )}
-
-        {/* Family Leaderboard */}
-        <motion.div
-          className="relative bg-white/20 backdrop-blur-xl p-8 rounded-3xl shadow-2xl border border-white/30 overflow-hidden"
-          variants={fadeUp}
-          initial="hidden"
-          animate="visible"
-        >
-          {/* Liquid glow highlights */}
-          <div className="absolute -top-32 -left-32 w-64 h-64 bg-yellow-300 rounded-full blur-3xl opacity-20"></div>
-          <div className="absolute -bottom-32 -right-32 w-64 h-64 bg-orange-400 rounded-full blur-3xl opacity-20"></div>
-
-          <h2 className="text-3xl font-bold text-[#FF9933] mb-6 flex items-center gap-2 relative z-10">
-            <span className="text-yellow-500 text-2xl">🏠</span> Family Seva Leaderboard
-          </h2>
-
-          {families.length > 0 ? (
-            <ul className="space-y-4 relative z-10">
-              {families.map((fam, i) => (
-                <motion.li
-                  key={fam._id}
-                  className={`flex justify-between items-center p-4 rounded-xl relative overflow-hidden backdrop-blur-md ${
-                    i === 0
-                      ? "bg-gradient-to-r from-gold-100 to-yellow-50 border border-gold-300 shadow-md"
-                      : "bg-saffron-50/80 border border-saffron-200"
-                  }`}
-                  initial={{ opacity: 0, x: -15 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                >
-                  <div className="flex items-center gap-3">
-                    {i === 0 ? (
-                      <div className="relative">
-                        <span className="text-yellow-500 text-2xl">👑</span>
-                        <div className="absolute inset-0 rounded-full bg-yellow-300 animate-ping opacity-30"></div>
-                      </div>
-                    ) : (
-                      <span className="text-bhagwa-500 font-semibold">{i + 1}.</span>
-                    )}
-                    <span
-                      className={`${
-                        i === 0 ? "text-[#FF9933] font-semibold" : "text-[#FF9933]"
-                      }`}
-                    >
-                      {fam.name}
-                    </span>
-                  </div>
-
-                  <span
-                    className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                      i === 0
-                        ? "bg-yellow-100 text-bhagwa-800"
-                        : "bg-saffron-100 text-bhagwa-700"
-                    }`}
-                  >
-                    {fam.totalPoints.toFixed(0)} पुण्य
-                  </span>
-                </motion.li>
-              ))}
-            </ul>
-          ) : (
-            <div className="text-center py-10 text-bhagwa-600 relative z-10">
-              <p className="text-lg">No family points recorded yet</p>
-              <p className="mt-2 text-sm">Be the first family to shine in seva!</p>
-            </div>
-          )}
-        </motion.div>
-
-        {/* Footer */}
-        <footer className="text-center text-[#FFFFFF] font-semibold text-sm mt-12">
-          <LotusDivider className="mb-4" />
-          <p>श्री स्वामिनारायणाय नमः</p>
-          <p>May every family’s devotion blossom in unity 🌼</p>
-        </footer>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">
+          {familyName} Family Leaderboard
+        </h1>
+        <p className="text-gray-600">Top contributors in your family</p>
       </div>
-    </div>
-  );
-}
 
-export default FamilyDashboard;
+      {/* Leaderboard Table */}
+      {members.length > 0 ? (
+        <div className="space-y-3">
+          {members.map((member, index) => (
+            <motion.div
+              key={member._id}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.1 }}
+              className={`flex items-center justify-between p-4 rounded-xl transition-all duration-300 border ${
+                index === 0
+                  ? "bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200 shadow-sm"
+                  : index === 1
+                  ? "bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200"
+                  : index === 2
+                  ? "bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200"
+                  : "bg-white border border-gray-100"
+              } hover:shadow-md hover:translate-x-1`}
+            >
+              <div className="flex items-center gap-4">
+                <div className={`flex items-center justify-center w-10 h-10 rounded-lg font-bold text-sm transition-all duration-300 ${
+                  index === 0 ? "bg-gradient-to-br from-amber-500 to-orange-500 text-white shadow-lg" :
+                  index === 1 ? "bg-gradient-to-br from-gray-400 to-gray-500 text-white" :
+                  index === 2 ? "bg-gradient-to-br from-amber-400 to-orange-400 text-white" :
+                  "bg-gray-100 text-gray-600"
+                }`}>
+                  {index + 1}
+                </div>
+                <div>
+                  <span className={`font-semibold ${
+                    index === 0 ? "text-gray-900" : "text-gray-800"
+                  }`}>
+                    {member.name}
+                  </span>
+                  {index === 0 && (
+                    <div className="flex items-center gap-1 mt-1">
+                      <span className="text-xs text-amber-600 font-medium bg-amber-100 px-2 py-1 rounded-full">
+                        Leading
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-gray-500 font-medium">Points</span>
+                <span className={`px-4 py-2 rounded-lg font-bold text-sm min-w-16 text-center ${
+                  index === 0 ? "bg-amber-500 text-white shadow-lg" :
+                  index === 1 ? "bg-gray-500 text-white" :
+                  index === 2 ? "bg-amber-400 text-white" :
+                  "bg-gray-100 text-gray-700"
+                }`}>
+                  {member.points}
+                </span>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      ) : (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center py-12"
+        >
+          <div className="text-4xl mb-4">👨‍👩‍👧‍👦</div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            No family members yet
+          </h3>
+          <p className="text-gray-500">
+            Invite family members to join and start contributing!
+          </p>
+        </motion.div>
+      )}
+
+      {/* Stats Summary */}
+      {members.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="mt-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl"
+        >
+          <div className="grid grid-cols-3 gap-4 text-center">
+            <div>
+              <div className="text-2xl font-bold text-gray-900">{members.length}</div>
+              <div className="text-sm text-gray-500">Total Members</div>
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-amber-600">
+                {members.reduce((sum, member) => sum + member.points, 0)}
+              </div>
+              <div className="text-sm text-gray-500">Total Points</div>
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-gray-900">
+                {Math.round(members.reduce((sum, member) => sum + member.points, 0) / members.length) || 0}
+              </div>
+              <div className="text-sm text-gray-500">Avg Points</div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+    </motion.div>
+  );
+};
+
+export default FamilyLeaderboard;

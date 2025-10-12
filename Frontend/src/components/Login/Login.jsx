@@ -34,102 +34,81 @@ function Login() {
   };
 
   return (
-    <motion.div className="min-h-screen flex bg-orange-100">
-      {/* Left Side - Welcome with Image */}
-      <div
-        className="hidden md:flex w-1/2 items-center justify-center relative bg-cover bg-center"
-        style={{ backgroundImage: "url('/Maharaj.jpg')" }}
+    <div className="min-h-screen bg-gradient-to-br from-saffron-50 via-white to-orange-50 flex items-center justify-center p-6">
+      {/* Background Pattern */}
+      <div className="fixed inset-0 bg-[linear-gradient(45deg,#f8fafc_25%,transparent_25%),linear-gradient(-45deg,#f8fafc_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#f8fafc_75%),linear-gradient(-45deg,transparent_75%,#f8fafc_75%)] bg-[size:20px_20px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,black_30%,transparent_100%)]"></div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-orange-100 w-full max-w-md relative"
       >
-        <div className="absolute inset-0 bg-orange-900 bg-opacity-60"></div>
-        <div className="relative z-10 text-center text-white px-6">
-          <h1 className="text-4xl md:text-5xl font-extrabold drop-shadow-lg">
-            જય શ્રી સ્વામિનારાયણ
-          </h1>
-          <p className="mt-4 text-lg opacity-90">
-            Welcome to <span className="font-bold">Bhajan Bank</span>
-            <br />
-            Track your spiritual journey with divine grace
-          </p>
-        </div>
-      </div>
+        {/* Decorative Elements */}
+        <div className="absolute -top-4 -right-4 w-20 h-20 bg-orange-100 rounded-full opacity-50"></div>
+        <div className="absolute -bottom-4 -left-4 w-16 h-16 bg-orange-50 rounded-full opacity-70"></div>
 
-      {/* Right Side - Login Form */}
-      <div className="w-full md:w-1/2 flex items-center justify-center p-6 md:p-12 relative">
-        
-        {/* Logo in Corner */}
-       
-
-        <div className="w-full max-w-md bg-gradient-to-b from-orange-200 to-orange-100 shadow-2xl rounded-2xl p-8 space-y-6">
+        <div className="relative z-10 p-8">
           {/* Back Button */}
           <button
-            className="text-orange-700 flex items-center space-x-2 hover:underline"
             onClick={() => navigate("/")}
+            className="flex items-center gap-2 text-gray-600 hover:text-orange-600 transition-colors duration-200 mb-6"
           >
-            <span className="text-lg">←</span> <span>Back</span>
+            <span className="text-lg">←</span>
+            <span className="text-sm font-medium">Back to Home</span>
           </button>
 
-          {/* Logo Icon (center piece inside card, optional) */}
-          <div className="flex justify-center">
-            <div className="w-16 h-16 rounded-full  flex items-center justify-center">
-               <img
-          src="/1.png" // replace with your logo file
-          alt="Logo"
-          className=" w-14 h-14 "
-        />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M3 12l9-9 9 9M4 10v10a1 1 0 001 1h4m10-11v11a1 1 0 01-1 1h-4m-6 0h6"
-                />
-             
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 flex items-center justify-center mx-auto mb-4">
+              <img
+                src="/1.png"
+                alt="Bhajan Bank Logo"
+                className="w-20 h-15"
+              />
             </div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Bhajan Bank
+            </h1>
+            <p className="text-gray-600">
+              Enter the divine portal
+            </p>
           </div>
 
-          {/* Heading */}
-  {/* <img
-          src="/1.png" // replace with your logo file
-          alt="Logo"
-          className="absolute top-12 -12 w-14 h-14 lg:hidden"
-        /> */}
-          <h2 className="text-center text-2xl font-bold text-orange-800">
-            श्री Bhajan Bank
-          </h2>
-          <p className="text-center text-orange-600 italic">
-            Enter the divine portal
-          </p>
-
           {/* Form */}
-          <form className="space-y-5" onSubmit={handleSubmit}>
+          <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
-              <label className="block text-orange-700 font-medium mb-1">
-                Email / Divine ID
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                Email Address
               </label>
               <input
+                id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full border border-orange-300 px-4 py-2 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none bg-orange-50"
+                className="w-full border border-gray-300 p-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200"
                 placeholder="your@email.com"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-orange-700 font-medium mb-1">
-                Mantra (Password)
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                Password
               </label>
               <div className="relative">
                 <input
+                  id="password"
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full border border-orange-300 px-4 py-2 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none bg-orange-50 pr-10"
-                  placeholder="••••••••"
+                  className="w-full border border-gray-300 p-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 pr-12"
+                  placeholder="Enter your password"
                   required
                 />
                 <button
                   type="button"
-                  className="absolute inset-y-0 right-3 flex items-center text-orange-600"
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 transition-colors duration-200"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
@@ -141,42 +120,73 @@ function Login() {
               </div>
             </div>
 
+            {/* Error Message */}
             {error && (
-              <p className="text-red-600 text-center text-sm">{error}</p>
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-red-100 border border-red-300 text-red-700 px-4 py-3 rounded-xl flex justify-between items-center"
+              >
+                <span className="text-sm">{error}</span>
+                <button 
+                  onClick={() => setError("")}
+                  className="text-red-500 hover:text-red-700 font-bold text-lg"
+                >
+                  ×
+                </button>
+              </motion.div>
             )}
 
-            <button
+            {/* Submit Button */}
+            <motion.button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-orange-600 to-orange-500 text-white py-2 rounded-lg hover:from-orange-700 hover:to-orange-600 transition shadow-md flex justify-center items-center space-x-2 disabled:opacity-60"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 disabled:from-gray-400 disabled:to-gray-500 text-white py-4 rounded-xl font-semibold transition-all duration-200 shadow-lg disabled:shadow-none flex items-center justify-center gap-2"
             >
               {isLoading ? (
-                <span>Loading...</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Signing In...
+                </div>
               ) : (
                 <>
-                  <span>🙏</span> <span>Pranam & Enter</span>
+                  <span className="text-lg">🙏</span>
+                  Sign In to Bhajan Bank
                 </>
               )}
-            </button>
+            </motion.button>
           </form>
 
-          {/* Footer Links */}
-          <p className="text-center text-orange-700">
-            New to divine service?{" "}
-            <a
+          {/* Divider */}
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-500">New to divine service?</span>
+            </div>
+          </div>
+
+          {/* Register Link */}
+          <div className="text-center">
+            <button
               onClick={() => navigate("/register")}
-              className="mt-4 font-medium text-[#E56210] hover:text-[#FF9933] underline underline-offset-5 decoration-[#E56210]"
+              className="text-orange-600 hover:text-orange-700 font-medium transition-colors duration-200 underline underline-offset-4"
             >
               Begin Your Spiritual Journey
-            </a>
-          </p>
+            </button>
+          </div>
 
-          <p className="text-center text-orange-800 text-sm font-semibold mt-2">
-            श्री स्वामिनारायणाय नमः
-          </p>
+          {/* Footer Blessing */}
+          <div className="text-center mt-8 pt-6 border-t border-gray-200">
+            <p className="text-sm font-semibold text-gray-700">श्री स्वामिनारायणाय नमः</p>
+            <p className="text-xs text-gray-500 mt-1">May your devotion blossom</p>
+          </div>
         </div>
-      </div>
-    </motion.div>
+      </motion.div>
+    </div>
   );
 }
 

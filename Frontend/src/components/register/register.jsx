@@ -3,6 +3,7 @@ import { useAuth } from '../../Auth/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { UserIcon, AtSymbolIcon, KeyIcon } from '@heroicons/react/24/solid';
+import { motion } from 'framer-motion';
 
 function Register() {
   const { register } = useAuth();
@@ -22,12 +23,12 @@ function Register() {
     setError('');
 
     if (password !== confirmPassword) {
-      setError('⚠️ Your mantras do not match');
+      setError('Passwords do not match');
       return;
     }
 
     if (password.length < 8) {
-      setError('⚠️ Sacred mantra should be at least 8 characters long');
+      setError('Password should be at least 8 characters long');
       return;
     }
 
@@ -50,139 +51,215 @@ function Register() {
   };
 
   return (
-    <div className="min-h-screen flex bg-[#faf6f1]">
-      {/* Left Inspiration Panel */}
-      <div className="hidden md:flex w-1/2 bg-orange-900 text-white flex-col items-center justify-center p-10 relative">
-        <h1 className="text-5xl font-extrabold mb-6 drop-shadow-lg">
-          જય શ્રી સ્વામિનારાયણ
-        </h1>
-        <p className="text-lg font-medium text-gray-300">
-          Begin your divine journey with <span className="font-bold">Bhajan Bank</span>
-        </p>
-       
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-saffron-50 via-white to-orange-50 flex items-center justify-center p-6">
+      {/* Background Pattern */}
+      <div className="fixed inset-0 bg-[linear-gradient(45deg,#f8fafc_25%,transparent_25%),linear-gradient(-45deg,#f8fafc_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#f8fafc_75%),linear-gradient(-45deg,transparent_75%,#f8fafc_75%)] bg-[size:20px_20px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,black_30%,transparent_100%)]"></div>
 
-      {/* Right Form Section */}
-      <div className="flex w-full md:w-1/2 items-center justify-center  bg-orange-100 relative">
-      
-        <div className="w-full max-w-md bg-gradient-to-b from-orange-200 to-orange-100 shadow-2xl rounded-2xl p-8 space-y-6">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-orange-100 w-full max-w-md relative"
+      >
+        {/* Decorative Elements */}
+        <div className="absolute -top-4 -right-4 w-20 h-20 bg-orange-100 rounded-full opacity-50"></div>
+        <div className="absolute -bottom-4 -left-4 w-16 h-16 bg-orange-50 rounded-full opacity-70"></div>
+
+        <div className="relative z-10 p-8">
+          {/* Back Button */}
+          <button
+            onClick={() => navigate("/")}
+            className="flex items-center gap-2 text-gray-600 hover:text-orange-600 transition-colors duration-200 mb-6"
+          >
+            <span className="text-lg">←</span>
+            <span className="text-sm font-medium">Back to Home</span>
+          </button>
+
           {/* Header */}
-          <div className="text-center mb-6">
-            <div className="mx-auto w-16 h-16  rounded-full flex items-center justify-center mb-4">
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 flex items-center justify-center mx-auto mb-4">
               <img
-                src="/1.png" // replace with your logo file
-                alt="Logo"
-                className=" w-14 h-14 "
+                src="/1.png"
+                alt="Bhajan Bank Logo"
+                className="w-20 h-15"
               />
             </div>
-            <h2 className="text-3xl font-bold text-[#E56210]">Begin Your Journey</h2>
-            <p className="mt-2 text-[#b14c0e] italic">Join our spiritual family</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Join Bhajan Bank
+            </h1>
+            <p className="text-gray-600">
+              Begin your spiritual journey with us
+            </p>
           </div>
 
-          {/* Error */}
+          {/* Error Message */}
           {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 mb-4 rounded-lg text-sm">
-              {error}
-            </div>
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-red-100 border border-red-300 text-red-700 px-4 py-3 rounded-xl mb-6 flex justify-between items-center"
+            >
+              <span className="text-sm flex-1">{error}</span>
+              <button 
+                onClick={() => setError("")}
+                className="text-red-500 hover:text-red-700 font-bold text-lg ml-4"
+              >
+                ×
+              </button>
+            </motion.div>
           )}
 
           {/* Form */}
-          <form className="space-y-5" onSubmit={handleSubmit}>
-            {/* Name */}
-            
-            <div className="relative">
-              <UserIcon className="h-5 w-5 absolute left-3 top-3 text-[#E56210]" />
-              <input
-                type="text"
-                placeholder="Spiritual Name"
-                className="w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#E56210] focus:border-[#E56210]"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            {/* Name Field */}
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                Full Name
+              </label>
+              <div className="relative">
+                <UserIcon className="h-5 w-5 absolute left-4 top-4 text-gray-400" />
+                <input
+                  id="name"
+                  type="text"
+                  placeholder="Enter your full name"
+                  className="w-full border border-gray-300 p-4 pl-12 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                />
+              </div>
             </div>
 
-            {/* Email */}
-            <div className="relative">
-              <AtSymbolIcon className="h-5 w-5 absolute left-3 top-3 text-[#E56210]" />
-              <input
-                type="email"
-                placeholder="Email / Divine ID"
-                className="w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#E56210] focus:border-[#E56210]"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+            {/* Email Field */}
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                Email Address
+              </label>
+              <div className="relative">
+                <AtSymbolIcon className="h-5 w-5 absolute left-4 top-4 text-gray-400" />
+                <input
+                  id="email"
+                  type="email"
+                  placeholder="your@email.com"
+                  className="w-full border border-gray-300 p-4 pl-12 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
             </div>
 
-            {/* Password */}
-            <div className="relative">
-              <KeyIcon className="h-5 w-5 absolute left-3 top-3 text-[#E56210]" />
-              <input
-                type={showPassword ? 'text' : 'password'}
-                placeholder="Sacred Mantra (min 8 characters)"
-                className="w-full pl-10 pr-10 py-3 border rounded-lg focus:ring-2 focus:ring-[#E56210] focus:border-[#E56210]"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-              <button
-                type="button"
-                className="absolute inset-y-0 right-3 flex items-center text-[#E56210]"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? <EyeIcon className="h-5 w-5" /> : <EyeSlashIcon className="h-5 w-5" />}
-              </button>
+            {/* Password Field */}
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                Password
+              </label>
+              <div className="relative">
+                <KeyIcon className="h-5 w-5 absolute left-4 top-4 text-gray-400" />
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Minimum 8 characters"
+                  className="w-full border border-gray-300 p-4 pl-12 pr-12 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeSlashIcon className="w-5 h-5" />
+                  ) : (
+                    <EyeIcon className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
             </div>
 
-            {/* Confirm Password */}
-            <div className="relative">
-              <KeyIcon className="h-5 w-5 absolute left-3 top-3 text-[#E56210]" />
-              <input
-                type={showConfirmPassword ? 'text' : 'password'}
-                placeholder="Confirm Sacred Mantra"
-                className="w-full pl-10 pr-10 py-3 border rounded-lg focus:ring-2 focus:ring-[#E56210] focus:border-[#E56210]"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-              />
-              <button
-                type="button"
-                className="absolute inset-y-0 right-3 flex items-center text-[#E56210]"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              >
-                {showConfirmPassword ? <EyeIcon className="h-5 w-5" /> : <EyeSlashIcon className="h-5 w-5" />}
-              </button>
+            {/* Confirm Password Field */}
+            <div>
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+                Confirm Password
+              </label>
+              <div className="relative">
+                <KeyIcon className="h-5 w-5 absolute left-4 top-4 text-gray-400" />
+                <input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  placeholder="Confirm your password"
+                  className="w-full border border-gray-300 p-4 pl-12 pr-12 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? (
+                    <EyeSlashIcon className="w-5 h-5" />
+                  ) : (
+                    <EyeIcon className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
             </div>
 
-            {/* Submit */}
-            <button
+            {/* Submit Button */}
+            <motion.button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 rounded-lg text-white font-semibold bg-gradient-to-r from-[#E56210] to-[#FF7722] hover:from-[#ff8c42] hover:to-[#ff6a00] shadow-lg transition"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 disabled:from-gray-400 disabled:to-gray-500 text-white py-4 rounded-xl font-semibold transition-all duration-200 shadow-lg disabled:shadow-none flex items-center justify-center gap-2"
             >
-              {isLoading ? 'Initiating Devotion...' : 'Join Spiritual Family'}
-            </button>
+              {isLoading ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Creating Account...
+                </div>
+              ) : (
+                <>
+                  <span className="text-lg">🌱</span>
+                  Create Account
+                </>
+              )}
+            </motion.button>
           </form>
 
-          {/* Footer */}
-          <div className="text-center mt-6 text-sm text-[#b14c0e]">
-            Already initiated?{' '}
+          {/* Divider */}
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-500">Already have an account?</span>
+            </div>
+          </div>
+
+          {/* Login Link */}
+          <div className="text-center">
             <button
               onClick={() => navigate('/login')}
-              className="font-medium text-[#E56210] hover:text-[#ff6a00] underline"
+              className="text-orange-600 hover:text-orange-700 font-medium transition-colors duration-200 underline underline-offset-4"
             >
-              Enter Divine Portal
+              Sign in to your account
             </button>
           </div>
 
-          <div className="mt-6 text-center text-xs text-[#b14c0e]">
-            श्री स्वामिनारायणाय नमः
+          {/* Footer Blessing */}
+          <div className="text-center mt-8 pt-6 border-t border-gray-200">
+            <p className="text-sm font-semibold text-gray-700">श्री स्वामिनारायणाय नमः</p>
+            <p className="text-xs text-gray-500 mt-1">May your spiritual journey begin</p>
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }
 
-export default Register;
+export default Register; 
