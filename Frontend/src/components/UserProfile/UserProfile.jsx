@@ -151,21 +151,37 @@ const handleProfileImageUpload = async (e) => {
 
   // Date filtering
   const today = new Date();
-  today.setHours(4, 0, 0, 0);
+today.setHours(0, 0, 0, 0); // start of today
 
-  const past10Date = new Date();
-  past10Date.setDate(today.getDate() - 10);
-  past10Date.setHours(0, 0, 0, 0);
+const tomorrow = new Date(today);
+tomorrow.setDate(today.getDate() + 1); // start of tomorrow
 
-  const todaysTasks = tasks.filter((t) => {
-    const taskDate = new Date(t.date);
-    return taskDate >= today && taskDate < new Date(today.getTime() + 24 * 60 * 60 * 1000);
-  });
+const past10Date = new Date(today);
+past10Date.setDate(today.getDate() - 10); // 10 days ago
 
-  const pastTasks = tasks.filter((t) => {
-    const taskDate = new Date(t.date);
-    return taskDate >= past10Date && taskDate < today;
-  });
+const todaysTasks = tasks.filter((t) => {
+  const taskDate = new Date(t.date);
+  taskDate.setHours(2, 0, 0, 0);
+  return taskDate >= today && taskDate < tomorrow;
+});
+
+const pastTasks = tasks.filter((t) => {
+  const taskDate = new Date(t.date);
+  taskDate.setHours(0, 0, 0, 0);
+  return taskDate >= past10Date && taskDate <= today;
+});
+
+const activeDaysSet = new Set(
+  tasks.map((t) => {
+    const d = new Date(t.date);
+    d.setHours(0, 0, 0, 0); // normalize to midnight
+    return d.getTime(); // use timestamp for uniqueness
+  })
+);
+
+const activeDaysCount = activeDaysSet.size;
+
+
 
   if (loading) {
     return (
@@ -238,25 +254,25 @@ const handleProfileImageUpload = async (e) => {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                 <div className="bg-orange-50 p-3 rounded-lg border border-orange-200">
                   <p className="text-2xl font-bold text-orange-600">
-                    {todaysTasks.reduce((total, taskDoc) => total + taskDoc.tasks.length, 0)}
+                     {todaysTasks.reduce((total, taskDoc) => total + taskDoc.tasks.length, 0)}
                   </p>
                   <p className="text-xs text-gray-600">Today's Tasks</p>
                 </div>
                 <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
                   <p className="text-2xl font-bold text-blue-600">
-                    {pastTasks.length}
+                     {pastTasks.reduce((total, taskDoc) => total + taskDoc.tasks.length, 0)}
                   </p>
                   <p className="text-xs text-gray-600">Past Tasks</p>
                 </div>
                 <div className="bg-green-50 p-3 rounded-lg border border-green-200">
                   <p className="text-2xl font-bold text-green-600">
-                    {tasks.reduce((total, taskDoc) => total + taskDoc.tasks.reduce((sum, task) => sum + task.totalPoints, 0), 0)}
-                  </p>
+                 {tasks.reduce((total, taskDoc) => total + taskDoc.tasks.reduce((sum, task) => sum + task.totalPoints, 0), 0)}
+                    </p>
                   <p className="text-xs text-gray-600">Total Points</p>
                 </div>
                 <div className="bg-purple-50 p-3 rounded-lg border border-purple-200">
                   <p className="text-2xl font-bold text-purple-600">
-                    {tasks.length}
+                     {activeDaysCount}
                   </p>
                   <p className="text-xs text-gray-600">Active Days</p>
                 </div>

@@ -182,14 +182,15 @@
 
 import React, { useState } from "react";
 import { useAuth } from '../../Auth/AuthContext';
-import { Link, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+
 import { motion } from "framer-motion";
 
 const Navbar = () => {
   const { logout, user } = useAuth();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
+ const navigate = useNavigate();
   const navigation = [
     { name: "My Profile", href: "/profile", current: location.pathname === "/profile", icon: "👤" },
     { name: "Tasks", href: "/data", current: location.pathname === "/data", icon: "📝" },
@@ -258,6 +259,8 @@ const Navbar = () => {
                     <motion.div 
                       whileHover={{ scale: 1.05 }}
                       className="bg-gradient-to-r from-orange-50 to-amber-50 text-orange-700 px-4 py-2 rounded-full text-sm border border-orange-200 font-medium flex items-center gap-1"
+                      onClick={() => navigate("/family")}
+
                     >
                       👨‍👩‍👧‍👦 {user.family.name}
                     </motion.div>

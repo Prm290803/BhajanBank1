@@ -15,9 +15,10 @@ const backend_url = import.meta.env.VITE_BACKENDURL || "http://localhost:5000";
     const fetchLeaderboard = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`${backend_url}/api/family/leaderboard`, {
+      const res = await fetch(`${backend_url}/family-leaderboard`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+
         const data = await res.json();
 
         if (res.ok) {

@@ -77,59 +77,40 @@ app.use(express.json());
 // Routes
 app.post('/api/register', async (req, res) => {
   try {
-    // console.log(req.body, 'This is the request')
     const { name, email, password } = req.body;
-    
-      if (!name || !email || !password) {
-    return res.status(400).json({ error: "All fields are required!" });
-  }
 
-
-  // Check if email exists
-  const userExists = await User.findOne({ email });
-  if (userExists) {
-    return res.status(400).json({ error: "Email already registered!" });
-  }
-
-
-// Try now for registering ...>.  
-  if (password.length < 6) {
-    return res.status(400).json({ error: "Password must be at least 6 characters!" });
-  }
-
-
-    // Check if user exists
-    let user = await User.findOne({ email });
-    if (user) {
-      return res.status(400).json({ message: 'User already exists' });
+    if (!name || !email || !password) {
+      return res.status(400).json({ error: "All fields are required!" });
     }
 
+    if (password.length < 6) {
+      return res.status(400).json({ error: "Password must be at least 6 characters!" });
+    }
 
-    // Create new user
-    user = new User({
-      name,
-      email,
-      // password: await argon2.hash(password)
-      // password: await bcrypt.hash(password,10)
-      password: mopassword
-    });
-    // console.log(user,'This is the user')
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ error: "Email already registered!" });
+    }
+
+    const user = new User({ name, email, password });
     await user.save();
 
-    // Create token
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-      expiresIn: '1d'
-    });
-    // console.log(token, 'This is the token')
-    res.status(201).json({ 
+    const token = jwt.sign(
+      { userId: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: '1d' }
+    );
+
+    res.status(201).json({
       token,
-      user: { id: user._id, name: user.name, email: user.email }
+      user: { id: user._id, name: user.name, email: user.email },
     });
   } catch (err) {
     console.error('Registration error:', err);
-    res.status(500).json({ error: 'Registration failed' }); // Consistent error key
+    res.status(500).json({ error: 'Registration failed' });
   }
 });
+
 
 //reset password
 app.post('/api/reset-password', async (req, res) => {
@@ -357,6 +338,10 @@ app.get('/api/leaderboard', async (req, res) => {
     res.status(500).json([]);
   }
 });
+
+
+
+
 app.get("/api/taskuser", authMiddleware, async (req, res) => {
   try {
     const userId = req.userId;
@@ -364,7 +349,7 @@ app.get("/api/taskuser", authMiddleware, async (req, res) => {
 
     // Create a 4 AM day boundary
     let start = new Date(now);
-    start.setHours(4, 0, 0, 0);
+    start.setHours(2, 0, 0, 0);
 
     let end = new Date(start);
     end.setDate(end.getDate() + 1); // next day 4 AM
@@ -494,7 +479,10 @@ app.post("/api/create-family", async (req, res) => {
     if (user.family) {
       return res.status(400).json({ error: "User already belongs to a family" });
     }
-
+  const existingFamily = await Family.findOne({ name: familyName });
+    if (existingFamily) {
+      return res.status(400).json({ error: "A family with this name already exists" });
+    }
     const code = nanoid(8);
 
     const family = new Family({
@@ -525,7 +513,7 @@ app.post("/api/create-family", async (req, res) => {
 
 
 
-// app.post("/api/create-family", async (req, res) => {
+
 //   try {
 //     const { userId, familyName } = req.body;
 
@@ -617,7 +605,6 @@ app.post("/api/join-family", async (req, res) => {
 });
 
 
-// app.post("/api/join-family", async (req, res) => {
 //   try {
 //     const { userId, code } = req.body;
 
@@ -700,7 +687,7 @@ app.post("/api/add-points", async (req, res) => {
     user.points += earnedPoints;
     await user.save();
 
-    // 💡 Update the family’s total automatically
+    //Update the family’s total automatically
     if (user.family) {
       await updateFamilyPoints(user.family);
     }
@@ -714,7 +701,6 @@ app.post("/api/add-points", async (req, res) => {
 
 
 //family leaderboard
-// GET family leaderboard
 app.get("/family-leaderboard", authMiddleware, async (req, res) => {
   try {
     // Find the logged-in user
@@ -726,14 +712,25 @@ app.get("/family-leaderboard", authMiddleware, async (req, res) => {
     // Get the family and members
     const family = await Family.findById(user.family._id).populate("members");
 
-    // Calculate points for each member
+    // Define today's date range
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    // Calculate points for each member (only today's tasks)
     const membersWithPoints = await Promise.all(
       family.members.map(async (member) => {
-        const tasks = await Task.find({ user: member._id });
+        const tasks = await Task.find({
+          user: member._id,
+          date: { $gte: today, $lt: tomorrow }, // ✅ only today
+        });
+
         const totalPoints = tasks.reduce(
           (sum, t) => sum + (t.summary?.grandTotalPoints || 0),
           0
         );
+
         return {
           _id: member._id,
           name: member.name,
@@ -754,6 +751,7 @@ app.get("/family-leaderboard", authMiddleware, async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
+
 
 
 
