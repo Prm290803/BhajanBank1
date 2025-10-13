@@ -392,6 +392,24 @@ app.delete("/api/tasks/:id", authMiddleware, async (req, res) => {
   }
 });
 
+// GET a single task by ID
+app.get("/api/tasks/:id", authMiddleware, async (req, res) => {
+  try {
+    const task = await Task.findById(req.params.id);
+    if (!task) return res.status(404).json({ error: "Task not found" });
+
+    // Only allow owner to fetch
+    if (task.user.toString() !== req.userId) {
+      return res.status(403).json({ error: "Not authorized" });
+    }
+
+    res.json(task);
+  } catch (err) {
+    console.error("Fetch task error:", err);
+    res.status(500).json({ error: "Failed to fetch task" });
+  }
+});
+
 // Update subtask count
 app.put("/api/tasks/:taskId/:subtaskId", authMiddleware, async (req, res) => {
   try {
