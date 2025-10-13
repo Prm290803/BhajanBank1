@@ -38,7 +38,7 @@ function Register() {
       const result = await register(name, email, password);
 
       if (result.success) {
-        navigate('/login');
+        navigate('/data');
       } else {
         setError(result.message || 'Registration failed');
       }
