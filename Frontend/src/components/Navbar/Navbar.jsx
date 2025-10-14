@@ -78,7 +78,7 @@ const Navbar = () => {
                     <motion.div 
                       whileHover={{ scale: 1.05 }}
                       className="bg-gradient-to-r from-orange-100 to-amber-100 text-orange-700 px-4 py-2 rounded-full text-sm border border-orange-200 font-medium flex items-center gap-1 cursor-pointer hover:shadow-md transition-all duration-200"
-                      onClick={() => navigate("/family-dashboard")}
+                      onClick={() => navigate("/family")}
                     >
                       <span className="text-orange-600">👨‍👩‍👧‍👦</span>
                       </motion.div>
@@ -111,7 +111,7 @@ const Navbar = () => {
                 whileHover={{ scale: 1.05 }}
                 className="bg-gradient-to-r from-orange-100 to-amber-100 text-orange-800 px-3 py-2 rounded-full text-sm border border-orange-200 font-medium flex items-center gap-1 cursor-pointer hover:shadow-md transition-all duration-200"
                 onClick={() => {
-                  navigate("/family-dashboard");
+                  navigate("/family");
                   setIsMenuOpen(false);
                 }}
               >
