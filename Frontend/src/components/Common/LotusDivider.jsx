@@ -89,7 +89,7 @@ const LotusDivider = ({ className = "" }) => {
   };
 
   return (
-    <div className={`relative flex justify-center items-center py-12 ${className}`}>
+    <div className={`relative flex justify-center items-center py-5 ${className}`}>
       {/* Large Elegant Lotus Flower */}
       <div className="relative w-32 h-32"> {/* Increased from w-20 h-20 to w-32 h-32 */}
         

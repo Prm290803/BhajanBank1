@@ -162,7 +162,7 @@ app.post('/api/login', async (req, res) => {
     const token = jwt.sign(
       { userId: user._id },
       process.env.JWT_SECRET,
-      { expiresIn: '1d' }
+      { expiresIn: '5d' }
     );
 
     res.json({ 
@@ -371,7 +371,113 @@ app.get("/api/taskuser", authMiddleware, async (req, res) => {
     res.status(500).json({ error: "Failed to fetch tasks" });
   }
 });
+//fatchinh past 10 days task data for charts
+app.get("/api/taskuser/past10days", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.userId;
+    const now = new Date();
 
+    // Create 2 AM boundary (same as your reset logic)
+    let todayBoundary = new Date(now);
+    todayBoundary.setHours(2, 0, 0, 0);
+
+    if (now < todayBoundary) {
+      todayBoundary.setDate(todayBoundary.getDate() - 1);
+    }
+
+    // Calculate past 10 days range
+    const past10Boundary = new Date(todayBoundary);
+    past10Boundary.setDate(todayBoundary.getDate() - 10);
+
+    const tasks = await Task.find({
+      user: userId,
+      date: { $gte: past10Boundary, $lt: todayBoundary },
+    }).populate("user", "name");
+
+    res.json(tasks);
+  } catch (err) {
+    console.error("Error fetching past 10 days tasks:", err);
+    res.status(500).json({ error: "Failed to fetch past 10 days tasks" });
+  }
+});
+
+app.get("/api/tasks/range", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.userId;
+    const days = parseInt(req.query.days) || 7; // default to 7 days
+
+    const now = new Date();
+    let todayBoundary = new Date(now);
+    todayBoundary.setHours(2, 0, 0, 0);
+
+    // If current time is before 2 AM, shift one day back
+    if (now < todayBoundary) {
+      todayBoundary.setDate(todayBoundary.getDate() - 1);
+    }
+
+    const rangeStart = new Date(todayBoundary);
+    rangeStart.setDate(todayBoundary.getDate() - (days - 1));
+
+    const tasks = await Task.aggregate([
+      {
+        $match: {
+          user: new mongoose.Types.ObjectId(userId),
+          date: { $gte: rangeStart, $lte: todayBoundary },
+        },
+      },
+      {
+        // Sum totalPoints inside tasks array for each document
+        $addFields: {
+          docTotalPoints: { $sum: "$tasks.totalPoints" },
+        },
+      },
+      {
+        // Group by date
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
+          totalPoints: { $sum: "$docTotalPoints" },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
+
+    res.json(tasks);
+  } catch (err) {
+    console.error("Error fetching tasks by range:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
+app.get("/api/taskuser/all", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.userId;
+
+    // Fetch all tasks for this user
+    const allTasks = await Task.find({ user: userId }).sort({ date: -1 });
+
+    // Calculate all-time totals
+    let allTimePoints = 0;
+    let allTimeCount = 0;
+    const activeDaysSet = new Set();
+
+    allTasks.forEach(doc => {
+      activeDaysSet.add(doc.date.toDateString());
+      allTimePoints += doc.summary?.grandTotalPoints || 0;
+      allTimeCount += doc.summary?.totalCount || 0;
+    });
+
+    res.json({
+      allTasks,
+      allTimePoints,
+      allTimeCount,
+      activeDays: activeDaysSet.size
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch all tasks" });
+  }
+});
 
 // Delete entire task document by ID
 app.delete("/api/tasks/:id", authMiddleware, async (req, res) => {

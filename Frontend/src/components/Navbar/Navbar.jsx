@@ -38,7 +38,7 @@ const Navbar = () => {
               />
             </div>
             <div className="block">
-              <span className="text-xl sm:text-2xl font-bold bg-gradient-to-br from-orange-600 to-amber-600 bg-clip-text text-transparent font-sans">
+              <span className="text-xl sm:text-lg font-bold bg-gradient-to-br from-orange-600 to-amber-600 bg-clip-text text-transparent font-sans">
                 Bhajan Bank
               </span>
               {user && (

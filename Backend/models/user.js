@@ -9,7 +9,7 @@ const userSchema = new mongoose.Schema({
   profilePic: {
     type: String,
     default:
-      "https://res.cloudinary.com/demo/image/upload/v1690000000/default_profile.jpg" // 🖼️ default profile image
+      "/1.png" // 🖼️ default profile image
   },
   createdAt: { type: Date, default: Date.now },
 });

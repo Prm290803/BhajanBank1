@@ -21,13 +21,14 @@ const stagger = {
 };
 
 function Data() {
-  const { user, token } = useAuth();
+  const { user, token, loading } = useAuth();
   const backend_url = import.meta.env.VITE_BACKENDURL ;
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [tasks, setTasks] = useState([{ task: "", points: 1, count: "" }]);
   const [todayWinner, setTodayWinner] = useState(null);
   const [dailyQuote, setDailyQuote] = useState(null);
+  
 
   // Divine tasks with Sanskrit names where appropriate
   const taskPoints = {
@@ -147,43 +148,72 @@ function Data() {
       console.error(err);
     }
   };
+const fetchData = async () => {
+  try {
+    const res = await fetch(`${backend_url}/api/tasks`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
-  const fetchData = async () => {
-    try {
-      const res = await fetch(`${backend_url}/api/tasks`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      const userMap = {};
-      data.forEach((entry) => {
-        const uName = entry.user?.name || "Anonymous";
-        if (!userMap[uName]) userMap[uName] = { name: uName, points: 0, count: 0 };
-        userMap[uName].points += entry.summary?.grandTotalPoints || 0;
-        userMap[uName].count += entry.summary?.totalCount || 0;
-      });
-      const sorted = Object.values(userMap).sort((a, b) => b.points - a.points);
-      setUsers(sorted);
-      setTodayWinner(sorted[0] || null);
-    } catch (err) {
-      console.error(err);
+    if (!res.ok) {
+      console.error("Fetch failed:", res.status);
+      return;
     }
-  };
+
+    const data = await res.json();
+    if (!Array.isArray(data)) {
+      console.error("Expected array but got:", data);
+      return;
+    }
+
+    const userMap = {};
+    data.forEach((entry) => {
+      const uName = entry.user?.name || "Anonymous";
+      if (!userMap[uName]) userMap[uName] = { name: uName, points: 0, count: 0 };
+      userMap[uName].points += entry.summary?.grandTotalPoints || 0;
+      userMap[uName].count += entry.summary?.totalCount || 0;
+    });
+
+    const sorted = Object.values(userMap).sort((a, b) => b.points - a.points);
+    setUsers(sorted);
+    setTodayWinner(sorted[0] || null);
+  } catch (err) {
+    console.error("Error fetching data:", err);
+  }
+};
+
+
 
   useEffect(() => {
+  if (!token) return; // Wait until token is ready
+
+  fetchData(); // Initial fetch
+
+  // Optional: periodic refresh (every 60 seconds instead of 1)
+  const interval = setInterval(() => {
     fetchData();
-    const interval = setInterval(() => {
-      fetchData();
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
+  }, 60000);
 
-  useEffect(() => {
+  return () => clearInterval(interval);
+}, [token]); // 👈 React runs this effect whenever token changes
+
+
+ useEffect(() => {
+  if (!loading) {
     if (!token) {
       navigate('/login');
     } else {
       fetchData();
     }
-  }, [token, navigate]);
+  }
+}, [loading, token, navigate]);
+
+if (loading) {
+  return (
+    <div className="flex justify-center items-center min-h-screen">
+      <p>Loading your data...</p>
+    </div>
+  );
+}
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-saffron-50 via-white to-orange-50">
@@ -372,7 +402,7 @@ function Data() {
                     </span>
                   </div>
                 </motion.div>
-              )}
+              )}  
 
               {/* Leaderboard */}
               {users.length > 0 ? (
@@ -393,7 +423,7 @@ function Data() {
                           ? "bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200"
                           : i === 2
                           ? "bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200"
-                          : "bg-white border border-gray-100"
+                          : "bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200"
                       } hover:shadow-md hover:translate-x-1`}
                     >
                       <div className="flex items-center gap-3 sm:gap-4">
@@ -401,7 +431,7 @@ function Data() {
                           i === 0 ? "bg-amber-500 text-white" :
                           i === 1 ? "bg-orange-500 text-white" :
                           i === 2 ? "bg-amber-400 text-white" :
-                          "bg-gray-200 text-gray-600"
+                          "bg-orange-500 text-white"
                         }`}>
                           {i + 1}
                         </div>
@@ -409,7 +439,7 @@ function Data() {
                           i === 0 ? "text-amber-700" :
                           i === 1 ? "text-orange-700" :
                           i === 2 ? "text-amber-700" :
-                          "text-gray-700"
+                          "text-orange-700"
                         }`}>
                           {u.name}
                         </span>
@@ -421,7 +451,7 @@ function Data() {
                           i === 0 ? "bg-amber-500 text-white" :
                           i === 1 ? "bg-orange-500 text-white" :
                           i === 2 ? "bg-amber-400 text-white" :
-                          "bg-gray-500 text-white"
+                          "bg-orange-500 text-white"
                         }`}>
                           {u.points.toFixed(0)}
                         </span>

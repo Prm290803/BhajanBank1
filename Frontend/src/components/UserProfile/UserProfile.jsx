@@ -3,38 +3,111 @@ import { useAuth } from "../../Auth/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import Navbar from '../Navbar/Navbar';
+import {
+  LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, BarChart, Bar
+} from "recharts";
 
 const UserProfile = () => {
   const { user, token } = useAuth();
   const backend_url = import.meta.env.VITE_BACKENDURL;
   const navigate = useNavigate();
-
-  const [tasks, setTasks] = useState([]);
+  const [days, setDays] = useState(7); // default 7 days
+  const [tasks, setTasks] = useState([]);;
   const [family, setFamily] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [pastTasks, setPastTasks] = useState([]);
+  const [aggTasks, setAggTasks] = useState([]);
+  const [allTimePoints, setAllTimePoints] = useState(0);
+  const [allTimeCount, setAllTimeCount] = useState(0);
+  const [allTimeActiveDays, setAllTimeActiveDays] = useState(0);
 
-  const fetchTasks = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(`${backend_url}/api/taskuser`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+const fetchAllTasksSummary = async () => {
+  try {
+    setLoading(true);
+    const res = await fetch(`${backend_url}/api/taskuser/all`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }); 
+    if (!res.ok) throw new Error("Failed to fetch all tasks");
+
+    const data = await res.json();
+
+    setAllTimePoints(data.allTimePoints || 0);
+    setAllTimeCount(data.allTimeCount || 0);
+    setAllTimeActiveDays(data.activeDays || 0);
+
+    setTasks(data.allTasks || []);
+  } catch (err) {
+    console.error(err);
+    setError("Failed to fetch tasks summary");
+  } finally {
+    setLoading(false);
+  }
+};
+  // const fetchTasks = async () => {
+  //   try {
+  //     setLoading(true);
+  //     const response = await fetch(`${backend_url}/api/taskuser`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     });
       
-      if (!response.ok) {
-        throw new Error(`Failed to fetch tasks: ${response.status}`);
-      }
+  //     if (!response.ok) {
+  //       throw new Error(`Failed to fetch tasks: ${response.status}`);
+  //     }
       
-      const data = await response.json();
-      setTasks(data);
-    } catch (error) {
-      console.error("Error fetching tasks:", error);
-      setError("Failed to load tasks");
-    } finally {
-      setLoading(false);
-    }
-  };
+  //     const data = await response.json();
+  //     setTasks(data);
+  //   } catch (error) {
+  //     console.error("Error fetching tasks:", error);
+  //     setError("Failed to load tasks");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+const fetchTasks = async () => {
+  try {
+    setLoading(true);
+
+    // ✅ Fetch today's tasks
+    const todayRes = await fetch(`${backend_url}/api/taskuser`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!todayRes.ok) throw new Error("Failed to fetch today’s tasks");
+    const todayData = await todayRes.json();
+
+    // ✅ Fetch past 10 days' tasks
+    const pastRes = await fetch(`${backend_url}/api/taskuser/past10days`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!pastRes.ok) throw new Error("Failed to fetch past 10 days' tasks");
+    const pastData = await pastRes.json();
+
+    // ✅ Store separately
+    setTasks(todayData);
+    setPastTasks(pastData);
+  } catch (error) {
+    console.error("Error fetching tasks:", error);
+    setError("Failed to load tasks");
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+
+const fetchTasks1 = async () => {
+  try {
+    const response = await fetch(`${backend_url}/api/tasks/range?days=${days}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await response.json();
+    setAggTasks(data); // <-- Use a separate state
+  } catch (err) {
+    console.error("Error fetching tasks:", err);
+  }
+};
+
 
   const fetchFamily = async () => {
     if (!user?.family) return;
@@ -140,11 +213,29 @@ const UserProfile = () => {
 
   useEffect(() => {
     if (token && user?._id) {
-      fetchTasks();
+     fetchTasks();
       setFamily(user?.family || null);
       fetchFamily();
+    
+      fetchAllTasksSummary();
     }
   }, [token, user]);
+  useEffect(() => {
+  if (token && user?._id) {
+    fetchTasks1();
+  }
+}, [days, token, user]);
+
+  
+const allTaskDocs = [...pastTasks, ...tasks];
+
+// Map to chart-friendly format
+
+const chartData = aggTasks.map(doc => ({
+  date: doc._id, // e.g. "2025-10-15"
+  total: doc.totalPoints || 0
+})).sort((a, b) => new Date(a.date) - new Date(b.date));
+
 
   // Date filtering
   const today = new Date();
@@ -156,27 +247,25 @@ const UserProfile = () => {
   const past10Date = new Date(today);
   past10Date.setDate(today.getDate() - 10);
 
-  const todaysTasks = tasks.filter((t) => {
-    const taskDate = new Date(t.date);
-    taskDate.setHours(2, 0, 0, 0);
-    return taskDate >= today && taskDate < tomorrow;
-  });
 
-  const pastTasks = tasks.filter((t) => {
-    const taskDate = new Date(t.date);
-    taskDate.setHours(0, 0, 0, 0);
-    return taskDate >= past10Date && taskDate <= today;
-  });
+const allTasks = [...pastTasks, ...tasks];
 
-  const activeDaysSet = new Set(
-    tasks.map((t) => {
-      const d = new Date(t.date);
-      d.setHours(0, 0, 0, 0);
-      return d.getTime();
-    })
-  );
+const totalPointsAllTime = allTasks.reduce(
+  (total, taskDoc) => total + (taskDoc.tasks?.reduce((sum, t) => sum + (t.totalPoints || 0), 0) || 0),
+  0
+);
 
-  const activeDaysCount = activeDaysSet.size;
+const activeDaysSetAllTime = new Set(
+  allTasks.map(taskDoc => {
+    const d = new Date(taskDoc.date);
+    d.setHours(0, 0, 0, 0);
+    return d.getTime();
+  })
+);
+const activeDaysCountAllTime = activeDaysSetAllTime.size;
+
+
+  
 
   if (loading) {
     return (
@@ -206,83 +295,128 @@ const UserProfile = () => {
           className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-orange-100 p-4 sm:p-6 lg:p-8 mx-2 sm:mx-0"
         >
           {/* Header Section with Profile Image */}
-          <div className="flex flex-col items-center text-center mb-6 sm:mb-8">
-            {/* Profile Image Section */}
-            <div className="flex flex-col items-center mb-4 sm:mb-0">
-              <div className="relative">
-                <motion.img
-                  src={user?.profilePic || "/1.png"}
-                  alt="Profile"
-                  className="w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-full border-4 border-orange-300 shadow-lg object-cover"
-                  whileHover={{ scale: 1.05 }}
-                  transition={{ duration: 0.2 }}
-                />
-                <motion.label 
-                  className="absolute bottom-1 right-1 sm:bottom-2 sm:right-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white rounded-full p-2 sm:p-3 cursor-pointer shadow-lg transition-all duration-200"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                >
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleProfileImageUpload}
-                    disabled={uploading}
-                  />
-                  {uploading ? (
-                    <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  ) : (
-                    <span className="text-xs sm:text-sm">📸</span>
-                  )}
-                </motion.label>
-              </div>
-              {uploading && (
-                <p className="text-xs sm:text-sm text-gray-500 mt-2">Uploading...</p>
-              )}
+          <div className="flex flex-col items-center text-center mb-8">
+  {/* Profile Image Section */}
+  <div className="relative mb-6 group">
+    {/* Main Profile Image Container */}
+    <motion.div
+      className="relative rounded-full p-1 bg-gradient-to-r from-orange-400 to-amber-500 shadow-2xl"
+      whileHover={{ scale: 1.02 }}
+      transition={{ duration: 0.2 }}
+    >
+      <img
+        src={user?.profilePic || "/1.png"}
+        alt="Profile"
+        className="w-32 h-32 sm:w-36 sm:h-36 rounded-full border-4 border-white shadow-lg object-cover"
+      />
+      
+      {/* Upload Overlay */}
+      <motion.div
+        className="absolute inset-0 rounded-full bg-black  bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300"
+        whileHover={{ opacity: 1 }}
+      >
+        <motion.label
+          className="flex flex-col items-center justify-center cursor-pointer text-white"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+        >
+          <input
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleProfileImageUpload}
+            disabled={uploading}
+          />
+          {uploading ? (
+            <div className="flex flex-col items-center">
+              <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin mb-1"></div>
+              <span className="text-xs font-medium">Uploading...</span>
             </div>
-
-            {/* User Info Section */}
-            <div className="flex-1 w-full">
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-3">{user?.name}</h1>
-              
-              {/* User Stats */}
-              <div className="grid grid-cols-2 gap-2 sm:gap-3 sm:grid-cols-4 mb-4">
-                <div className="bg-orange-50 p-2 sm:p-3 rounded-lg border border-orange-200">
-                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-orange-600">
-                    {todaysTasks.reduce((total, taskDoc) => total + taskDoc.tasks.length, 0)}
-                  </p>
-                  <p className="text-xs text-gray-600">Today</p>
-                </div>
-                <div className="bg-blue-50 p-2 sm:p-3 rounded-lg border border-blue-200">
-                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600">
-                    {pastTasks.reduce((total, taskDoc) => total + taskDoc.tasks.length, 0)}
-                  </p>
-                  <p className="text-xs text-gray-600">Past</p>
-                </div>
-                <div className="bg-green-50 p-2 sm:p-3 rounded-lg border border-green-200">
-                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-green-600">
-                    {tasks.reduce((total, taskDoc) => total + taskDoc.tasks.reduce((sum, task) => sum + task.totalPoints, 0), 0)}
-                  </p>
-                  <p className="text-xs text-gray-600">Points</p>
-                </div>
-                <div className="bg-purple-50 p-2 sm:p-3 rounded-lg border border-purple-200">
-                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-purple-600">
-                    {activeDaysCount}
-                  </p>
-                  <p className="text-xs text-gray-600">Active Days</p>
-                </div>
+          ) : (
+            <div className="flex flex-col items-center">
+              <div className="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center mb-1">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
               </div>
-
-              <motion.button
-                onClick={() => navigate("/data")}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg text-sm sm:text-base"
-              >
-                + Add Tasks
-              </motion.button>
+              <span className="text-xs font-medium">Change Photo</span>
             </div>
-          </div>
+          )}
+        </motion.label>
+      </motion.div>
+    </motion.div>
+
+    {/* Camera Icon Badge - Always Visible */}
+    <motion.label
+      className="absolute bottom-2 right-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-full p-3 cursor-pointer shadow-lg border-2 border-white hover:shadow-xl transition-all duration-200"
+      whileHover={{ scale: 1.15, rotate: 5 }}
+      whileTap={{ scale: 0.9 }}
+    >
+      <input
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleProfileImageUpload}
+        disabled={uploading}
+      />
+      {uploading ? (
+        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+      ) : (
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      )}
+    </motion.label>
+  </div>
+
+  {/* User Info Section */}
+  <div className="flex-1 w-full">
+    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">{user?.name}</h1>
+      <p className="text-gray-600 mb-6">Welcome to your spiritual journey</p>
+    
+    {/* User Stats */}
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6 max-w-md mx-auto">
+      <div className="bg-gradient-to-br from-orange-50 to-amber-50 p-4 rounded-xl border border-orange-200 shadow-sm">
+        <p className="text-2xl select-none font-bold text-orange-600 mb-1"> 
+          {tasks.reduce((total, taskDoc) => total + (taskDoc.tasks?.length || 0), 0)}
+        </p>
+        <p className="text-xs select-none text-gray-600 font-medium">Today's Tasks</p>
+      </div>
+      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 rounded-xl border border-blue-200 shadow-sm">
+        <p className="text-2xl select-none font-bold text-blue-600 mb-1">
+          {pastTasks.reduce((total, taskDoc) => total + taskDoc.tasks.length, 0)}
+        </p>
+        <p className="text-xs select-none text-gray-600 font-medium">Past Tasks</p>
+      </div>
+      <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-4 rounded-xl border border-green-200 shadow-sm">
+        <p className="text-2xl select-none font-bold text-green-600 mb-1">
+          {totalPointsAllTime}
+        </p>
+        <p className="text-xs select-none text-gray-600 font-medium">Total Points</p>
+      </div>
+      <div className="bg-gradient-to-br from-purple-50 to-violet-50 p-4 rounded-xl border border-purple-200 shadow-sm">
+        <p className="text-2xl select-none font-bold text-purple-600 mb-1">
+          {activeDaysCountAllTime}
+        </p>
+        <p className="text-xs select-none text-gray-600 font-medium">Active Days</p>
+      </div>
+    </div>
+
+    <motion.button
+      onClick={() => navigate("/data")}
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl flex items-center gap-2 mx-auto"
+    >
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+      </svg>
+      Add New Tasks
+    </motion.button>
+  </div>
+</div>
 
           {/* Error Display */}
           {error && (
@@ -368,13 +502,13 @@ const UserProfile = () => {
                 <span className="sm:hidden">Today</span>
               </h2>
               <span className="bg-gradient-to-r from-orange-500 to-amber-500 text-white px-3 sm:px-4 py-1 sm:py-2 rounded-full text-xs sm:text-sm font-semibold shadow">
-                {todaysTasks.reduce((total, taskDoc) => total + taskDoc.tasks.length, 0)} tasks
+                {tasks.reduce((total, taskDoc) => total + taskDoc.tasks.length, 0)} tasks
               </span>
             </div>
             
-            {todaysTasks.length > 0 ? (
+            {tasks.length > 0 ? (
               <div className="space-y-3 sm:space-y-4">
-                {todaysTasks.map((taskDoc) =>
+                {tasks.map((taskDoc) =>
                   taskDoc.tasks.map((task, idx) => (
                     <motion.div
                       key={`${taskDoc._id}-${idx}`}
@@ -430,7 +564,7 @@ const UserProfile = () => {
               </motion.div>
             )}
           </div>
-
+      
           {/* Past Tasks Section */}
           <div>
             <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 text-gray-800 flex items-center gap-2 justify-center sm:justify-start">
