@@ -371,6 +371,70 @@ app.get("/api/taskuser", authMiddleware, async (req, res) => {
     res.status(500).json({ error: "Failed to fetch tasks" });
   }
 });
+
+
+
+
+// POST /api/family/goal
+app.post("/api/family/goal", authMiddleware, async (req, res) => {
+  try {
+    const { goal, goalName } = req.body; // <-- accept goalName
+    const userId = req.userId;
+    const today = new Date().toISOString().slice(0, 10);
+
+    const family = await Family.findOne({ members: userId });
+    if (!family) return res.status(404).json({ message: "Family not found" });
+
+    family.dailyGoal = goal;
+    family.goalname = goalName || 'Today\'s Goal'; // default if not provided
+    family.goalDate = today;
+    await family.save();
+
+    res.json({ success: true, goal, goalName: family.goalname });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to set goal", error: err.message });
+  }
+});
+
+
+
+// GET /api/family/goal
+app.get("/api/family/goal", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.userId;
+    const today = new Date().toISOString().slice(0, 10);
+
+    const family = await Family.findOne({ members: userId });
+    if (!family) return res.status(404).json({ message: "Family not found" });
+
+    if (family.goalDate !== today) {
+      return res.json({ goal: 0 }); // reset for a new day
+    }
+
+    res.json({ goal: family.dailyGoal || 0 });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch goal", error: err.message });
+  }
+});
+
+// DELETE /api/family/goal
+app.delete("/api/family/goal", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.userId;
+    const family = await Family.findOne({ members: userId });
+    if (!family) return res.status(404).json({ message: "Family not found" });
+
+    family.dailyGoal = 0;
+    family.goalDate = null;
+    await family.save();
+
+    res.json({ success: true, message: "Goal deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to delete goal", error: err.message });
+  }
+});
+
+
 //fatchinh past 10 days task data for charts
 app.get("/api/taskuser/past10days", authMiddleware, async (req, res) => {
   try {
