@@ -3,22 +3,17 @@ import { useAuth } from "../../Auth/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import Navbar from '../Navbar/Navbar';
-import {
-  LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, BarChart, Bar
-} from "recharts";
 
 const UserProfile = () => {
   const { user, token } = useAuth();
   const backend_url = import.meta.env.VITE_BACKENDURL;
   const navigate = useNavigate();
-  const [days, setDays] = useState(7); // default 7 days
-  const [tasks, setTasks] = useState([]);;
+  const [tasks, setTasks] = useState([]);
   const [family, setFamily] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [uploading, setUploading] = useState(false);
   const [pastTasks, setPastTasks] = useState([]);
-  const [aggTasks, setAggTasks] = useState([]);
   const [allTimePoints, setAllTimePoints] = useState(0);
   const [allTimeCount, setAllTimeCount] = useState(0);
   const [allTimeActiveDays, setAllTimeActiveDays] = useState(0);
@@ -37,7 +32,7 @@ const fetchAllTasksSummary = async () => {
     setAllTimeCount(data.allTimeCount || 0);
     setAllTimeActiveDays(data.activeDays || 0);
 
-    setTasks(data.allTasks || []);
+   
   } catch (err) {
     console.error(err);
     setError("Failed to fetch tasks summary");
@@ -45,26 +40,7 @@ const fetchAllTasksSummary = async () => {
     setLoading(false);
   }
 };
-  // const fetchTasks = async () => {
-  //   try {
-  //     setLoading(true);
-  //     const response = await fetch(`${backend_url}/api/taskuser`, {
-  //       headers: { Authorization: `Bearer ${token}` },
-  //     });
-      
-  //     if (!response.ok) {
-  //       throw new Error(`Failed to fetch tasks: ${response.status}`);
-  //     }
-      
-  //     const data = await response.json();
-  //     setTasks(data);
-  //   } catch (error) {
-  //     console.error("Error fetching tasks:", error);
-  //     setError("Failed to load tasks");
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
+
 const fetchTasks = async () => {
   try {
     setLoading(true);
@@ -73,7 +49,7 @@ const fetchTasks = async () => {
     const todayRes = await fetch(`${backend_url}/api/taskuser`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    if (!todayRes.ok) throw new Error("Failed to fetch today’s tasks");
+    if (!todayRes.ok) throw new Error("Failed to fetch today's tasks");
     const todayData = await todayRes.json();
 
     // ✅ Fetch past 10 days' tasks
@@ -93,21 +69,6 @@ const fetchTasks = async () => {
     setLoading(false);
   }
 };
-
-
-
-const fetchTasks1 = async () => {
-  try {
-    const response = await fetch(`${backend_url}/api/tasks/range?days=${days}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const data = await response.json();
-    setAggTasks(data); // <-- Use a separate state
-  } catch (err) {
-    console.error("Error fetching tasks:", err);
-  }
-};
-
 
   const fetchFamily = async () => {
     if (!user?.family) return;
@@ -220,22 +181,10 @@ const fetchTasks1 = async () => {
       fetchAllTasksSummary();
     }
   }, [token, user]);
-  useEffect(() => {
-  if (token && user?._id) {
-    fetchTasks1();
-  }
-}, [days, token, user]);
 
-  
 const allTaskDocs = [...pastTasks, ...tasks];
 
 // Map to chart-friendly format
-
-const chartData = aggTasks.map(doc => ({
-  date: doc._id, // e.g. "2025-10-15"
-  total: doc.totalPoints || 0
-})).sort((a, b) => new Date(a.date) - new Date(b.date));
-
 
   // Date filtering
   const today = new Date();
@@ -246,7 +195,6 @@ const chartData = aggTasks.map(doc => ({
 
   const past10Date = new Date(today);
   past10Date.setDate(today.getDate() - 10);
-
 
 const allTasks = [...pastTasks, ...tasks];
 
@@ -263,9 +211,6 @@ const activeDaysSetAllTime = new Set(
   })
 );
 const activeDaysCountAllTime = activeDaysSetAllTime.size;
-
-
-  
 
   if (loading) {
     return (
@@ -386,13 +331,16 @@ const activeDaysCountAllTime = activeDaysSetAllTime.size;
       </div>
       <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 rounded-xl border border-blue-200 shadow-sm">
         <p className="text-2xl select-none font-bold text-blue-600 mb-1">
-          {pastTasks.reduce((total, taskDoc) => total + taskDoc.tasks.length, 0)}
+          {pastTasks.reduce(
+  (total, taskDoc) => total + (taskDoc.tasks?.length || 0),
+  0
+)}
         </p>
         <p className="text-xs select-none text-gray-600 font-medium">Past Tasks</p>
       </div>
       <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-4 rounded-xl border border-green-200 shadow-sm">
         <p className="text-2xl select-none font-bold text-green-600 mb-1">
-          {totalPointsAllTime}
+          {Math.round(totalPointsAllTime)}
         </p>
         <p className="text-xs select-none text-gray-600 font-medium">Total Points</p>
       </div>
@@ -596,7 +544,7 @@ const activeDaysCountAllTime = activeDaysSetAllTime.size;
                           <span className="text-gray-700 font-medium text-sm sm:text-base line-clamp-2">{task.task}</span>
                           <div className="text-xs sm:text-sm text-gray-600 flex gap-2 sm:gap-4">
                             <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded">Count: {task.count}</span>
-                            <span className="bg-green-100 text-green-700 px-2 py-1 rounded">Points: {task.totalPoints}</span>
+                            <span className="bg-green-100 text-green-700 px-2 py-1 rounded">Points: {Math.round(task.totalPoints)}</span>
                           </div>
                         </div>
                       ))}

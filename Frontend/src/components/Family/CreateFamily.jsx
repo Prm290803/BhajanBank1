@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../../Auth/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -12,6 +12,7 @@ const CreateFamily = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const navigate = useNavigate();
+  const [members, setMembers] = useState([]);
 
   const handleCreateFamily = async (e) => {
     e.preventDefault();
@@ -32,12 +33,13 @@ const CreateFamily = () => {
       });
 
       const data = await res.json();
-      if (res.ok) {
-        setMessage(data.message);
-        setFamilyCode(data.familyCode);
-      } else {
-        setMessage(data.error || "Failed to create family");
-      }
+    if (res.ok) {
+  setMessage(data.message);
+  setFamilyCode(data.familyCode);
+  setFamilyName(""); // clear input
+} else {
+  setMessage(data.error || "Failed to create family");
+}
     } catch (err) {
       setMessage("Error creating family");
       console.error(err);
@@ -45,6 +47,8 @@ const CreateFamily = () => {
       setIsLoading(false);
     }
   };
+
+
 
   const copyToClipboard = async () => {
     try {
@@ -72,6 +76,34 @@ const CreateFamily = () => {
       copyToClipboard();
     }
   };
+const fetchFamilyInfo = async () => {
+  if (!familyCode) return;
+
+  try {
+    const res = await fetch(`${backend_url}/api/family/${familyCode}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
+    if (res.ok) {
+      setMembers(data.members || []);
+    }
+  } catch (err) {
+    console.error("Failed to fetch family info", err);
+  }
+};
+
+useEffect(() => {
+  if (!familyCode) return;
+
+  fetchFamilyInfo(); // initial fetch
+
+  const interval = setInterval(() => {
+    fetchFamilyInfo();
+  }, 5000); // every 5 seconds
+
+  return () => clearInterval(interval);
+}, [familyCode]);
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-saffron-50 via-white to-orange-50 flex items-center justify-center p-6">

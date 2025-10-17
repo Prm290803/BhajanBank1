@@ -10,9 +10,9 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navigation = [
-    { name: "My Profile", href: "/profile", current: location.pathname === "/profile", icon: "👤" },
-    { name: "Tasks", href: "/data", current: location.pathname === "/data", icon: "📝" },
-    { name: "Family Dashboard", href: "/family-dashboard", current: location.pathname === "/family-dashboard", icon: "🏠" },
+    { name: "My Profile", href: "/profile", current: location.pathname === "/profile" },
+    { name: "Tasks", href: "/data", current: location.pathname === "/data" },
+    { name: "Family Dashboard", href: "/family-dashboard", current: location.pathname === "/family-dashboard" },
   ];
 
   const handleLogout = () => {
@@ -62,7 +62,7 @@ const Navbar = () => {
                       : "text-gray-700 hover:text-orange-600 hover:bg-orange-50"
                   }`}
                 >
-                  <span className="text-base">{item.icon}</span>
+                  {/* <span className="text-base">{item.icon}</span> */}
                   {item.name}
                 </Link>
               ))}

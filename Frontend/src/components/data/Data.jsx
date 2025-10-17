@@ -398,7 +398,7 @@ if (loading) {
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
                     <span className="font-medium text-gray-800 text-sm sm:text-base">{todayWinner.name}</span>
                     <span className="px-3 py-1 sm:px-4 sm:py-2 bg-amber-500 text-white rounded-full font-bold text-xs sm:text-sm">
-                      {todayWinner.points} पुण्य
+                      {Math.round(todayWinner.points)} पुण्य
                     </span>
                   </div>
                 </motion.div>
@@ -453,7 +453,7 @@ if (loading) {
                           i === 2 ? "bg-amber-400 text-white" :
                           "bg-orange-500 text-white"
                         }`}>
-                          {u.points.toFixed(0)}
+                          {Math.round(u.points.toFixed(0))}
                         </span>
                       </div>
                     </motion.li>
