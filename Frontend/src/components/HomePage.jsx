@@ -17,6 +17,24 @@ export default function Home() {
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
+useEffect(() => {
+  const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+  const isInStandaloneMode = ('standalone' in window.navigator) && window.navigator.standalone;
+
+  if (isIos && !isInStandaloneMode) {
+    setShowInstall(true);
+  }
+
+  const handler = (e) => {
+    e.preventDefault();
+    window.deferredPrompt = e;
+    if (!isIos) setShowInstall(true);
+  };
+
+  window.addEventListener("beforeinstallprompt", handler);
+  return () => window.removeEventListener("beforeinstallprompt", handler);
+}, []);
+
   const handleInstall = async () => {
     if (!window.deferredPrompt) return;
     setIsInstalling(true);
@@ -173,32 +191,39 @@ export default function Home() {
 
         {/* Install App Button */}
         {showInstall && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="mb-8"
-          >
-            <motion.button
-              onClick={handleInstall}
-              disabled={isInstalling}
-              className="px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2 disabled:opacity-70"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              {isInstalling ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  Installing...
-                </>
+            <motion.div className="mb-8">
+              { /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase()) ? (
+                <div className="px-6 py-4 bg-yellow-100 border border-yellow-300 rounded-xl text-gray-800 max-w-sm mx-auto">
+                  <p className="font-semibold mb-2">📱 Add to Home Screen</p>
+                  <p className="text-sm">
+                    Tap the <span className="font-medium">Share</span> button and choose 
+                    <span className="font-medium"> “Add to Home Screen”</span> to install the app.
+                  </p>
+                </div>
               ) : (
-                <>
-                  <span>📱</span>
-                  Install App
-                </>
+                <motion.button
+                  onClick={handleInstall}
+                  disabled={isInstalling}
+                  className="px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2 disabled:opacity-70"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  {isInstalling ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Installing...
+                    </>
+                  ) : (
+                    <>
+                      <span>📱</span>
+                      Install App
+                    </>
+                  )}
+                </motion.button>
               )}
-            </motion.button>
-          </motion.div>
-        )}
+            </motion.div>
+          )}
+
 
         {/* Footer Blessing */}
         <motion.div
