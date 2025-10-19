@@ -333,8 +333,8 @@ const FamilyLeaderboard = () => {
                 className="mt-6 sm:mt-8 lg:mt-12 p-4 sm:p-6 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl sm:rounded-2xl shadow-md"
               >
                 <div className="text-center mb-4">
-                  <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2 flex items-center justify-center gap-2">
-                    <span className="text-xl">🎯</span>
+                  <h3 className="text-lg sm:text-xl font-semibold uppercase text-gray-900 mb-2 flex items-center justify-center gap-2">
+                    <span className="text-xl ">🎯</span>
                     {goalName} - Goal Progress
                   </h3>
                   <div className="flex justify-between items-center text-sm sm:text-base text-gray-600 mb-2">

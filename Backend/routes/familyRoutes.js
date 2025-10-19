@@ -40,10 +40,14 @@ router.get("/api/family/goal", authMiddleware, async (req, res) => {
     if (!family) return res.status(404).json({ message: "Family not found" });
 
     if (family.goalDate !== today) {
-      return res.json({ goal: 0 });
+      return res.json({ goal: 0 ,
+        goalName: "Today's Goal"
+      });
     }
 
-    res.json({ goal: family.dailyGoal || 0 });
+    res.json({ goal: family.dailyGoal || 0 ,
+      goalName: family.goalname || "Today's Goal"
+    });
   } catch (err) {
     res.status(500).json({ message: "Failed to fetch goal", error: err.message });
   }
@@ -214,7 +218,7 @@ router.get("/family-leaderboard", authMiddleware, async (req, res) => {
     const family = await Family.findById(user.family._id).populate("members");
 
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    today.setHours(2, 0, 0, 0);
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
@@ -244,7 +248,7 @@ router.get("/families/today", async (req, res) => {
 
     const now = new Date();
     let start = new Date(now);
-    start.setHours(4, 0, 0, 0);
+    start.setHours(2, 0, 0, 0);
 
     let end = new Date(start);
     end.setDate(end.getDate() + 1);

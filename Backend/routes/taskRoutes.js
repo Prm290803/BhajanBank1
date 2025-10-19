@@ -52,7 +52,7 @@ router.get("/api/tasks", authMiddleware, async (req, res) => {
     const now = new Date();
 
     let start = new Date(now);
-    start.setHours(4, 0, 0, 0);
+    start.setHours(2, 0, 0, 0);
 
     let end = new Date(start);
     end.setDate(end.getDate() + 1);
@@ -92,7 +92,7 @@ router.get("/api/taskuser", authMiddleware, async (req, res) => {
 
     // Set 2 AM as reset boundary
     let start = new Date(now);
-    start.setHours(4, 0, 0, 0);
+    start.setHours(2, 0, 0, 0);
 
     let end = new Date(start);
     end.setDate(start.getDate() + 1);
@@ -120,9 +120,9 @@ router.get("/api/taskuser/past10days", authMiddleware, async (req, res) => {
     const userId = req.userId;
     const now = new Date();
 
-    // Define boundary (4 AM start of the day)
+    // Define boundary (2 AM start of the day)
     let todayBoundary = new Date(now);
-    todayBoundary.setHours(4, 0, 0, 0);
+    todayBoundary.setHours(2, 0, 0, 0);
 
     if (now < todayBoundary) {
       todayBoundary.setDate(todayBoundary.getDate() - 1);
