@@ -3,33 +3,37 @@ import express from "express";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import User from "../models/user.js";
+import { OAuth2Client } from "google-auth-library";
 
 const router = express.Router();
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-// Register (keeps identical validation/response)
+/* ===============================
+   📘 Register (Email + Password)
+================================= */
 router.post("/api/register", async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    if (!name || !email || !password) {
+    if (!name || !email || !password)
       return res.status(400).json({ error: "All fields are required!" });
-    }
 
-    if (password.length < 6) {
-      return res.status(400).json({ error: "Password must be at least 6 characters!" });
-    }
+    if (password.length < 6)
+      return res
+        .status(400)
+        .json({ error: "Password must be at least 6 characters!" });
 
     const existingUser = await User.findOne({ email });
-    if (existingUser) {
+    if (existingUser)
       return res.status(400).json({ error: "Email already registered!" });
-    }
 
-    // hash password before saving (was plain in original; but hashing is required)
     const hashed = await bcrypt.hash(password, 10);
     const user = new User({ name, email, password: hashed });
     await user.save();
 
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "5d",
+    });
 
     res.status(201).json({
       token,
@@ -41,20 +45,48 @@ router.post("/api/register", async (req, res) => {
   }
 });
 
-// Reset password
+/* ===============================
+   🔐 Login (Email + Password)
+================================= */
+router.post("/api/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) return res.status(401).json({ error: "Invalid credentials" });
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch)
+      return res.status(401).json({ error: "Invalid credentials" });
+
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "5d",
+    });
+
+    res.json({
+      token,
+      user: { id: user._id, name: user.name, email: user.email },
+    });
+  } catch (err) {
+    console.error("Login error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+/* ===============================
+   🔁 Reset Password
+================================= */
 router.post("/api/reset-password", async (req, res) => {
   try {
     const { email, newPassword } = req.body;
-
-    if (!email || !newPassword) {
-      return res.status(400).json({ error: "Email and new password are required" });
-    }
+    if (!email || !newPassword)
+      return res
+        .status(400)
+        .json({ error: "Email and new password are required" });
 
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ error: "User not found" });
 
-    const saltRounds = 10;
-    user.password = await bcrypt.hash(newPassword, saltRounds);
+    user.password = await bcrypt.hash(newPassword, 10);
     await user.save();
 
     res.json({ message: "Password updated successfully" });
@@ -64,30 +96,47 @@ router.post("/api/reset-password", async (req, res) => {
   }
 });
 
-// Login
-router.post("/api/login", async (req, res) => {
+/* ===============================
+   🟢 Google Authentication
+================================= */
+router.post("/api/google-login", async (req, res) => {
   try {
-    const { email, password } = req.body;
-    console.log("Login attempt for:", email);
+    const { token } = req.body; // frontend sends Google ID token
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
 
-    const user = await User.findOne({ email });
+    const { name, email, picture, sub: googleId } = ticket.getPayload();
+
+    // find or create user
+    let user = await User.findOne({ email });
     if (!user) {
-      console.log("User not found");
-      return res.status(401).json({ error: "Invalid credentials" });
+      user = await User.create({
+        name,
+        email,
+        googleId,
+        avatar: picture,
+        password: "", // no password for Google users
+      });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    console.log("Password match result:", isMatch);
+    const jwtToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "5d",
+    });
 
-    if (!isMatch) {
-      return res.status(401).json({ error: "Invalid credentials" });
-    }
-
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "5d" });
-    res.json({ token, user: { id: user._id, name: user.name, email: user.email } });
+    res.json({
+      token: jwtToken,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar,
+      },
+    });
   } catch (err) {
-    console.error("Login error:", err);
-    res.status(500).json({ error: "Server error" });
+    console.error("Google login error:", err);
+    res.status(500).json({ error: "Google login failed" });
   }
 });
 

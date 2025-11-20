@@ -3,8 +3,11 @@ import express from "express";
 import authMiddleware from "../middleware/auth.js";
 import Task from "../models/Task.js";
 import mongoose from "mongoose";
+import TaskCategory from "../models/TaskCategory.js";
 
 const router = express.Router();
+
+
 
 /** Create tasks (same validation + stored totalPoints per subtask) */
 router.post("/api/tasks", authMiddleware, async (req, res) => {
@@ -16,33 +19,48 @@ router.post("/api/tasks", authMiddleware, async (req, res) => {
       return res.status(400).json({ error: "Tasks must be a non-empty array" });
     }
 
+    // Validate basic structure
     for (const task of tasks) {
       if (!task.task || typeof task.task !== "string") {
         return res.status(400).json({ error: 'Each task must have a "task" string field' });
-      }
-      if (typeof task.points !== "number" || task.points <= 0) {
-        return res.status(400).json({ error: 'Each task must have positive "points" number' });
       }
       if (typeof task.count !== "number" || task.count <= 0) {
         return res.status(400).json({ error: 'Each task must have positive "count" number' });
       }
     }
 
+    // Enrich tasks with category + points from DB
+    const enrichedTasks = await Promise.all(
+      tasks.map(async (t) => {
+        const categoryDoc = await TaskCategory.findOne({ name: t.task });
+        const categoryType = categoryDoc?.categoryType || "Other";
+        const points = categoryDoc?.defaultPoints ?? t.points ?? 0;
+
+        return {
+          task: t.task,
+          category: categoryType,
+          points,
+          count: t.count,
+          totalPoints: points * t.count,
+        };
+      })
+    );
+
+    // Save as one Task document for the user
     const savedTaskDoc = await Task.create({
       user: userId,
       date: new Date(),
-      tasks: tasks.map((task) => ({
-        task: task.task,
-        points: task.points,
-        count: task.count,
-        totalPoints: task.points * task.count,
-      })),
+      tasks: enrichedTasks,
     });
 
-    res.status(201).json(savedTaskDoc);
+    res.status(201).json({
+      success: true,
+      message: "Tasks saved successfully",
+      data: savedTaskDoc,
+    });
   } catch (err) {
-    console.error("Task creation error:", err);
-    res.status(500).json({ error: "Failed to create tasks" });
+    console.error("❌ Task creation error:", err);
+    res.status(500).json({ error: "Failed to create tasks", details: err.message });
   }
 });
 
@@ -83,6 +101,35 @@ router.get("/api/leaderboard", async (req, res) => {
     res.status(500).json([]);
   }
 });
+
+
+/** Add task categories manually (Admin or Dev only for now) */
+router.post("/api/taskcategories", async (req, res) => {
+  try {
+    const { categories } = req.body;
+    if (!Array.isArray(categories) || categories.length === 0) {
+      return res.status(400).json({ error: "Categories must be a non-empty array" });
+    }
+
+    await TaskCategory.insertMany(categories, { ordered: false });
+    res.status(201).json({ message: "Categories saved successfully" });
+  } catch (err) {
+    console.error("Error saving categories:", err);
+    res.status(500).json({ error: "Failed to save categories" });
+  }
+});
+
+/** Fetch all task categories */
+router.get("/api/taskcategories", async (req, res) => {
+  try {
+    const categories = await TaskCategory.find().sort({ name: 1 });
+    res.json(categories);
+  } catch (err) {
+    console.error("Error fetching task categories:", err);
+    res.status(500).json({ error: "Failed to fetch task categories" });
+  }
+});
+
 
 /** user-specific endpoints that were previously top-level */
 router.get("/api/taskuser", authMiddleware, async (req, res) => {
@@ -148,51 +195,6 @@ router.get("/api/taskuser/past10days", authMiddleware, async (req, res) => {
   }
 });
 
-
-
-// router.get("/api/tasks/range", authMiddleware, async (req, res) => {
-//   try {
-//     const userId = req.userId;
-//     const days = parseInt(req.query.days) || 7;
-
-//     const now = new Date();
-//     let todayBoundary = new Date(now);
-//     todayBoundary.setHours(2, 0, 0, 0);
-
-//     if (now < todayBoundary) {
-//       todayBoundary.setDate(todayBoundary.getDate() - 1);
-//     }
-
-//     const rangeStart = new Date(todayBoundary);
-//     rangeStart.setDate(todayBoundary.getDate() - (days - 1));
-
-//     const tasks = await Task.aggregate([
-//       {
-//         $match: {
-//           user: new mongoose.Types.ObjectId(userId),
-//           date: { $gte: rangeStart, $lte: todayBoundary },
-//         },
-//       },
-//       {
-//         $addFields: {
-//           docTotalPoints: { $sum: "$tasks.totalPoints" },
-//         },
-//       },
-//       {
-//         $group: {
-//           _id: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
-//           totalPoints: { $sum: "$docTotalPoints" },
-//         },
-//       },
-//       { $sort: { _id: 1 } },
-//     ]);
-
-//     res.json(tasks);
-//   } catch (err) {
-//     console.error("Error fetching tasks by range:", err);
-//     res.status(500).json({ error: "Internal server error" });
-//   }
-// });
 
 /** Get all user tasks summary */
 router.get("/api/taskuser/all", authMiddleware, async (req, res) => {
@@ -285,5 +287,8 @@ router.put("/api/tasks/:taskId/:subtaskId", authMiddleware, async (req, res) => 
     res.status(500).json({ error: "Failed to update task" });
   }
 });
+
+
+
 
 export default router;

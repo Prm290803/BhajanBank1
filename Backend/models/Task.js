@@ -6,6 +6,7 @@
     date: { type: Date, required: true },
     tasks: [{
       task: { type: String, required: true },
+      category: { type: String, required: true },
       points: { type: Number, required: true },
       count: { type: Number, required: true },
       totalPoints: { type: Number }  // new field
