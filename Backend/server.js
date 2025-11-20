@@ -1,11 +1,12 @@
-
-
 // server.js
 import dotenv from "dotenv";
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
+import session from "express-session";
+import passport from "passport";
 import { v2 as cloudinary } from "cloudinary";
+// import "./passportConfig.js"; // <-- new file (see below)
 
 dotenv.config();
 const app = express();
@@ -24,16 +25,29 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-/** CORS (keep same origin) */
+/** CORS */
 app.use(
   cors({
-    origin: "https://bhajan-bank1.vercel.app",
-      // origin: ['http://localhost:5173'],
+    origin:["https://bhajan-bank1.vercel.app"], // your frontend URL
+    // origin: ["http://localhost:5173"], // your frontend local URL
     credentials: true,
   })
 );
 
-/** Routes (these routers contain the exact same endpoints you had) */
+/** Express Session (required for Passport) */
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "supersecretkey",
+    resave: false,
+    saveUninitialized: false,
+  })
+);
+
+/** Initialize Passport */
+app.use(passport.initialize());
+app.use(passport.session());
+
+/** Routes */
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import taskRoutes from "./routes/taskRoutes.js";
