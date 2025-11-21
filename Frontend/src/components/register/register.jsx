@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { UserIcon, AtSymbolIcon, KeyIcon } from '@heroicons/react/24/solid';
 import { motion } from 'framer-motion';
+import GoogleLoginButton from '../../Auth/GoogleLoginButton';
 
 function Register() {
   const { register } = useAuth();
@@ -110,7 +111,7 @@ function Register() {
           )}
 
           {/* Form - Mobile optimized spacing */}
-          <form className="space-y-4 sm:space-y-5 md:space-y-6" onSubmit={handleSubmit}>
+          <form className="space-y-4 mb-4 sm:space-y-5 md:space-y-6" onSubmit={handleSubmit}>
             {/* Name Field */}
             <div>
               <label htmlFor="name" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
@@ -230,7 +231,7 @@ function Register() {
               )}
             </motion.button>
           </form>
-
+                <GoogleLoginButton />
           {/* Divider - Mobile optimized */}
           <div className="relative my-4 sm:my-5 md:my-6">
             <div className="absolute inset-0 flex items-center">

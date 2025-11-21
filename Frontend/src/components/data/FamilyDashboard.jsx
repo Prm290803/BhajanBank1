@@ -27,9 +27,7 @@ function FamilyDashboard() {
   const navigate = useNavigate();
   const backend_url = import.meta.env.VITE_BACKENDURL;
 
-  useEffect(() => {
-    fetchFamilies();
-  }, []);
+  
 
   const fetchFamilies = async () => {
     try {
@@ -60,6 +58,10 @@ function FamilyDashboard() {
     }
   };
 
+useEffect(() => {
+    fetchFamilies();
+  }, []);
+  
   const handleJoinFamily = () => {
     navigate("/join-family");
   };
@@ -129,7 +131,7 @@ function FamilyDashboard() {
               
               <div className="inline-flex items-center gap-2 sm:gap-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white px-4 py-2 sm:px-6 sm:py-3 rounded-full shadow-lg">
                 <span className="text-base sm:text-lg">⭐</span>
-                <span className="text-lg sm:text-xl font-bold">{topFamily.totalPoints} Points</span>
+                <span className="text-lg sm:text-xl font-bold">{Math.round(topFamily.totalPoints)} पुण्य </span>
               </div>
             </div>
           </motion.div>
@@ -265,7 +267,7 @@ function FamilyDashboard() {
               </div>
               <div>
                 <div className="text-xl sm:text-2xl font-bold text-amber-600">
-                  {families.reduce((sum, fam) => sum + fam.totalPoints, 0)}
+                  {Math.round(families.reduce((sum, fam) => sum + fam.totalPoints, 0))}
                 </div>
                 <div className="text-xs sm:text-sm text-gray-500">Total Points</div>
               </div>

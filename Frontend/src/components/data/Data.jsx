@@ -5,6 +5,8 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "../Navbar/Navbar";
 import LotusDivider from "../Common/LotusDivider";
+import { Listbox } from "@headlessui/react";
+import { ChevronsUpDown } from "lucide-react";
 
 // Motion Variants
 const fadeUp = {
@@ -28,7 +30,24 @@ function Data() {
   const [tasks, setTasks] = useState([{ task: "", points: 1, count: "" }]);
   const [todayWinner, setTodayWinner] = useState(null);
   const [dailyQuote, setDailyQuote] = useState(null);
-  
+  const [taskCategories, setTaskCategories] = useState([]);
+
+  useEffect(() => {
+    const fetchTaskCategories = async () => {
+      try {
+        const response = await axios.get(`${backend_url}/api/taskcategories`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        setTaskCategories(response.data);
+      } catch (error) {
+        console.error("Error fetching task categories:", error);
+      }
+    };
+
+    fetchTaskCategories();
+  }, [backend_url, token]);
 
   // Divine tasks with Sanskrit names where appropriate
   const taskPoints = {
@@ -112,20 +131,36 @@ function Data() {
     setDailyQuote(dailyQuotes[quoteIndex]);
   }, []);
 
+
+  //handle tack change 
   const handleTaskChange = (index, field, value) => {
-    const updated = [...tasks];
+  const updated = tasks.map((t, i) => (i === index ? { ...t } : t));
     if (field === "count") {
       if (!/^\d*$/.test(value)) return;
       updated[index][field] = value === "" ? "" : parseInt(value, 10);
     } else {
       updated[index][field] = value;
     }
-
     if (field === "task" && value !== "other") {
-      updated[index].points = taskPoints[value] || 1;
+      const selectedTask = taskCategories.find(
+        (cat) =>
+          cat.name === value ||
+          cat.displayName === value ||
+          value.includes(cat.name) ||
+          value.includes(cat.displayName)
+          
+      );
+      console.log("Task Categories:", value);
+      console.log("Selected Task:", selectedTask);
+      updated[index].points = selectedTask ? selectedTask.points : 0;
     }
+
+    
     setTasks(updated);
   };
+
+
+
 
   const addNewTask = () => {
     setTasks([...tasks, { task: "", points: 1, count: "" }]);
@@ -196,16 +231,21 @@ const fetchData = async () => {
   return () => clearInterval(interval);
 }, [token]); // 👈 React runs this effect whenever token changes
 
+const [checking, setChecking] = useState(true);
 
- useEffect(() => {
+useEffect(() => {
   if (!loading) {
     if (!token) {
-      navigate('/login');
-    } else {
-      fetchData();
+      navigate('/login', { replace: true }); // 👉 instant redirect
+      return;
     }
+    
+    setChecking(false);
+    fetchData(); // normal fetch
   }
 }, [loading, token, navigate]);
+
+
 
 if (loading) {
   return (
@@ -259,16 +299,16 @@ if (loading) {
             <div className="absolute -bottom-3 -left-3 sm:-bottom-4 sm:-left-4 w-10 h-10 sm:w-16 sm:h-16 bg-orange-50 rounded-full opacity-70"></div>
 
             <div className="relative z-10">
-              <div className="text-center mb-6 sm:mb-8">
+              <div className=" mb-6 sm:mb-8">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-orange-500 to-amber-500 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
                   <span className="text-xl sm:text-2xl">🙏</span>
                 </div>
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
+                <h2 className="text-xl text-center sm:text-2xl font-bold text-gray-900 mb-2">
                   Daily Seva Offering
                 </h2>
                 {user && (
-                  <p className="text-gray-600 text-sm sm:text-base">
-                    Jay Swaminarayan {user.name}! Maharaj awaits your devotion today.
+                  <p className="text-gray-600 text-md lg:text-lg text-center">
+                    Jay Swaminarayan <span className="text-orange-700">{user.name}!</span> Maharaj awaits your devotion today.
                   </p>
                 )}
               </div>
@@ -295,23 +335,73 @@ if (loading) {
                         </button>
                       )}
 
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Type of Seva</label>
-                        <select
-                          value={t.task}
-                          onChange={(e) => handleTaskChange(i, "task", e.target.value)}
-                          className="w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 text-sm sm:text-base"
-                          required
-                        >
-                          <option value="">Select your devotional offering</option>
-                          {Object.keys(taskPoints).map((task) => (
-                            <option key={task} value={task}>
-                              {task}
-                            </option>
-                          ))}
-                          <option value="other">Other Seva</option>
-                        </select>
-                      </div>
+                                  
+
+              {/* Category Select */}
+              <div className="mb-6">
+                <label className="block text-sm font-semibold text-orange-700 mb-2 flex items-center gap-2">
+                  <ChevronsUpDown className="h-4 w-4 text-orange-500" />
+                  Select Category
+                </label>
+
+                <div className="relative">
+                  <select
+                    value={t.category || ""}
+                    onChange={(e) => handleTaskChange(i, "category", e.target.value)}
+                    className="w-full px-4 py-3 bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200 
+                      rounded-xl text-gray-700 shadow-md focus:outline-none focus:ring-2 focus:ring-orange-400 
+                      focus:border-transparent transition-all duration-200 text-sm sm:text-base hover:shadow-lg
+                      cursor-pointer appearance-none"
+                    required
+                  >
+                    <option value="">Select category of seva</option>
+                    {[...new Set(taskCategories.map((cat) => cat.categoryType))].map((catType) => (
+                      <option key={catType} value={catType}>
+                        {catType}
+                      </option>
+                    ))}
+                  </select>
+
+                  {/* Dropdown icon */}
+                  <ChevronsUpDown className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-orange-400 pointer-events-none" />
+                </div>
+              </div>
+
+              {/* Task (Seva) Select */}
+              <div>
+                <label className="block text-sm font-semibold text-orange-700 mb-2 flex items-center gap-2">
+                  <ChevronsUpDown className="h-4 w-4 text-orange-500" />
+                  Type of Seva
+                </label>
+
+                <div className="relative">
+                  <select
+                    value={t.task || ""}
+                    onChange={(e) => handleTaskChange(i, "task", e.target.value)}
+                    className={`w-full px-4 py-3 bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200 
+                      rounded-xl text-gray-700 shadow-md focus:outline-none focus:ring-2 focus:ring-orange-400 
+                      focus:border-transparent transition-all duration-200 text-sm sm:text-base hover:shadow-lg
+                      cursor-pointer appearance-none ${!t.category ? "opacity-60 cursor-not-allowed" : ""}`}
+                    required
+                    disabled={!t.category}
+                  >
+                    <option value="">Select your devotional offering</option>
+                    {taskCategories
+                      .filter((cat) => cat.categoryType === t.category)
+                      .map((cat) => (
+                     <option key={cat._id} value={cat.displayName}>
+                          {cat.name}
+                        </option>
+                      ))}
+                    <option value="other">Other Seva</option>
+                  </select>
+
+                  {/* Dropdown icon */}
+                  <ChevronsUpDown className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-orange-400 pointer-events-none" />
+                </div>
+              </div>
+
+
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -331,9 +421,9 @@ if (loading) {
 
                       <div className="bg-blue-50 p-3 sm:p-4 rounded-lg border border-blue-200">
                         <p className="text-blue-700 font-medium text-center text-sm sm:text-base">
-                          {t.task.includes("Mantra Japp")
-                            ? `${t.count || 0} japps = ${Math.floor((t.count || 0) / 10)} punya`
-                            : `Punya: ${t.count || 0} × ${t.points} = ${(t.count || 0) * t.points}`}
+                        {t.task.includes("Mantra Japp")
+                        ? `${t.count || 0} japps = ${(t.count || 0) * (t.points || 0)} punya`
+                        : `Punya: ${t.count || 0} × ${t.points || 1} = ${Math.round((t.count || 0) * (t.points || 0))}`}
                         </p>
                       </div>
                     </motion.div>

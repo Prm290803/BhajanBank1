@@ -28,8 +28,8 @@ cloudinary.config({
 /** CORS */
 app.use(
   cors({
-    origin:["https://bhajan-bank1.vercel.app"], // your frontend URL
-    // origin: ["http://localhost:5173"], // your frontend local URL
+    // origin:["https://bhajan-bank1.vercel.app"], // your frontend URL
+    origin: ["http://localhost:5173"], // your frontend local URL
     credentials: true,
   })
 );

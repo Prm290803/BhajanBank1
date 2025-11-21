@@ -1,2 +1,39 @@
 @import "tailwindcss";
 
+/* Global CSS or component-specific CSS */
+.google-round-button {
+  border-radius: 50% !important;
+  overflow: hidden !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.google-round-button:hover {
+  transform: scale(1.05) !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* For responsive design */
+@media (max-width: 768px) {
+  .google-round-button {
+    width: 45px !important;
+    height: 45px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .google-round-button {
+    width: 40px !important;
+    height: 40px !important;
+  }
+}
+
+/* Ensure the Google button content fits properly in the circle */
+.google-round-button > div {
+  border-radius: 50% !important;
+}
+
+/* Hide any text and show only the logo */
+.google-round-button span {
+  display: none !important;
+}

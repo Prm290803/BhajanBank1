@@ -180,10 +180,14 @@ const fetchTasks = async () => {
     
       fetchAllTasksSummary();
     }
+    else {
+      setLoading(false);
+      navigate('/login', { replace: true }); // 👉 instant redirect
+    }
   }, [token, user]);
 
 const allTaskDocs = [...pastTasks, ...tasks];
-
+console.log("All Task Docs:", allTaskDocs);
 // Map to chart-friendly format
 
   // Date filtering
@@ -318,7 +322,8 @@ const activeDaysCountAllTime = activeDaysSetAllTime.size;
 
   {/* User Info Section */}
   <div className="flex-1 w-full">
-    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">{user?.name}</h1>
+    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">{user?.name}</h1> 
+    
       <p className="text-gray-600 mb-6">Welcome to your spiritual journey</p>
     
     {/* User Stats */}

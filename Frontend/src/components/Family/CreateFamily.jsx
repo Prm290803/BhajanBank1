@@ -91,7 +91,10 @@ const fetchFamilyInfo = async () => {
     console.error("Failed to fetch family info", err);
   }
 };
-
+const handleBackClick = () => {
+  navigate("/profile");
+  window.location.reload();
+}
 useEffect(() => {
   if (!familyCode) return;
 
@@ -234,7 +237,7 @@ useEffect(() => {
 
           {/* Back Button */}
           <motion.button
-            onClick={() => navigate("/profile")}
+            onClick={handleBackClick}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             className="w-full mt-6 bg-gray-500 hover:bg-gray-600 text-white py-3 rounded-xl font-medium transition-all duration-200 shadow"

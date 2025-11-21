@@ -3,6 +3,7 @@ import { useAuth } from "../../Auth/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { motion } from "framer-motion";
+import GoogleLoginButton from "../../Auth/GoogleLoginButton";
 
 function Login() {
   const { login } = useAuth();
@@ -36,9 +37,9 @@ function Login() {
  useEffect(() => {
   const token = localStorage.getItem("token");
   if (token) {
-    navigate("/data"); // ✅ Redirect logged-in users directly to data page
+    navigate("/data"); // 
   }
-}, [navigate]);
+}, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-saffron-50 via-white to-orange-50 flex items-center justify-center p-4 sm:p-6">
@@ -164,7 +165,10 @@ function Login() {
                 </>
               )}
             </motion.button>
-          </form>
+        </form>
+            <motion.div className="mt-5">
+              <GoogleLoginButton />
+            </motion.div>
 
           {/* Divider - Mobile optimized */}
           <div className="relative my-4 sm:my-6">
