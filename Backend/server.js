@@ -6,6 +6,8 @@ import cors from "cors";
 import session from "express-session";
 import passport from "passport";
 import { v2 as cloudinary } from "cloudinary";
+// import "./scheduler/dailyCheck.js"; // <-- import the scheduler
+
 // import "./passportConfig.js"; // <-- new file (see below)
 
 dotenv.config();
@@ -28,8 +30,8 @@ cloudinary.config({
 /** CORS */
 app.use(
   cors({
-    origin:["https://bhajan-bank1.vercel.app"], // your frontend URL
-    // origin: ["http://localhost:5173"], // your frontend local URL
+    // origin:["https://bhajan-bank1.vercel.app"], // your frontend URL
+    origin: ["http://localhost:5173" || "http://localhost:5174"], // your frontend local URL
     credentials: true,
   })
 );
@@ -52,12 +54,17 @@ import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import taskRoutes from "./routes/taskRoutes.js";
 import familyRoutes from "./routes/familyRoutes.js";
+// import notificationRoutes from "./routes/notification.js";
+
+app.get("/health", (req, res) => {
+  res.status(200).send("OK");
+});
 
 app.use(authRoutes);
 app.use(userRoutes);
 app.use(taskRoutes);
 app.use(familyRoutes);
-
+// app.use("/api/notifications", notificationRoutes);
 /** Root */
 app.get("/", (req, res) => res.send("API running"));
 
