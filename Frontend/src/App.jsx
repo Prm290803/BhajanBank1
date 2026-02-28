@@ -42,7 +42,7 @@ function FCMInitializer() {
           const token = await getFCMToken(user._id);
           
           if (token) {
-            console.log("✅ FCM initialized successfully");
+            console.log("✅ FCM token obtained:");
           } else {
             console.warn("⚠ FCM token not available");
           }

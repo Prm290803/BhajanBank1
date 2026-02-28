@@ -11,6 +11,8 @@ import { v2 as cloudinary } from "cloudinary";
 // import "./passportConfig.js"; // <-- new file (see below)
 
 dotenv.config();
+console.log("ENV CHECK:", process.env.FIREBASE_PROJECT_ID);
+
 const app = express();
 app.use(express.json());
 
