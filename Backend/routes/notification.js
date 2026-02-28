@@ -2,7 +2,7 @@
 import express from "express";
 import { sendNotification, sendNotificationToFamily } from "../utils/fcm.js";
 import User from "../models/user.js";
-import Family from "../models/family.js";
+import Family from "../models/Family.js";
 import authMiddleware from "../middleware/auth.js";
 
 const router = express.Router();
