@@ -28,13 +28,15 @@ cloudinary.config({
 });
 
 /** CORS */
-app.use(
-  cors({
-    origin:["https://bhajan-bank1.vercel.app"], // your frontend URL
-    // origin: ["http://localhost:5173" || "http://localhost:5174"], // your frontend local URL
-    credentials: true,
-  })
-);
+app.use(cors({
+  origin: [
+    "http://localhost:5173",
+    "https://bhajan-bank1.vercel.app",
+    "https://www.bhajanbankvadtal.com",
+    "https://bhajanbankvadtal.com"
+  ],
+  credentials: true
+}));
 
 /** Express Session (required for Passport) */
 app.use(
@@ -54,7 +56,7 @@ import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import taskRoutes from "./routes/taskRoutes.js";
 import familyRoutes from "./routes/familyRoutes.js";
-// import notificationRoutes from "./routes/notification.js";
+import notificationRoutes from "./routes/notification.js";
 
 app.get("/health", (req, res) => {
   res.status(200).send("OK");
@@ -64,7 +66,7 @@ app.use(authRoutes);
 app.use(userRoutes);
 app.use(taskRoutes);
 app.use(familyRoutes);
-// app.use("/api/notifications", notificationRoutes);
+app.use("/api/notifications", notificationRoutes);
 /** Root */
 app.get("/", (req, res) => res.send("API running"));
 
