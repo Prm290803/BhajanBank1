@@ -15,8 +15,14 @@ const userSchema = new mongoose.Schema({
     ref: "Family",
     default: null,
   },
+  fcmtoken: {
+  type: String,
+  default: null
+},
   createdAt: { type: Date, default: Date.now },
+  
 });
+
 
 // 🔒 Password hashing middleware
 userSchema.pre("save", async function (next) {

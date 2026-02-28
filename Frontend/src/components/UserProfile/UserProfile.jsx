@@ -186,8 +186,8 @@ const fetchTasks = async () => {
     }
   }, [token, user]);
 
-const allTaskDocs = [...pastTasks, ...tasks];
-console.log("All Task Docs:", allTaskDocs);
+// const allTaskDocs = [...pastTasks, ...tasks];
+// console.log("All Task Docs:", allTaskDocs);
 // Map to chart-friendly format
 
   // Date filtering

@@ -464,7 +464,7 @@ if (loading) {
             {/* Background Pattern */}
             <div className="absolute inset-0 bg-[linear-gradient(45deg,#f8fafc_25%,transparent_25%),linear-gradient(-45deg,#f8fafc_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#f8fafc_75%),linear-gradient(-45deg,transparent_75%,#f8fafc_75%)] bg-[size:20px_20px] opacity-30 rounded-xl sm:rounded-2xl"></div>
 
-            <div className="relative z-10">
+            <div className="relative h-full z-10">
               <div className="text-center mb-6 sm:mb-8">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
                   <span className="text-xl sm:text-2xl">📿</span>
@@ -569,7 +569,7 @@ if (loading) {
                 initial="hidden"
                 animate="visible"
               >
-                <p className="text-gray-700 italic text-center mb-2 text-sm sm:text-base">
+                <p className="text-gray-700 italic text-center end-2 mb-2 text-sm sm:text-base">
                   "{dailyQuote?.text || dailyQuotes[0].text}"
                 </p>
                 <p className="text-gray-600 text-xs sm:text-sm text-center">

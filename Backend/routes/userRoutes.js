@@ -21,6 +21,33 @@ router.get("/api/user", authMiddleware, async (req, res) => {
   }
 });
 
+// Save FCM Token
+// router.post("/save-token", async (req, res) => {
+//   const { userId, token } = req.body;
+
+//   if (!userId || !token)
+//     return res.status(400).json({ message: "Missing userId or token" });
+
+//   await User.findByIdAndUpdate(userId, { fcmtoken: token });
+//   res.json({ success: true, message: "Token saved" });
+// });
+router.post("/save-token", async (req, res) => {
+  try {
+    const { token } = req.body;
+    const userId = req.user._id; // Get userId from authenticated user
+
+    if (!token) {
+      return res.status(400).json({ message: "Missing token" });
+    }
+
+    await User.findByIdAndUpdate(userId, { fcmtoken: token });
+    res.json({ success: true, message: "Token saved" });
+  } catch (error) {
+    console.error("Error saving FCM token:", error);
+    res.status(500).json({ message: "Failed to save token" });
+  }
+});
+
 // Upload / Update Profile Photo
 router.post("/api/user/upload-photo", authMiddleware, upload.single("photo"), async (req, res) => {
   try {

@@ -14,25 +14,58 @@ function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setIsLoading(true);
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  
+  // Validate inputs before proceeding
+  if (!email || !password) {
+    setError("Please enter both email and password");
+    return;
+  }
+  
+  setError("");
+  setIsLoading(true);
 
-    try {
-      const result = await login(email, password);
-      if (result.success) {
+  try {
+    // console.log("Starting login process...");
+    
+    // Add a timeout to prevent hanging
+    const loginPromise = login(email, password);
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error("Login timeout. Please try again.")), 10000)
+    );
+    
+    const result = await Promise.race([loginPromise, timeoutPromise]);
+    
+    if (result.success) {
+      // console.log("Login successful, navigating to /data");
+      // Small delay to ensure state updates
+      setTimeout(() => {
         navigate("/data");
-      } else {
-        setError(result.message || "Login failed");
-      }
-    } catch (err) {
-      setError("An unexpected error occurred");
-      console.error("Login error:", err);
-    } finally {
-      setIsLoading(false);
+      }, 1000);
+    } else {
+      setError(result.message || "Login failed");
+      // Clear password field on error
+      setPassword("");
     }
-  };
+  } catch (err) {
+    console.error("Login catch error:", err);
+    
+    // More specific error messages
+    if (err.message === "Login timeout. Please try again.") {
+      setError(err.message);
+    } else if (err.message.includes("Network Error")) {
+      setError("Network error. Please check your internet connection.");
+    } else {
+      setError("An unexpected error occurred. Please try again.");
+    }
+    
+    // Clear password field on error
+    setPassword("");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
  useEffect(() => {
   const token = localStorage.getItem("token");

@@ -60,7 +60,7 @@ export default function GoogleLoginButton() {
   }, []);   // Only once
 
   return (
-    <div className="justify-center flex">
+    <div className="justify-center flex ">
       <div id="googleButton"></div>
     </div>
   );

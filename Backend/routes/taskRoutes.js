@@ -4,6 +4,8 @@ import authMiddleware from "../middleware/auth.js";
 import Task from "../models/Task.js";
 import mongoose from "mongoose";
 import TaskCategory from "../models/TaskCategory.js";
+import User from "../models/user.js";
+import { sendNotification } from "../utils/fcm.js";
 
 const router = express.Router();
 
@@ -52,6 +54,17 @@ router.post("/api/tasks", authMiddleware, async (req, res) => {
       date: new Date(),
       tasks: enrichedTasks,
     });
+    const familyUsers = await User.find({ family: user.family, _id: { $ne: user._id } });
+
+      for (const member of familyUsers) {
+        if (member.fcmtoken) {
+          await sendNotification(
+            member.fcmtoken,
+            `${user.name} submitted task`,
+            `Today's points: ${user.points}`
+          );
+        }
+      }
 
     res.status(201).json({
       success: true,
@@ -118,6 +131,7 @@ router.post("/api/taskcategories", async (req, res) => {
     res.status(500).json({ error: "Failed to save categories" });
   }
 });
+
 
 /** Fetch all task categories */
 router.get("/api/taskcategories", async (req, res) => {
