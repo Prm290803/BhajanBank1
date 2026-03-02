@@ -52,7 +52,7 @@ function FamilyDashboard() {
       setFamilies(sorted);
       setTopFamily(sorted[0]);
 
-      console.log("Today's families (non-zero points):", sorted);
+      // console.log("Today's families (non-zero points):", sorted);
     } catch (err) {
       console.error("Error fetching today's families:", err);
     }

@@ -32,7 +32,7 @@ export default function InstallButton() {
     deferredPrompt.prompt(); // show the native install popup
 
     const { outcome } = await deferredPrompt.userChoice;
-    console.log(`User response to install: ${outcome}`);
+    // console.log(`User response to install: ${outcome}`);
 
     if (outcome === 'accepted') {
       setShowButton(false); // hide after successful install
@@ -54,7 +54,7 @@ export default function InstallButton() {
       <motion.button
         onClick={handleInstallClick}
         disabled={isInstalling}
-        className="px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2 disabled:opacity-70"
+        className="px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2 disabled:opacity-70"
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
       >

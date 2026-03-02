@@ -150,8 +150,8 @@ function Data() {
           value.includes(cat.displayName)
           
       );
-      console.log("Task Categories:", value);
-      console.log("Selected Task:", selectedTask);
+      // console.log("Task Categories:", value);
+      // console.log("Selected Task:", selectedTask);
       updated[index].points = selectedTask ? selectedTask.points : 0;
     }
 

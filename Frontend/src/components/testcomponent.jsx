@@ -50,7 +50,7 @@ const TestNotifications = () => {
       });
       const data = await response.json();
       alert(`Token Status: ${data.message}\nHas Token: ${data.hasToken}`);
-      console.log("My token:", data.token);
+      // console.log("My token:", data.token);
     } catch (error) {
       console.error("Check token failed:", error);
       alert("Failed to check token!");

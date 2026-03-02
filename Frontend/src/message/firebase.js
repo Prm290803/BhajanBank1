@@ -31,16 +31,16 @@ export const getFCMToken = async (userId = null) => {
     if (storedToken && tokenTimestamp) {
       const age = Date.now() - parseInt(tokenTimestamp);
       if (age < 7 * 24 * 60 * 60 * 1000) {
-        console.log("✅ Using cached FCM token");
+        // console.log("✅ Using cached FCM token");
         return storedToken;
       } else {
-        console.log("🔄 Cached FCM token expired, getting new one");
+        // console.log("🔄 Cached FCM token expired, getting new one");
       }
     }
 
     // Register service worker
     const registration = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
-    console.log("✅ Service Worker registered for FCM");
+    // console.log("✅ Service Worker registered for FCM");
 
     // Check current permission
     let permission = Notification.permission;
@@ -71,7 +71,7 @@ export const getFCMToken = async (userId = null) => {
     });
 
     if (token) {
-      console.log("✅ New FCM Token generated:", token.substring(0, 20) + "...");
+      // console.log("New FCM Token generated:", token.substring(0, 20) + "...");
       
       // Store locally
       localStorage.setItem('fcmToken', token);
@@ -94,12 +94,12 @@ export const clearFCMToken = () => {
   localStorage.removeItem('fcmTokenTimestamp');
   localStorage.removeItem('notificationPermissionDenied');
   localStorage.removeItem('permissionDeniedTime');
-  console.log("✅ FCM tokens cleared from localStorage");
+  // console.log("✅ FCM tokens cleared from localStorage");
 };
 
 // Handle foreground messages
 onMessage(messaging, (payload) => {
-  console.log("📨 Foreground message received:", payload);
+  // console.log("📨 Foreground message received:", payload);
   
   // Show notification if app is in foreground
   if (payload.notification) {

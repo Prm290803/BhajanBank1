@@ -28,26 +28,26 @@ function FCMInitializer() {
     // Register service worker
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("/firebase-messaging-sw.js")
-        .then((reg) => console.log("✅ Service Worker Registered:", reg.scope))
-        .catch((err) => console.error("❌ SW registration failed:", err));
+        // .then((reg) => console.log("✅ Service Worker Registered:", reg.scope))
+        // .catch((err) => console.error("❌ SW registration failed:", err));
     }
   }, []);
   
   useEffect(() => {
     const initializeFCM = async () => {
       if (user && user._id) {
-        console.log("🔄 Initializing FCM for user:", user._id);
+        // console.log("🔄 Initializing FCM for user:", user._id);
         
         try {
           const token = await getFCMToken(user._id);
           
           if (token) {
-            console.log("✅ FCM token obtained:");
+            console.log("token generated");
           } else {
-            console.warn("⚠ FCM token not available");
+            console.warn("Failed to generate token");
           }
         } catch (error) {
-          console.error("❌ FCM initialization failed:", error);
+          console.error("Something want wrong", error);
         }
       }
     };
