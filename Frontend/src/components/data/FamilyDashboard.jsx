@@ -277,16 +277,27 @@ useEffect(() => {
 
         {/* Footer */}
         <motion.footer 
-          className="text-center py-6 sm:py-8"
+          className="text-center items-center py-6 sm:py-8"
           variants={fadeUp}
           initial="hidden"
           animate="visible"
         >
-          <LotusDivider className="mb-4 sm:mb-6" />
+          <LotusDivider className="mb-1 sm:mb-6" />
           <p className="text-xs sm:text-sm font-semibold text-gray-700 mb-2">श्री स्वामिनारायणाय नमः</p>
-          <p className="text-xs text-gray-500 max-w-xs mx-auto">
+          <p className="text-xs text-gray-500 max-w-xs justify-center mx-auto">
             May every family's devotion blossom in unity and service
           </p>
+           <p className="text-xs mt-2 text-gray-400">
+    Developed by{' '}
+    <a 
+      href="https://buildcrew.co.in" 
+      target="_blank" 
+      rel="noopener noreferrer"
+      className="text-gray-600 hover:text-gray-900 transition-colors duration-200 font-medium"
+    >
+      Build Crew
+    </a>
+  </p>
         </motion.footer>
       </div>
     </div>

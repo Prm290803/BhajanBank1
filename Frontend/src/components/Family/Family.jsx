@@ -390,11 +390,22 @@ const FamilyLeaderboard = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.8 }}
-              className="text-center mt-6 sm:mt-8 lg:mt-12 px-2"
+              className="text-center mt-6 mb-2 sm:mt-8 lg:mt-12 px-2"
             >
               <p className="text-gray-500 text-xs sm:text-sm lg:text-base">
                 Leaderboard updates daily • Last updated: {new Date().toLocaleDateString()}
               </p>
+               <p className="text-xs mb-2 text-gray-400">
+    Developed by{' '}
+    <a 
+      href="https://buildcrew.co.in" 
+      target="_blank" 
+      rel="noopener noreferrer"
+      className="text-gray-600 hover:text-gray-900 transition-colors duration-200 font-medium"
+    >
+      Build Crew
+    </a>
+  </p>
             </motion.div>
           )}
         </div>

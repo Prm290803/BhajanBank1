@@ -581,18 +581,29 @@ if (loading) {
         </div>
 
         {/* Footer */}
-        <motion.footer 
-          className="text-center py-6 sm:py-8 px-4 sm:px-6"
-          variants={fadeUp}
-          initial="hidden"
-          animate="visible"
-        >
-          <div className="px-4 sm:px-6">
-            <LotusDivider className="mb-4 sm:mb-6" />
-          </div>
-          <p className="text-sm font-semibold text-gray-700 mb-2">श्री स्वामिनारायणाय नमः</p>
-          <p className="text-xs text-gray-500">May your devotion blossom like a lotus in the divine light</p>
-        </motion.footer>
+      <motion.footer 
+  className="text-center py-6 sm:py-8 px-4 sm:px-6"
+  variants={fadeUp}
+  initial="hidden"
+  animate="visible"
+>
+  <div className="px-4 sm:px-6">
+    <LotusDivider className="mb-4 sm:mb-6" />
+  </div>
+  <p className="text-sm font-semibold text-gray-700 mb-2">श्री स्वामिनारायणाय नमः</p>
+  <p className="text-xs text-gray-500 mb-3">May your devotion blossom like a lotus in the divine light</p>
+  <p className="text-xs text-gray-400">
+    Developed by{' '}
+    <a 
+      href="https://buildcrew.co.in" 
+      target="_blank" 
+      rel="noopener noreferrer"
+      className="text-gray-600 hover:text-gray-900 transition-colors duration-200 font-medium"
+    >
+      Build Crew
+    </a>
+  </p>
+</motion.footer>
       </div>
     </div>
   );
