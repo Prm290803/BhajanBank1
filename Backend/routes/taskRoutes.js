@@ -10,33 +10,27 @@ import { sendNotification } from "../utils/fcm.js";
 const router = express.Router();
 
 
-
-/** Create tasks (same validation + stored totalPoints per subtask) */
+// Task submission endpoint   
 router.post("/api/tasks", authMiddleware, async (req, res) => {
   try {
     const { tasks } = req.body;
     const userId = req.userId;
 
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
     if (!Array.isArray(tasks) || tasks.length === 0) {
       return res.status(400).json({ error: "Tasks must be a non-empty array" });
     }
 
-    // Validate basic structure
-    for (const task of tasks) {
-      if (!task.task || typeof task.task !== "string") {
-        return res.status(400).json({ error: 'Each task must have a "task" string field' });
-      }
-      if (typeof task.count !== "number" || task.count <= 0) {
-        return res.status(400).json({ error: 'Each task must have positive "count" number' });
-      }
-    }
-
-    // Enrich tasks with category + points from DB
     const enrichedTasks = await Promise.all(
       tasks.map(async (t) => {
         const categoryDoc = await TaskCategory.findOne({ name: t.task });
+
         const categoryType = categoryDoc?.categoryType || "Other";
-        const points = categoryDoc?.defaultPoints ?? t.points ?? 0;
+        const points = categoryDoc?.points ?? t.points ?? 0;
 
         return {
           task: t.task,
@@ -48,29 +42,37 @@ router.post("/api/tasks", authMiddleware, async (req, res) => {
       })
     );
 
-    // Save as one Task document for the user
     const savedTaskDoc = await Task.create({
       user: userId,
       date: new Date(),
       tasks: enrichedTasks,
     });
-    const familyUsers = await User.find({ family: user.family, _id: { $ne: user._id } });
+
+    try {
+      const familyUsers = await User.find({
+        family: user.family,
+        _id: { $ne: user._id },
+      });
 
       for (const member of familyUsers) {
         if (member.fcmtoken) {
           await sendNotification(
             member.fcmtoken,
             `${user.name} submitted task`,
-            `Today's points: ${user.points}`
+            `Today's points: ${savedTaskDoc.summary.grandTotalPoints}`
           );
         }
       }
+    } catch (notifErr) {
+      console.error("Notification error:", notifErr);
+    }
 
     res.status(201).json({
       success: true,
       message: "Tasks saved successfully",
       data: savedTaskDoc,
     });
+
   } catch (err) {
     console.error("❌ Task creation error:", err);
     res.status(500).json({ error: "Failed to create tasks", details: err.message });

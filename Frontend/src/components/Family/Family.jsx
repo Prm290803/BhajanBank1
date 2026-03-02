@@ -48,10 +48,10 @@ const FamilyLeaderboard = () => {
   }, [token, backend_url]);
 
   const handleSetGoal = async () => {
-    const goalNameInput = prompt("Enter goal name:", "Utsav Vandusahajanand Paath");
+    const goalNameInput = prompt("Enter goal name:", "");
     if (!goalNameInput) return;
 
-    const input = prompt("Enter today's goal (points):", "100000");
+    const input = prompt("Enter today's goal (points):", "");
     if (!input) return;
 
     const newGoal = parseInt(input);

@@ -270,3 +270,181 @@ function Register() {
 }
 
 export default Register;
+
+// import { useState } from "react";
+// import { useNavigate } from "react-router-dom";
+// import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
+// import { auth } from "../../message/firebase";
+// import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
+// import { UserIcon, AtSymbolIcon, KeyIcon } from "@heroicons/react/24/solid";
+// import { motion } from "framer-motion";
+
+// function Register() {
+//   const navigate = useNavigate();
+
+//   const [name, setName] = useState("");
+//   const [email, setEmail] = useState("");
+//   const [password, setPassword] = useState("");
+//   const [confirmPassword, setConfirmPassword] = useState("");
+//   const [error, setError] = useState("");
+//   const [success, setSuccess] = useState("");
+//   const [isLoading, setIsLoading] = useState(false);
+//   const [showPassword, setShowPassword] = useState(false);
+//   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+//   const handleSubmit = async (e) => {
+//     e.preventDefault();
+//     setError("");
+//     setSuccess("");
+
+//     if (password !== confirmPassword) {
+//       setError("Passwords do not match");
+//       return;
+//     }
+
+//     if (password.length < 8) {
+//       setError("Password must be at least 8 characters");
+//       return;
+//     }
+
+//     try {
+//       setIsLoading(true);
+
+//       const userCredential = await createUserWithEmailAndPassword(
+//         auth,
+//         email,
+//         password
+//       );
+
+//       await sendEmailVerification(userCredential.user);
+
+//       setSuccess("Verification email sent! Please check your inbox.");
+
+//       // Optional: Redirect after 3 seconds
+//       setTimeout(() => {
+//         navigate("/login");
+//       }, 3000);
+
+//     } catch (err) {
+//       if (err.code === "auth/email-already-in-use") {
+//         setError("Email already registered");
+//       } else if (err.code === "auth/invalid-email") {
+//         setError("Invalid email address");
+//       } else {
+//         setError("Registration failed. Try again.");
+//       }
+//     } finally {
+//       setIsLoading(false);
+//     }
+//   };
+
+//   return (
+//     <div className="min-h-screen bg-gradient-to-br from-saffron-50 via-white to-orange-50 flex items-center justify-center p-4">
+
+//       <motion.div
+//         initial={{ opacity: 0, y: 20 }}
+//         animate={{ opacity: 1, y: 0 }}
+//         className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8"
+//       >
+//         <h1 className="text-2xl font-bold text-center mb-6">
+//           Join Bhajan Bank 🌿
+//         </h1>
+
+//         {error && (
+//           <div className="bg-red-100 text-red-700 p-3 rounded mb-4 text-sm">
+//             {error}
+//           </div>
+//         )}
+
+//         {success && (
+//           <div className="bg-green-100 text-green-700 p-3 rounded mb-4 text-sm">
+//             {success}
+//           </div>
+//         )}
+
+//         <form onSubmit={handleSubmit} className="space-y-4">
+
+//           <div>
+//             <label className="block text-sm mb-1">Full Name</label>
+//             <div className="relative">
+//               <UserIcon className="w-5 h-5 absolute left-3 top-3 text-gray-400" />
+//               <input
+//                 type="text"
+//                 placeholder="Enter your name"
+//                 className="w-full border p-3 pl-10 rounded-lg"
+//                 value={name}
+//                 onChange={(e) => setName(e.target.value)}
+//                 required
+//               />
+//             </div>
+//           </div>
+
+//           <div>
+//             <label className="block text-sm mb-1">Email</label>
+//             <div className="relative">
+//               <AtSymbolIcon className="w-5 h-5 absolute left-3 top-3 text-gray-400" />
+//               <input
+//                 type="email"
+//                 placeholder="your@email.com"
+//                 className="w-full border p-3 pl-10 rounded-lg"
+//                 value={email}
+//                 onChange={(e) => setEmail(e.target.value)}
+//                 required
+//               />
+//             </div>
+//           </div>
+
+//           <div>
+//             <label className="block text-sm mb-1">Password</label>
+//             <div className="relative">
+//               <KeyIcon className="w-5 h-5 absolute left-3 top-3 text-gray-400" />
+//               <input
+//                 type={showPassword ? "text" : "password"}
+//                 className="w-full border p-3 pl-10 pr-10 rounded-lg"
+//                 value={password}
+//                 onChange={(e) => setPassword(e.target.value)}
+//                 required
+//               />
+//               <button
+//                 type="button"
+//                 className="absolute right-3 top-3"
+//                 onClick={() => setShowPassword(!showPassword)}
+//               >
+//                 {showPassword ? (
+//                   <EyeSlashIcon className="w-5 h-5" />
+//                 ) : (
+//                   <EyeIcon className="w-5 h-5" />
+//                 )}
+//               </button>
+//             </div>
+//           </div>
+
+//           <div>
+//             <label className="block text-sm mb-1">Confirm Password</label>
+//             <div className="relative">
+//               <input
+//                 type={showConfirmPassword ? "text" : "password"}
+//                 className="w-full border p-3 rounded-lg"
+//                 value={confirmPassword}
+//                 onChange={(e) => setConfirmPassword(e.target.value)}
+//                 required
+//               />
+//             </div>
+//           </div>
+
+//           <motion.button
+//             whileHover={{ scale: 1.02 }}
+//             whileTap={{ scale: 0.98 }}
+//             type="submit"
+//             disabled={isLoading}
+//             className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold"
+//           >
+//             {isLoading ? "Creating Account..." : "Create Account"}
+//           </motion.button>
+//         </form>
+//       </motion.div>
+//     </div>
+//   );
+// }
+
+// export default Register;

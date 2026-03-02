@@ -59,6 +59,7 @@ import userRoutes from "./routes/userRoutes.js";
 import taskRoutes from "./routes/taskRoutes.js";
 import familyRoutes from "./routes/familyRoutes.js";
 import notificationRoutes from "./routes/notification.js";
+import goalRoutres from "./routes/goalRoutes.js";
 
 app.get("/health", (req, res) => {
   res.status(200).send("OK");
@@ -68,6 +69,7 @@ app.use(authRoutes);
 app.use(userRoutes);
 app.use(taskRoutes);
 app.use(familyRoutes);
+app.use(goalRoutres);
 app.use("/api/notifications", notificationRoutes);
 /** Root */
 app.get("/", (req, res) => res.send("API running"));

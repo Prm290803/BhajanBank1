@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getMessaging, getToken, onMessage } from "firebase/messaging";
-
+import { getAuth } from "firebase/auth";
 const firebaseConfig = {
   apiKey: "AIzaSyBA7dGKKM-QqWEw6XOMWXPmfljqM9nBYxg",
   authDomain: "bhajan-bank-d8e0a.firebaseapp.com",
@@ -13,6 +13,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const messaging = getMessaging(app);
+export const auth = getAuth(app);
 
 export const getFCMToken = async (userId = null) => {
   try {
