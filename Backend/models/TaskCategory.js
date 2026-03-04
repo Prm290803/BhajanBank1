@@ -14,4 +14,7 @@ const taskCategorySchema = new mongoose.Schema({
   totalCompletedCount: { type: Number, default: 0 },
 });
 
+
+taskCategorySchema.index({ categoryType: 1 });
+
 export default mongoose.model("TaskCategory", taskCategorySchema);

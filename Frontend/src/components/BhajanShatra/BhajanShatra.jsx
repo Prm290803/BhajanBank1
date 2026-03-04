@@ -1,1121 +1,1832 @@
-// import React, { useEffect, useState } from "react";
+
+// import { useEffect, useState } from "react";
 // import { useAuth } from "../../Auth/AuthContext";
-// import { motion } from "framer-motion";
+// import { motion, AnimatePresence } from "framer-motion";
+// import Navbar from "../Navbar/Navbar";
+// import LotusDivider from "../Common/LotusDivider";
+// import axios from "axios";
 
-// const BhajanShatra = () => {
-//   const { user } = useAuth();
+// // Motion Variants
+// const fadeUp = {
+//   hidden: { opacity: 0, y: 20 },
+//   visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+// };
+
+// const stagger = {
+//   visible: {
+//     transition: {
+//       staggerChildren: 0.1
+//     }
+//   }
+// };
+
+// const BhajanShastra = () => {
+//   const { user, token } = useAuth();
 //   const backend_url = import.meta.env.VITE_BACKENDURL;
-
-//   const [goalData, setGoalData] = useState(null);
+  
+//   // State for shatras
+//   const [shatras, setShatras] = useState([]);
+//   const [activeShatra, setActiveShatra] = useState(null);
 //   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState(null);
+//   const [showCreateForm, setShowCreateForm] = useState(false);
+//   const [contributionInput, setContributionInput] = useState("");
+//   const [fetchError, setFetchError] = useState(null);
+  
+//   // State for leaderboard
+//   const [leaderboard, setLeaderboard] = useState({ top10: [], userRank: null });
+//   const [leaderboardLoading, setLeaderboardLoading] = useState(false);
+  
+//   // Form state for creating shatra
+//   const [newShatra, setNewShatra] = useState({
+//     title: "",
+//     description: "",
+//     targetCount: "",
+//     startDate: "",
+//     endDate: ""
+//   });
 
+//   // Fetch all shatras on component mount and when token changes
 //   useEffect(() => {
-//     const fetchUniversalGoal = async () => {
-//       try {
-//         console.log("Fetching from:", `${backend_url}/api/universal-goal/progress`);
-        
-//         const res = await fetch(`${backend_url}/api/universal-goal/progress`);
-        
-//         if (!res.ok) {
-//           throw new Error(`HTTP error! status: ${res.status}`);
-//         }
-        
-//         const text = await res.text();
-//         console.log("Raw response:", text);
-        
-//         try {
-//           const result = JSON.parse(text);
-          
-//           if (result.message) {
-//             setGoalData(null);
-//           } else {
-//             setGoalData(result);
-//           }
-//         } catch (parseError) {
-//           console.error("JSON parse error:", parseError);
-//           throw new Error("Invalid JSON response from server");
-//         }
-        
-//       } catch (err) {
-//         console.error("Failed to fetch universal goal:", err);
-//         setError(err.message);
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
+//     if (token) {
+//       fetchShatras();
+//     }
+//   }, [token]);
 
-//     fetchUniversalGoal();
-//   }, [backend_url]);
+//   // Load active shatra from localStorage on initial mount
+//   useEffect(() => {
+//     const savedShatraId = localStorage.getItem('activeShatraId');
+//     if (savedShatraId && shatras.length > 0) {
+//       const savedShatra = shatras.find(s => s._id === savedShatraId);
+//       if (savedShatra) {
+//         setActiveShatra(savedShatra);
+//         fetchLeaderboard(savedShatra._id);
+//       }
+//     }
+//   }, [shatras]);
+
+//   // Save active shatra to localStorage whenever it changes
+//   useEffect(() => {
+//     if (activeShatra) {
+//       localStorage.setItem('activeShatraId', activeShatra._id);
+//     }
+//   }, [activeShatra]);
+
+//   const fetchShatras = async () => {
+//     try {
+//       setLoading(true);
+//       setFetchError(null);
+//       const response = await axios.get(`${backend_url}/api/bhajan-shatra`, {
+//         headers: { Authorization: `Bearer ${token}` }
+//       });
+      
+//       setShatras(response.data);
+      
+//       // If no active shatra is set, set the first active one
+//       if (!activeShatra && response.data.length > 0) {
+//         const active = response.data.find(s => s.status === "active") || 
+//                       response.data.find(s => s.status === "upcoming") || 
+//                       response.data[0];
+//         setActiveShatra(active);
+//         fetchLeaderboard(active._id);
+//       }
+//     } catch (error) {
+//       console.error("Error fetching shatras:", error);
+//       setFetchError("Failed to load shatras. Please refresh the page.");
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   // Fetch leaderboard for specific shatra
+//   const fetchLeaderboard = async (shatraId) => {
+//     if (!shatraId) return;
+    
+//     try {
+//       setLeaderboardLoading(true);
+//       const response = await axios.get(
+//         `${backend_url}/api/bhajan-shatra/${shatraId}/leaderboard`,
+//         { headers: { Authorization: `Bearer ${token}` } }
+//       );
+//       setLeaderboard(response.data);
+//     } catch (error) {
+//       console.error("Error fetching leaderboard:", error);
+//     } finally {
+//       setLeaderboardLoading(false);
+//     }
+//   };
+
+//   // Create new shatra (admin only)
+//   const handleCreateShatra = async (e) => {
+//     e.preventDefault();
+//     try {
+//       const response = await axios.post(
+//         `${backend_url}/api/bhajan-shatra`,
+//         {
+//           ...newShatra,
+//           targetCount: parseInt(newShatra.targetCount)
+//         },
+//         { headers: { Authorization: `Bearer ${token}` } }
+//       );
+      
+//       // Add status to the new shatra
+//       const today = new Date();
+//       today.setHours(0, 0, 0, 0);
+      
+//       const startDate = new Date(response.data.startDate);
+//       startDate.setHours(0, 0, 0, 0);
+      
+//       const endDate = new Date(response.data.endDate);
+//       endDate.setHours(23, 59, 59, 999);
+      
+//       let status;
+//       if (today > endDate) {
+//         status = "completed";
+//       } else if (today >= startDate && today <= endDate) {
+//         status = "active";
+//       } else {
+//         status = "upcoming";
+//       }
+      
+//       const newShatraWithStatus = {
+//         ...response.data,
+//         status,
+//         totalContribution: 0,
+//         progress: 0
+//       };
+      
+//       setShatras([newShatraWithStatus, ...shatras]);
+//       setShowCreateForm(false);
+//       setNewShatra({
+//         title: "",
+//         description: "",
+//         targetCount: "",
+//         startDate: "",
+//         endDate: ""
+//       });
+      
+//       // Set the new shatra as active
+//       setActiveShatra(newShatraWithStatus);
+//       fetchLeaderboard(newShatraWithStatus._id);
+      
+//     } catch (error) {
+//       console.error("Error creating shatra:", error);
+//       alert(error.response?.data?.message || "Failed to create shatra");
+//     }
+//   };
+
+//   // Add daily contribution
+//   const handleAddContribution = async () => {
+//     if (!activeShatra || !contributionInput) return;
+    
+//     try {
+//       await axios.post(
+//         `${backend_url}/api/bhajan-shatra/${activeShatra._id}/contribute`,
+//         { count: parseInt(contributionInput) },
+//         { headers: { Authorization: `Bearer ${token}` } }
+//       );
+      
+//       // Refresh shatras to get updated totalContribution
+//       await fetchShatras();
+//       // Refresh leaderboard
+//       await fetchLeaderboard(activeShatra._id);
+      
+//       setContributionInput("");
+      
+//     } catch (error) {
+//       console.error("Error adding contribution:", error);
+//       alert(error.response?.data?.message || "Failed to add contribution");
+//     }
+//   };
+
+//   // Calculate user's total from leaderboard
+//   const userTotal = leaderboard.userRank?.total || 0;
+  
+//   // Calculate progress
+//   const progressPercentage = activeShatra 
+//     ? (userTotal / activeShatra.targetCount) * 100 
+//     : 0;
+  
+//   const barPercentage = Math.min(progressPercentage, 100);
+//   const remainingCount = activeShatra 
+//     ? Math.max(activeShatra.targetCount - userTotal, 0) 
+//     : 0;
+    
+//   const isGoalAchieved = activeShatra && userTotal >= activeShatra.targetCount;
+
+//   // Format date
+//   const formatDate = (dateString) => {
+//     return new Date(dateString).toLocaleDateString('en-US', {
+//       month: 'short',
+//       day: 'numeric',
+//       year: 'numeric'
+//     });
+//   };
+
+//   // Check if user can contribute
+//   const canContribute = () => {
+//     if (!activeShatra) return false;
+    
+//     const today = new Date();
+//     today.setHours(0, 0, 0, 0);
+    
+//     const startDate = new Date(activeShatra.startDate);
+//     startDate.setHours(0, 0, 0, 0);
+    
+//     const endDate = new Date(activeShatra.endDate);
+//     endDate.setHours(23, 59, 59, 999);
+    
+//     return today >= startDate && today <= endDate;
+//   };
+
+//   // Get status color and text
+//   const getStatusInfo = (shatra) => {
+//     if (!shatra) return { color: "bg-gray-50", textColor: "text-gray-700", label: "Unknown", icon: "❓" };
+    
+//     switch(shatra.status) {
+//       case "active":
+//         return { 
+//           color: "bg-green-50", 
+//           textColor: "text-green-700", 
+//           label: "Ongoing", 
+//           icon: <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+//         };
+//       case "upcoming":
+//         return { 
+//           color: "bg-blue-50", 
+//           textColor: "text-blue-700", 
+//           label: "Upcoming", 
+//           icon: "⏳"
+//         };
+//       case "completed":
+//         return { 
+//           color: "bg-gray-50", 
+//           textColor: "text-gray-700", 
+//           label: "Completed", 
+//           icon: "✅"
+//         };
+//       default:
+//         return { 
+//           color: "bg-gray-50", 
+//           textColor: "text-gray-700", 
+//           label: shatra.status || "Unknown", 
+//           icon: "❓"
+//         };
+//     }
+//   };
 
 //   if (loading) {
 //     return (
-//       <div className="min-h-screen flex items-center justify-center">
-//         <div className="text-center">
-//           <div className="text-4xl mb-4 animate-pulse">🕉️</div>
-//           <div className="text-lg text-gray-600">Loading Bhajan Shatra...</div>
-//         </div>
-//       </div>
-//     );
-//   }
-
-//   if (error) {
-//     return (
-//       <div className="min-h-screen flex items-center justify-center">
-//         <div className="text-center max-w-md p-8 bg-white rounded-2xl shadow-lg">
-//           <div className="text-6xl mb-4">⚠️</div>
-//           <div className="text-lg text-red-600 mb-2">Error Loading Data</div>
-//           <p className="text-gray-600 mb-4">{error}</p>
-//           <p className="text-sm text-gray-400">
-//             Please check if the backend server is running on port 5000
-//           </p>
-//         </div>
-//       </div>
-//     );
-//   }
-
-//   if (!goalData || goalData.message) {
-//     return (
-//       <div className="min-h-screen flex items-center justify-center">
-//         <div className="text-center max-w-md p-8 bg-white rounded-2xl shadow-lg">
-//           <div className="text-6xl mb-4">🕉️</div>
-//           <div className="text-lg text-gray-600">
-//             {goalData?.message || "No active Bhajan Shatra right now 🙏"}
-//           </div>
-//           <p className="text-sm text-gray-400 mt-4">
-//             Check back later for new spiritual challenges
-//           </p>
-//         </div>
-//       </div>
-//     );
-//   }
-
-//   const {
-//     goalName,
-//     description,
-//     target,
-//     globalTotal,
-//     progress,
-//     startDate,
-//     endDate,
-//     leaderboard = []
-//   } = goalData;
-
-//   const daysRemaining = Math.ceil(
-//     (new Date(endDate) - new Date()) / (1000 * 60 * 60 * 24)
-//   );
-
-//   const daysSinceStart = Math.ceil(
-//     (new Date() - new Date(startDate)) / (1000 * 60 * 60 * 24)
-//   );
-
-//   const currentUserEntry = leaderboard.find(
-//     (entry) => entry.userId === user?._id
-//   );
-
-//   return (
-//     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 p-6">
-//       <div className="max-w-5xl mx-auto">
-
-//         {/* Header with Decorative Elements */}
-//         <motion.div
-//           initial={{ opacity: 0, y: -20 }}
-//           animate={{ opacity: 1, y: 0 }}
-//           className="text-center mb-12 relative"
-//         >
-//           <div className="absolute inset-0 flex items-center justify-center opacity-10">
-//             <span className="text-8xl">🕉️</span>
-//           </div>
-          
-//           <div className="relative">
-//             <h1 className="text-5xl font-bold text-gray-900 mb-4">
-//               <span className="bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
-//                 {goalName || "Bhajan Shatra"}
-//               </span>
-//             </h1>
-//             <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-//               {description || "Join the community in this spiritual journey"}
-//             </p>
-            
-//             {/* Timeline Badges */}
-//             <div className="flex flex-wrap justify-center gap-4 mt-6">
-//               <div className="bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm">
-//                 <span className="text-gray-600">Started: </span>
-//                 <span className="font-semibold">
-//                   {new Date(startDate).toLocaleDateString()}
-//                 </span>
-//               </div>
-//               <div className="bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm">
-//                 <span className="text-gray-600">Ends in: </span>
-//                 <span className="font-semibold text-orange-600">
-//                   {daysRemaining > 0 ? daysRemaining : 0} days
-//                 </span>
-//               </div>
-//               <div className="bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm">
-//                 <span className="text-gray-600">Day </span>
-//                 <span className="font-semibold text-amber-600">
-//                   {daysSinceStart}
-//                 </span>
-//               </div>
-//             </div>
-//           </div>
-//         </motion.div>
-
-//         {/* Global Progress Card */}
-//         <motion.div
-//           initial={{ opacity: 0, scale: 0.95 }}
-//           animate={{ opacity: 1, scale: 1 }}
-//           transition={{ delay: 0.2 }}
-//           className="bg-white rounded-3xl shadow-xl p-8 mb-8 border border-orange-100"
-//         >
-//           <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">
-//             🌍 Global Progress
-//           </h2>
-          
-//           <div className="flex justify-between text-sm text-gray-600 mb-3">
-//             <span className="font-medium">{globalTotal.toLocaleString()} completed</span>
-//             <span className="font-medium">Target: {target.toLocaleString()}</span>
-//           </div>
-
-//           <div className="w-full bg-gray-100 rounded-full h-8 overflow-hidden">
-//             <motion.div
-//               initial={{ width: 0 }}
-//               animate={{ width: `${progress}%` }}
-//               transition={{ duration: 1, ease: "easeOut" }}
-//               className="h-full bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 relative"
-//             >
-//               <div className="absolute inset-0 flex items-center justify-end pr-4">
-//                 <span className="text-white text-sm font-bold drop-shadow-md">
-//                   {progress.toFixed(1)}%
-//                 </span>
-//               </div>
-//             </motion.div>
-//           </div>
-
-//           <div className="grid grid-cols-2 gap-4 mt-6">
-//             <div className="text-center p-4 bg-orange-50 rounded-xl">
-//               <div className="text-sm text-gray-600">Total Contributions</div>
-//               <div className="text-2xl font-bold text-orange-600">
-//                 {globalTotal.toLocaleString()}
-//               </div>
-//             </div>
-//             <div className="text-center p-4 bg-amber-50 rounded-xl">
-//               <div className="text-sm text-gray-600">Active Devotees</div>
-//               <div className="text-2xl font-bold text-amber-600">
-//                 {leaderboard.length}
-//               </div>
-//             </div>
-//           </div>
-//         </motion.div>
-
-//         {/* Personal Contribution Card */}
-//         {currentUserEntry && (
-//           <motion.div
-//             initial={{ opacity: 0, x: -20 }}
-//             animate={{ opacity: 1, x: 0 }}
-//             transition={{ delay: 0.3 }}
-//             className="bg-gradient-to-r from-orange-100 to-amber-100 border border-orange-300 rounded-2xl p-6 mb-8 shadow-md"
-//           >
-//             <div className="flex items-center justify-between flex-wrap gap-4">
-//               <div className="flex items-center gap-3">
-//                 <span className="text-4xl">🙏</span>
-//                 <div>
-//                   <p className="text-gray-700">Your Contribution</p>
-//                   <p className="text-2xl font-bold text-orange-700">
-//                     {currentUserEntry.total} counts
-//                   </p>
+//       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
+//         <div className="fixed inset-0 bg-[linear-gradient(45deg,#f8fafc_25%,transparent_25%),linear-gradient(-45deg,#f8fafc_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#f8fafc_75%),linear-gradient(-45deg,transparent_75%,#f8fafc_75%)] bg-[size:15px_15px] sm:bg-[size:20px_20px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,black_30%,transparent_100%)]"></div>
+//         <Navbar />
+//         <div className="pt-20 px-3 sm:px-4 relative">
+//           <div className="max-w-4xl mx-auto">
+//             <div className="bg-white p-6 sm:p-8 rounded-xl sm:rounded-2xl shadow-lg border border-gray-100">
+//               <div className="flex justify-center items-center py-12">
+//                 <div className="flex items-center gap-3 text-gray-600">
+//                   <div className="w-6 h-6 border-2 border-[#FF7722] border-t-transparent rounded-full animate-spin"></div>
+//                   <span>Loading Bhajan Shastra...</span>
 //                 </div>
 //               </div>
-//               <div className="bg-white px-6 py-3 rounded-xl">
-//                 <span className="text-gray-600">Rank </span>
-//                 <span className="text-2xl font-bold text-amber-600">
-//                   #{leaderboard.findIndex(u => u.userId === user?._id) + 1}
-//                 </span>
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+//     );
+//   }
+
+//   if (fetchError) {
+//     return (
+//       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
+//         <div className="fixed inset-0 bg-[linear-gradient(45deg,#f8fafc_25%,transparent_25%),linear-gradient(-45deg,#f8fafc_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#f8fafc_75%),linear-gradient(-45deg,transparent_75%,#f8fafc_75%)] bg-[size:15px_15px] sm:bg-[size:20px_20px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,black_30%,transparent_100%)]"></div>
+//         <Navbar />
+//         <div className="pt-20 px-3 sm:px-4 relative">
+//           <div className="max-w-4xl mx-auto">
+//             <div className="bg-white p-6 sm:p-8 rounded-xl sm:rounded-2xl shadow-lg border border-gray-100">
+//               <div className="text-center py-12">
+//                 <div className="text-4xl mb-4">⚠️</div>
+//                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Something went wrong</h3>
+//                 <p className="text-gray-500 text-sm mb-4">{fetchError}</p>
+//                 <button
+//                   onClick={() => window.location.reload()}
+//                   className="px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg font-medium"
+//                 >
+//                   Refresh Page
+//                 </button>
 //               </div>
 //             </div>
-//           </motion.div>
-//         )}
+//           </div>
+//         </div>
+//       </div>
+//     );
+//   }
 
-//         {/* Leaderboard Section */}
-//         <motion.div
-//           initial={{ opacity: 0, y: 20 }}
-//           animate={{ opacity: 1, y: 0 }}
-//           transition={{ delay: 0.4 }}
-//           className="bg-white rounded-3xl shadow-xl p-8"
+//   return (
+//     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
+//       {/* Background pattern */}
+//       <div className="fixed inset-0 bg-[linear-gradient(45deg,#f8fafc_25%,transparent_25%),linear-gradient(-45deg,#f8fafc_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#f8fafc_75%),linear-gradient(-45deg,transparent_75%,#f8fafc_75%)] bg-[size:15px_15px] sm:bg-[size:20px_20px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,black_30%,transparent_100%)]"></div>
+      
+//       <Navbar />
+      
+//       <div className="relative max-w-6xl mx-auto space-y-6 sm:space-y-8 px-3 sm:px-4 pt-20 pb-8">
+//         {/* Header */}
+//         <motion.div 
+//           className="text-center"
+//           variants={fadeUp}
+//           initial="hidden"
+//           animate="visible"
 //         >
-//           <h2 className="text-3xl font-bold text-center mb-8">
-//             <span className="bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
-//               🏆 Top Devotees
-//             </span>
-//           </h2>
+//           <div className="flex flex-col items-center gap-3 sm:gap-4 mb-4">
+//             <div className="w-12 sm:w-16 h-0.5 sm:h-1 bg-gradient-to-r from-transparent via-[#FF7722] to-transparent"></div>
+//             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 font-sans px-2">
+//               Bhajan <span className="text-[#FF7722]">Shastra</span>
+//             </h1>
+//             <p className="text-gray-600 text-sm sm:text-base lg:text-lg font-light max-w-2xl px-2">
+//               Collective spiritual sadhana for utsavs
+//             </p>
+//             <div className="w-12 sm:w-16 h-0.5 sm:h-1 bg-gradient-to-r from-transparent via-[#FF7722] to-transparent"></div>
+//           </div>
+//         </motion.div>
 
-//           <div className="space-y-3">
-//             {leaderboard.slice(0, 10).map((member, index) => {
-//               const isCurrentUser = member.userId === user?._id;
-//               const rankColors = [
-//                 "bg-yellow-100 border-yellow-300", // 1st
-//                 "bg-gray-100 border-gray-300",      // 2nd
-//                 "bg-amber-100 border-amber-300",    // 3rd
-//                 "bg-orange-50 border-orange-200"    // 4th+
-//               ];
+//         <LotusDivider />
+
+//         {/* Shatra Selection and Create Button */}
+//         <motion.div 
+//           className="flex flex-col sm:flex-row justify-between items-center gap-4"
+//           variants={fadeUp}
+//           initial="hidden"
+//           animate="visible"
+//         >
+//           <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-2 sm:pb-0">
+//             {shatras.map((shatra) => {
+//               const statusInfo = getStatusInfo(shatra);
               
-//               const rankColor = index < 3 ? rankColors[index] : rankColors[3];
-//               const rankEmoji = index === 0 ? "👑" : index === 1 ? "🥈" : index === 2 ? "🥉" : "📿";
-
 //               return (
-//                 <motion.div
-//                   key={member.userId}
-//                   initial={{ opacity: 0, x: -20 }}
-//                   animate={{ opacity: 1, x: 0 }}
-//                   transition={{ delay: index * 0.05 }}
-//                   className={`flex justify-between items-center p-4 rounded-xl border-2 ${rankColor} ${
-//                     isCurrentUser ? "ring-2 ring-blue-400 ring-offset-2" : ""
+//                 <button
+//                   key={shatra._id}
+//                   onClick={() => {
+//                     setActiveShatra(shatra);
+//                     fetchLeaderboard(shatra._id);
+//                   }}
+//                   className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all duration-200 ${
+//                     activeShatra?._id === shatra._id
+//                       ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md"
+//                       : "bg-white text-gray-600 border border-gray-200 hover:border-orange-300"
 //                   }`}
 //                 >
-//                   <div className="flex items-center gap-4">
-//                     <div className="flex items-center gap-2">
-//                       <span className="text-2xl">{rankEmoji}</span>
-//                       <span className="font-bold text-lg min-w-[2rem]">
-//                         #{index + 1}
-//                       </span>
-//                     </div>
-//                     <div>
-//                       <span className="font-semibold text-gray-800">
-//                         {member.name}
-//                       </span>
-//                       {isCurrentUser && (
-//                         <span className="ml-3 px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
-//                           You
-//                         </span>
-//                       )}
-//                     </div>
-//                   </div>
-
-//                   <div className="flex items-center gap-3">
-//                     <span className="font-bold text-lg text-orange-700">
-//                       {member.total.toLocaleString()}
-//                     </span>
-//                     <span className="text-sm text-gray-500">counts</span>
-//                   </div>
-//                 </motion.div>
+//                   {shatra.title}
+//                   <span className={`ml-2 text-xs px-2 py-0.5 rounded-full ${
+//                     shatra.status === "active" ? "bg-green-100 text-green-600" :
+//                     shatra.status === "upcoming" ? "bg-blue-100 text-blue-600" :
+//                     "bg-gray-100 text-gray-600"
+//                   }`}>
+//                     {shatra.status === "active" ? "Ongoing" :
+//                      shatra.status === "upcoming" ? "Upcoming" : "Completed"}
+//                   </span>
+//                 </button>
 //               );
 //             })}
 //           </div>
-
-//           {leaderboard.length === 0 && (
-//             <div className="text-center py-12 text-gray-500">
-//               <div className="text-6xl mb-4">🕊️</div>
-//               <p>No contributions yet. Be the first to start!</p>
-//             </div>
+          
+//           {/* Plus Button for Admin - Always Visible */}
+//           {user?.role === "admin" && (
+//             <motion.button
+//               onClick={() => setShowCreateForm(!showCreateForm)}
+//               className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-200 whitespace-nowrap"
+//               whileHover={{ scale: 1.05 }}
+//               whileTap={{ scale: 0.95 }}
+//             >
+//               <span className="text-2xl font-bold">+</span>
+//               <span className="font-semibold">Create New Shatra</span>
+//             </motion.button>
 //           )}
-
-//           {/* Footer Note */}
-//           <div className="mt-8 text-center text-sm text-gray-500 border-t pt-6">
-//             <p>Continue your spiritual practice • Every count matters 🙏</p>
-//           </div>
 //         </motion.div>
+
+//         {/* Create Shatra Form */}
+//         <AnimatePresence>
+//           {showCreateForm && (
+//             <motion.div
+//               initial={{ opacity: 0, height: 0 }}
+//               animate={{ opacity: 1, height: "auto" }}
+//               exit={{ opacity: 0, height: 0 }}
+//               className="overflow-hidden"
+//             >
+//               <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-lg">
+//                 <div className="flex justify-between items-center mb-4">
+//                   <h3 className="text-lg font-semibold text-gray-900">Create New Bhajan Shatra</h3>
+//                   <button
+//                     onClick={() => setShowCreateForm(false)}
+//                     className="text-gray-400 hover:text-gray-600"
+//                   >
+//                     ✕
+//                   </button>
+//                 </div>
+//                 <form onSubmit={handleCreateShatra} className="space-y-4">
+//                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+//                     <div className="md:col-span-2">
+//                       <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+//                       <input
+//                         type="text"
+//                         value={newShatra.title}
+//                         onChange={(e) => setNewShatra({...newShatra, title: e.target.value})}
+//                         placeholder="e.g., 20 Lakh Swaminarayan Mala"
+//                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+//                         required
+//                       />
+//                     </div>
+                    
+//                     <div className="md:col-span-2">
+//                       <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+//                       <textarea
+//                         value={newShatra.description}
+//                         onChange={(e) => setNewShatra({...newShatra, description: e.target.value})}
+//                         rows="2"
+//                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+//                         required
+//                       />
+//                     </div>
+                    
+//                     <div>
+//                       <label className="block text-sm font-medium text-gray-700 mb-1">Target Count</label>
+//                       <input
+//                         type="number"
+//                         value={newShatra.targetCount}
+//                         onChange={(e) => setNewShatra({...newShatra, targetCount: e.target.value})}
+//                         placeholder="2000000"
+//                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+//                         required
+//                       />
+//                     </div>
+                    
+//                     <div>
+//                       <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+//                       <input
+//                         type="date"
+//                         value={newShatra.startDate}
+//                         onChange={(e) => setNewShatra({...newShatra, startDate: e.target.value})}
+//                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+//                         required
+//                       />
+//                     </div>
+                    
+//                     <div>
+//                       <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+//                       <input
+//                         type="date"
+//                         value={newShatra.endDate}
+//                         onChange={(e) => setNewShatra({...newShatra, endDate: e.target.value})}
+//                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+//                         required
+//                       />
+//                     </div>
+//                   </div>
+                  
+//                   <div className="flex justify-end gap-3">
+//                     <button
+//                       type="button"
+//                       onClick={() => setShowCreateForm(false)}
+//                       className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+//                     >
+//                       Cancel
+//                     </button>
+//                     <button
+//                       type="submit"
+//                       className="px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg font-medium hover:shadow-md transition-all"
+//                     >
+//                       Create Shatra
+//                     </button>
+//                   </div>
+//                 </form>
+//               </div>
+//             </motion.div>
+//           )}
+//         </AnimatePresence>
+
+//         {activeShatra ? (
+//           <>
+//             {/* Shatra Info Card */}
+//             <motion.div
+//               className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm"
+//               variants={fadeUp}
+//               initial="hidden"
+//               animate="visible"
+//             >
+//               <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+//                 <div>
+//                   <h2 className="text-xl font-bold text-gray-900 mb-2">{activeShatra.title}</h2>
+//                   <p className="text-gray-600 text-sm mb-3">{activeShatra.description}</p>
+//                   <div className="flex flex-wrap gap-4 text-sm">
+//                     <span className="text-gray-500">
+//                       📅 {formatDate(activeShatra.startDate)} - {formatDate(activeShatra.endDate)}
+//                     </span>
+//                     <span className="text-gray-500">
+//                       🎯 Target: {activeShatra.targetCount.toLocaleString()} malas
+//                     </span>
+//                     <span className="text-gray-500">
+//                       📊 Total: {activeShatra.totalContribution?.toLocaleString()} malas
+//                     </span>
+//                   </div>
+//                 </div>
+                
+//                 {/* Status Badge */}
+//                 {(() => {
+//                   const statusInfo = getStatusInfo(activeShatra);
+//                   return (
+//                     <div className={`px-4 py-2 rounded-lg ${statusInfo.color}`}>
+//                       <span className={`text-sm font-medium flex items-center gap-1 ${statusInfo.textColor}`}>
+//                         {statusInfo.icon}
+//                         {statusInfo.label}
+//                       </span>
+//                     </div>
+//                   );
+//                 })()}
+//               </div>
+              
+//               {/* Goal Achievement Badge - Only show for active shatras */}
+//               {isGoalAchieved && activeShatra.status === "active" && (
+//                 <div className="mt-4 bg-purple-50 border border-purple-200 rounded-lg p-3">
+//                   <p className="text-purple-700 text-sm flex items-center gap-2">
+//                     <span className="text-lg">🎉</span>
+//                     <span className="font-medium">Goal Achieved! </span>
+//                     You've surpassed the target count. Keep going until the end date!
+//                   </p>
+//                 </div>
+//               )}
+//             </motion.div>
+
+//             {/* Progress Card */}
+//             <motion.div
+//               className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm"
+//               variants={fadeUp}
+//               initial="hidden"
+//               animate="visible"
+//             >
+//               <h3 className="text-lg font-semibold text-gray-900 mb-4">Your Progress</h3>
+              
+//               {/* Progress Stats */}
+//               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+//                 <div className="bg-gradient-to-br from-orange-50 to-amber-50 p-4 rounded-lg">
+//                   <p className="text-sm text-gray-600 mb-1">Completed</p>
+//                   <p className="text-2xl font-bold text-orange-600">{userTotal.toLocaleString()}</p>
+//                   <p className="text-xs text-gray-500">malas</p>
+//                 </div>
+                
+//                 <div className="bg-gradient-to-br from-orange-50 to-amber-50 p-4 rounded-lg">
+//                   <p className="text-sm text-gray-600 mb-1">Remaining to Target</p>
+//                   <p className="text-2xl font-bold text-amber-600">{Math.max(remainingCount, 0).toLocaleString()}</p>
+//                   <p className="text-xs text-gray-500">malas</p>
+//                 </div>
+                
+//                 <div className="bg-gradient-to-br from-orange-50 to-amber-50 p-4 rounded-lg">
+//                   <p className="text-sm text-gray-600 mb-1">Progress</p>
+//                   <p className="text-2xl font-bold text-gray-900">{progressPercentage.toFixed(1)}%</p>
+//                   <p className="text-xs text-gray-500">of target</p>
+//                 </div>
+//               </div>
+
+//               {/* Progress Bar */}
+//               <div className="mb-2">
+//                 <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+//                   <motion.div
+//                     initial={{ width: 0 }}
+//                     animate={{ width: `${barPercentage}%` }}
+//                     transition={{ duration: 1 }}
+//                     className={`h-full ${
+//                       isGoalAchieved && activeShatra.status === "active"
+//                         ? "bg-gradient-to-r from-purple-500 to-pink-500" 
+//                         : "bg-gradient-to-r from-orange-500 to-amber-500"
+//                     }`}
+//                   />
+//                 </div>
+//               </div>
+              
+//               {/* Progress Stats Line */}
+//               <div className="flex justify-between text-xs text-gray-500 mb-6">
+//                 <span>0</span>
+//                 <span className="text-center">
+//                   {userTotal.toLocaleString()} / {activeShatra.targetCount.toLocaleString()} malas
+//                 </span>
+//                 <span>{activeShatra.targetCount.toLocaleString()}</span>
+//               </div>
+
+//               {/* Add Contribution Form */}
+//               {activeShatra.status === "active" && canContribute() ? (
+//                 <div className="flex gap-3">
+//                   <input
+//                     type="number"
+//                     value={contributionInput}
+//                     onChange={(e) => setContributionInput(e.target.value)}
+//                     placeholder="Enter malas done today"
+//                     className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+//                     min="1"
+//                   />
+//                   <button
+//                     onClick={handleAddContribution}
+//                     disabled={!contributionInput || leaderboardLoading}
+//                     className="px-6 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg font-medium hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+//                   >
+//                     {leaderboardLoading ? "Adding..." : "Add Progress"}
+//                   </button>
+//                 </div>
+//               ) : activeShatra.status === "upcoming" ? (
+//                 <div className="bg-blue-50 p-4 rounded-lg text-center">
+//                   <p className="text-blue-700 text-sm">
+//                     ⏳ This shatra starts on {formatDate(activeShatra.startDate)}. Please wait until then to add progress.
+//                   </p>
+//                 </div>
+//               ) : (
+//                 <div className="bg-gray-50 p-4 rounded-lg text-center">
+//                   <p className="text-gray-600 text-sm">
+//                     This shatra ended on {formatDate(activeShatra.endDate)}. No more contributions allowed.
+//                   </p>
+//                 </div>
+//               )}
+//             </motion.div>
+
+//             {/* Leaderboard */}
+//             <motion.div
+//               className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm"
+//               variants={fadeUp}
+//               initial="hidden"
+//               animate="visible"
+//             >
+//               <div className="flex justify-between items-center mb-6">
+//                 <h3 className="text-lg font-semibold text-gray-900">Sadhana Leaderboard</h3>
+//                 <span className="text-sm text-gray-500">Top 10 Contributors</span>
+//               </div>
+
+//               {/* Top 10 Leaderboard */}
+//               {leaderboardLoading ? (
+//                 <div className="flex justify-center py-8">
+//                   <div className="w-6 h-6 border-2 border-[#FF7722] border-t-transparent rounded-full animate-spin"></div>
+//                 </div>
+//               ) : leaderboard.top10.length > 0 ? (
+//                 <>
+//                   <div className="space-y-3 mb-6">
+//                     {leaderboard.top10.map((entry, index) => (
+//                       <motion.div
+//                         key={entry.userId}
+//                         variants={fadeUp}
+//                         className={`flex items-center justify-between p-3 rounded-lg transition-all ${
+//                           entry.userId === user?._id 
+//                             ? "bg-orange-50 border border-orange-200" 
+//                             : "bg-gray-50 hover:bg-orange-50/50"
+//                         }`}
+//                       >
+//                         <div className="flex items-center gap-3">
+//                           <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+//                             index === 0 ? "bg-amber-500 text-white" :
+//                             index === 1 ? "bg-gray-500 text-white" :
+//                             index === 2 ? "bg-amber-400 text-white" :
+//                             "bg-gray-300 text-gray-700"
+//                           }`}>
+//                             {entry.rank}
+//                           </div>
+//                           <div>
+//                             <span className="font-medium text-gray-900">{entry.name}</span>
+//                             {entry.userId === user?._id && (
+//                               <span className="ml-2 text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">You</span>
+//                             )}
+//                           </div>
+//                         </div>
+//                         <div className="flex items-center gap-2">
+//                           <span className="text-sm text-gray-500">{entry.total.toLocaleString()} malas</span>
+//                         </div>
+//                       </motion.div>
+//                     ))}
+//                   </div>
+
+//                   {/* User's rank if not in top 10 */}
+//                   {leaderboard.userRank && leaderboard.userRank.rank > 10 && (
+//                     <div className="border-t border-gray-200 pt-4">
+//                       <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
+//                         <div className="flex items-center gap-3">
+//                           <div className="w-6 h-6 rounded-full bg-gray-400 text-white flex items-center justify-center text-xs font-bold">
+//                             {leaderboard.userRank.rank}
+//                           </div>
+//                           <div>
+//                             <span className="font-medium text-gray-900">{leaderboard.userRank.name}</span>
+//                             <span className="ml-2 text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">You</span>
+//                           </div>
+//                         </div>
+//                         <div className="flex items-center gap-2">
+//                           <span className="text-sm text-gray-500">{leaderboard.userRank.total.toLocaleString()} malas</span>
+//                         </div>
+//                       </div>
+//                       <p className="text-xs text-gray-500 text-center mt-2">
+//                         You're #{leaderboard.userRank.rank} overall • {leaderboard.userRank.total.toLocaleString()} malas completed
+//                       </p>
+//                     </div>
+//                   )}
+//                 </>
+//               ) : (
+//                 <div className="text-center py-8">
+//                   <p className="text-gray-500">No contributions yet. Be the first to add your sadhana!</p>
+//                 </div>
+//               )}
+//             </motion.div>
+//           </>
+//         ) : (
+//           <div className="bg-white p-12 rounded-xl border border-gray-200 text-center">
+//             <p className="text-gray-500">No shatras available.</p>
+//           </div>
+//         )}
+
+//         {/* Footer */}
+//         <motion.footer 
+//           className="text-center py-6"
+//           variants={fadeUp}
+//           initial="hidden"
+//           animate="visible"
+//         >
+//           <LotusDivider className="mb-4" />
+//           <p className="text-xs sm:text-sm font-semibold text-gray-700 mb-2">श्री स्वामिनारायणाय नमः</p>
+//           <p className="text-xs text-gray-500 max-w-xs mx-auto">
+//             May our collective sadhana bring divine blessings
+//           </p>
+//           <p className="text-xs mt-2 text-gray-400">
+//             Developed by{' '}
+//             <a 
+//               href="https://buildcrew.co.in" 
+//               target="_blank" 
+//               rel="noopener noreferrer"
+//               className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
+//             >
+//               Build Crew
+//             </a>
+//           </p>
+//         </motion.footer>
 //       </div>
 //     </div>
 //   );
 // };
 
-// export default BhajanShatra;
+// export default BhajanShastra;
 
-
-
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "../../Auth/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
+import Navbar from "../Navbar/Navbar";
+import LotusDivider from "../Common/LotusDivider";
+import axios from "axios";
 
-const BhajanShatra = () => {
-  const { user } = useAuth();
+// Motion Variants
+const fadeUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+};
+
+const stagger = {
+  visible: {
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const BhajanShastra = () => {
+  const { user, token } = useAuth();
   const backend_url = import.meta.env.VITE_BACKENDURL;
-
-  const [goalData, setGoalData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Form state for creating new goal
-  const [newGoal, setNewGoal] = useState({
-    name: "",
+  // State for shatras
+  const [shatras, setShatras] = useState([]);
+  const [activeShatra, setActiveShatra] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [contributionInput, setContributionInput] = useState("");
+  const [fetchError, setFetchError] = useState(null);
+  
+  // State for leaderboard
+  const [leaderboard, setLeaderboard] = useState({ top10: [], userRank: null });
+  const [leaderboardLoading, setLeaderboardLoading] = useState(false);
+  
+  // State for contributors modal
+  const [showContributorsModal, setShowContributorsModal] = useState(false);
+  const [contributors, setContributors] = useState([]);
+  const [contributorsLoading, setContributorsLoading] = useState(false);
+  const [contributorsPagination, setContributorsPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    hasNextPage: false,
+    hasPrevPage: false
+  });
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedContributor, setSelectedContributor] = useState(null);
+  const [contributorDetails, setContributorDetails] = useState(null);
+  const [detailsLoading, setDetailsLoading] = useState(false);
+  
+  // Form state for creating shatra
+  const [newShatra, setNewShatra] = useState({
+    title: "",
     description: "",
     targetCount: "",
-    targetType: "category",
-    targetName: "Bhajan",
-    duration: 30 // days
+    startDate: "",
+    endDate: ""
   });
 
-  // Debug logs
-  console.log("Backend URL:", backend_url);
-  console.log("User:", user);
-  console.log("Goal Data:", goalData);
-
-  // Check if user is admin
+  // Fetch all shatras on component mount and when token changes
   useEffect(() => {
-    if (user) {
-      // Check if user has admin role - modify this based on your user schema
-      setIsAdmin(user.role === "admin" || user.isAdmin || false);
+    if (token) {
+      fetchShatras();
     }
-  }, [user]);
+  }, [token]);
 
-  const fetchUniversalGoal = async () => {
+  // Load active shatra from localStorage on initial mount
+  useEffect(() => {
+    const savedShatraId = localStorage.getItem('activeShatraId');
+    if (savedShatraId && shatras.length > 0) {
+      const savedShatra = shatras.find(s => s._id === savedShatraId);
+      if (savedShatra) {
+        setActiveShatra(savedShatra);
+        fetchLeaderboard(savedShatra._id);
+      }
+    }
+  }, [shatras]);
+
+  // Save active shatra to localStorage whenever it changes
+  useEffect(() => {
+    if (activeShatra) {
+      localStorage.setItem('activeShatraId', activeShatra._id);
+    }
+  }, [activeShatra]);
+
+  const fetchShatras = async () => {
     try {
       setLoading(true);
-      setError(null);
-      console.log("Fetching from:", `${backend_url}/api/universal-goal/progress`);
+      setFetchError(null);
+      const response = await axios.get(`${backend_url}/api/bhajan-shatra`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       
-      const res = await fetch(`${backend_url}/api/universal-goal/progress`);
+      setShatras(response.data);
       
-      // Handle 404 specially - this means no active goal
-      if (res.status === 404) {
-        console.log("No active goal found (404)");
-        setGoalData(null);
-        setLoading(false);
-        return;
+      // If no active shatra is set, set the first active one
+      if (!activeShatra && response.data.length > 0) {
+        const active = response.data.find(s => s.status === "active") || 
+                      response.data.find(s => s.status === "upcoming") || 
+                      response.data[0];
+        setActiveShatra(active);
+        fetchLeaderboard(active._id);
       }
-      
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-      
-      const text = await res.text();
-      console.log("Raw response:", text);
-      
-      // If response is empty, treat as no goal
-      if (!text || text.trim() === '') {
-        console.log("Empty response, no goal found");
-        setGoalData(null);
-        setLoading(false);
-        return;
-      }
-      
-      try {
-        const result = JSON.parse(text);
-        console.log("Parsed result:", result);
-        
-        // Check if the response indicates no goal
-        if (result.message || !result.name) {
-          console.log("Response indicates no goal:", result.message);
-          setGoalData(null);
-        } else {
-          console.log("Active goal found:", result.name);
-          setGoalData(result);
-        }
-      } catch (parseError) {
-        console.error("JSON parse error:", parseError);
-        setGoalData(null);
-      }
-      
-    } catch (err) {
-      console.error("Failed to fetch universal goal:", err);
-      // Don't set error for "no goal" situations
-      if (err.message.includes("404")) {
-        setGoalData(null);
-      } else {
-        setError(err.message);
-      }
+    } catch (error) {
+      console.error("Error fetching shatras:", error);
+      setFetchError("Failed to load shatras. Please refresh the page.");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchUniversalGoal();
-  }, [backend_url]);
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setNewGoal(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleCreateGoal = async (e) => {
-    e.preventDefault();
+  // Fetch leaderboard for specific shatra
+  const fetchLeaderboard = async (shatraId) => {
+    if (!shatraId) return;
     
     try {
-      setIsSubmitting(true);
-      const token = localStorage.getItem("token"); // Adjust based on your auth storage
-      
-      if (!token) {
-        alert("You must be logged in to create a goal");
-        return;
-      }
-
-      const startDate = new Date();
-      const endDate = new Date();
-      endDate.setDate(endDate.getDate() + parseInt(newGoal.duration));
-
-      const goalToCreate = {
-        name: newGoal.name,
-        description: newGoal.description,
-        targetCount: parseInt(newGoal.targetCount),
-        targetType: newGoal.targetType,
-        targetName: newGoal.targetName,
-        startDate: startDate,
-        endDate: endDate,
-        isActive: true
-      };
-
-      console.log("Creating goal:", goalToCreate);
-      console.log("Token:", token);
-
-      const res = await fetch(`${backend_url}/api/universal-goal`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify(goalToCreate)
-      });
-
-      const responseText = await res.text();
-      console.log("Create response status:", res.status);
-      console.log("Create response:", responseText);
-
-      if (!res.ok) {
-        throw new Error(`Failed to create goal: ${res.status} - ${responseText}`);
-      }
-
-      // Refresh the goal data
-      await fetchUniversalGoal();
-      setShowCreateForm(false);
-      
-      // Reset form
-      setNewGoal({
-        name: "",
-        description: "",
-        targetCount: "",
-        targetType: "category",
-        targetName: "Bhajan",
-        duration: 30
-      });
-
-      alert("Goal created successfully! 🎉");
-
-    } catch (err) {
-      console.error("Error creating goal:", err);
-      alert(`Failed to create goal: ${err.message}`);
+      setLeaderboardLoading(true);
+      const response = await axios.get(
+        `${backend_url}/api/bhajan-shatra/${shatraId}/leaderboard`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setLeaderboard(response.data);
+    } catch (error) {
+      console.error("Error fetching leaderboard:", error);
     } finally {
-      setIsSubmitting(false);
+      setLeaderboardLoading(false);
     }
   };
 
-  const resetForm = () => {
-    setNewGoal({
-      name: "",
-      description: "",
-      targetCount: "",
-      targetType: "category",
-      targetName: "Bhajan",
-      duration: 30
+  // Fetch contributors for current shatra
+  const fetchContributors = async (page = 1) => {
+    if (!activeShatra) return;
+    
+    try {
+      setContributorsLoading(true);
+      const response = await axios.get(
+        `${backend_url}/api/bhajan-shatra/${activeShatra._id}/contributors?page=${page}&limit=10&search=${searchTerm}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setContributors(response.data.contributors);
+      setContributorsPagination(response.data.pagination);
+      
+      // Update the active shatra with latest contributor count
+      setActiveShatra(prev => ({
+        ...prev,
+        totalContributors: response.data.pagination.totalItems
+      }));
+      
+    } catch (error) {
+      console.error("Error fetching contributors:", error);
+    } finally {
+      setContributorsLoading(false);
+    }
+  };
+
+  // Fetch single contributor details
+  const fetchContributorDetails = async (userId) => {
+    if (!activeShatra) return;
+    
+    try {
+      setDetailsLoading(true);
+      const response = await axios.get(
+        `${backend_url}/api/bhajan-shatra/${activeShatra._id}/contributors/${userId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setContributorDetails(response.data);
+    } catch (error) {
+      console.error("Error fetching contributor details:", error);
+    } finally {
+      setDetailsLoading(false);
+    }
+  };
+
+  // Export contributors to CSV
+  const handleExport = async () => {
+    if (!activeShatra) return;
+    
+    try {
+      const response = await axios.get(
+        `${backend_url}/api/bhajan-shatra/${activeShatra._id}/contributors/export`,
+        { 
+          headers: { Authorization: `Bearer ${token}` },
+          responseType: 'blob'
+        }
+      );
+      
+      // Create download link
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `${activeShatra.title}_contributors.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error("Error exporting:", error);
+    }
+  };
+
+  // Open contributors modal
+  const handleOpenContributors = () => {
+    setShowContributorsModal(true);
+    setSearchTerm("");
+    setSelectedContributor(null);
+    setContributorDetails(null);
+    fetchContributors(1);
+  };
+
+  // Create new shatra (admin only)
+  const handleCreateShatra = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await axios.post(
+        `${backend_url}/api/bhajan-shatra`,
+        {
+          ...newShatra,
+          targetCount: parseInt(newShatra.targetCount)
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      // Add status to the new shatra
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const startDate = new Date(response.data.startDate);
+      startDate.setHours(0, 0, 0, 0);
+      
+      const endDate = new Date(response.data.endDate);
+      endDate.setHours(23, 59, 59, 999);
+      
+      let status;
+      if (today > endDate) {
+        status = "completed";
+      } else if (today >= startDate && today <= endDate) {
+        status = "active";
+      } else {
+        status = "upcoming";
+      }
+      
+      const newShatraWithStatus = {
+        ...response.data,
+        status,
+        totalContribution: 0,
+        progress: 0,
+        totalContributors: 0
+      };
+      
+      setShatras([newShatraWithStatus, ...shatras]);
+      setShowCreateForm(false);
+      setNewShatra({
+        title: "",
+        description: "",
+        targetCount: "",
+        startDate: "",
+        endDate: ""
+      });
+      
+      // Set the new shatra as active
+      setActiveShatra(newShatraWithStatus);
+      fetchLeaderboard(newShatraWithStatus._id);
+      
+    } catch (error) {
+      console.error("Error creating shatra:", error);
+      alert(error.response?.data?.message || "Failed to create shatra");
+    }
+  };
+
+  // Add daily contribution
+  const handleAddContribution = async () => {
+    if (!activeShatra || !contributionInput) return;
+    
+    try {
+      await axios.post(
+        `${backend_url}/api/bhajan-shatra/${activeShatra._id}/contribute`,
+        { count: parseInt(contributionInput) },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      // Refresh shatras to get updated totalContribution
+      await fetchShatras();
+      // Refresh leaderboard
+      await fetchLeaderboard(activeShatra._id);
+      
+      setContributionInput("");
+      
+    } catch (error) {
+      console.error("Error adding contribution:", error);
+      alert(error.response?.data?.message || "Failed to add contribution");
+    }
+  };
+
+  // Calculate user's total from leaderboard
+  const userTotal = leaderboard.userRank?.total || 0;
+  
+  // Calculate progress
+  const progressPercentage = activeShatra 
+    ? (userTotal / activeShatra.targetCount) * 100 
+    : 0;
+  
+  const barPercentage = Math.min(progressPercentage, 100);
+  const remainingCount = activeShatra 
+    ? Math.max(activeShatra.targetCount - userTotal, 0) 
+    : 0;
+    
+  const isGoalAchieved = activeShatra && userTotal >= activeShatra.targetCount;
+
+  // Format date
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
     });
-    setShowCreateForm(false);
+  };
+
+  // Check if user can contribute
+  const canContribute = () => {
+    if (!activeShatra) return false;
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const startDate = new Date(activeShatra.startDate);
+    startDate.setHours(0, 0, 0, 0);
+    
+    const endDate = new Date(activeShatra.endDate);
+    endDate.setHours(23, 59, 59, 999);
+    
+    return today >= startDate && today <= endDate;
+  };
+
+  // Get status color and text
+  const getStatusInfo = (shatra) => {
+    if (!shatra) return { color: "bg-gray-50", textColor: "text-gray-700", label: "Unknown", icon: "❓" };
+    
+    switch(shatra.status) {
+      case "active":
+        return { 
+          color: "bg-green-50", 
+          textColor: "text-green-700", 
+          label: "Ongoing", 
+          icon: <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+        };
+      case "upcoming":
+        return { 
+          color: "bg-blue-50", 
+          textColor: "text-blue-700", 
+          label: "Upcoming", 
+          icon: "⏳"
+        };
+      case "completed":
+        return { 
+          color: "bg-gray-50", 
+          textColor: "text-gray-700", 
+          label: "Completed", 
+          icon: "✅"
+        };
+      default:
+        return { 
+          color: "bg-gray-50", 
+          textColor: "text-gray-700", 
+          label: shatra.status || "Unknown", 
+          icon: "❓"
+        };
+    }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50">
-        <div className="text-center">
-          <div className="text-4xl mb-4 animate-pulse">🕉️</div>
-          <div className="text-lg text-gray-600">Loading Bhajan Shatra...</div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50">
-        <div className="text-center max-w-md p-8 bg-white rounded-2xl shadow-lg">
-          <div className="text-6xl mb-4">⚠️</div>
-          <div className="text-lg text-red-600 mb-2">Error Loading Data</div>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <button
-            onClick={fetchUniversalGoal}
-            className="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
-          >
-            Try Again
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // No active goal - Show create button or message
-  if (!goalData) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 p-6">
-        <div className="max-w-4xl mx-auto">
-          
-          {/* No Goal Message */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-8"
-          >
-            <div className="text-8xl mb-6">🕉️</div>
-            <h1 className="text-4xl font-bold text-gray-800 mb-4">
-              Bhajan Shatra
-            </h1>
-            <p className="text-xl text-gray-600 mb-8">
-              No active spiritual challenge at the moment
-            </p>
-
-            {/* Admin Create Button */}
-            {isAdmin && (
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setShowCreateForm(true)}
-                className="px-8 py-4 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-shadow"
-              >
-                ✨ Create New Bhajan Shatra ✨
-              </motion.button>
-            )}
-          </motion.div>
-
-          {/* Create Goal Form Modal */}
-          <AnimatePresence>
-            {showCreateForm && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
-                onClick={resetForm}
-              >
-                <motion.div
-                  initial={{ scale: 0.9, y: 20 }}
-                  animate={{ scale: 1, y: 0 }}
-                  exit={{ scale: 0.9, y: 20 }}
-                  className="bg-white rounded-2xl p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto"
-                  onClick={e => e.stopPropagation()}
-                >
-                  <h2 className="text-2xl font-bold text-gray-800 mb-6">
-                    Create New Bhajan Shatra
-                  </h2>
-
-                  <form onSubmit={handleCreateGoal} className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Goal Name *
-                      </label>
-                      <input
-                        type="text"
-                        name="name"
-                        value={newGoal.name}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                        placeholder="e.g., Bhajan Shatra 2026"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Description *
-                      </label>
-                      <textarea
-                        name="description"
-                        value={newGoal.description}
-                        onChange={handleInputChange}
-                        required
-                        rows="3"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                        placeholder="Describe the spiritual challenge..."
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Target Count *
-                      </label>
-                      <input
-                        type="number"
-                        name="targetCount"
-                        value={newGoal.targetCount}
-                        onChange={handleInputChange}
-                        required
-                        min="1"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                        placeholder="e.g., 1000000"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Target Type *
-                        </label>
-                        <select
-                          name="targetType"
-                          value={newGoal.targetType}
-                          onChange={handleInputChange}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                        >
-                          <option value="category">Category</option>
-                          <option value="task">Task</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Target Name *
-                        </label>
-                        <input
-                          type="text"
-                          name="targetName"
-                          value={newGoal.targetName}
-                          onChange={handleInputChange}
-                          required
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                          placeholder="e.g., Bhajan"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Duration (days) *
-                      </label>
-                      <input
-                        type="number"
-                        name="duration"
-                        value={newGoal.duration}
-                        onChange={handleInputChange}
-                        required
-                        min="1"
-                        max="365"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                      />
-                    </div>
-
-                    <div className="flex gap-3 pt-4">
-                      <button
-                        type="submit"
-                        disabled={isSubmitting}
-                        className={`flex-1 px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow ${
-                          isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
-                        }`}
-                      >
-                        {isSubmitting ? 'Creating...' : 'Create Goal'}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={resetForm}
-                        disabled={isSubmitting}
-                        className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </form>
-                </motion.div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Non-admin view */}
-          {!isAdmin && (
-            <div className="text-center text-gray-500">
-              <p className="text-lg">Check back later for new spiritual challenges 🙏</p>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  // Active goal exists - Show the goal details
-  const {
-    name: goalName,
-    description,
-    target,
-    globalTotal,
-    progress,
-    startDate,
-    endDate,
-    leaderboard = []
-  } = goalData;
-
-  // Handle potential different data structures
-  const targetValue = typeof target === 'object' ? target.count : target;
-  const globalTotalValue = typeof globalTotal === 'object' ? globalTotal.count : globalTotal;
-
-  const daysRemaining = Math.max(0, Math.ceil(
-    (new Date(endDate) - new Date()) / (1000 * 60 * 60 * 24)
-  ));
-
-  const daysSinceStart = Math.max(1, Math.ceil(
-    (new Date() - new Date(startDate)) / (1000 * 60 * 60 * 24)
-  ));
-
-  const currentUserEntry = leaderboard.find(
-    (entry) => entry.userId === user?._id
-  );
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 p-6">
-      <div className="max-w-5xl mx-auto">
-
-        {/* Admin Edit Button */}
-        {isAdmin && (
-          <div className="flex justify-end mb-4">
-            <button
-              onClick={() => setShowCreateForm(true)}
-              className="px-4 py-2 bg-white text-orange-600 rounded-lg shadow hover:shadow-md transition-shadow border border-orange-200"
-            >
-              ✏️ Edit Goal
-            </button>
-          </div>
-        )}
-
-        {/* Header with Decorative Elements */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12 relative"
-        >
-          <div className="absolute inset-0 flex items-center justify-center opacity-10">
-            <span className="text-8xl">🕉️</span>
-          </div>
-          
-          <div className="relative">
-            <h1 className="text-5xl font-bold text-gray-900 mb-4">
-              <span className="bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
-                {goalName || "Bhajan Shatra"}
-              </span>
-            </h1>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-              {description || "Join the community in this spiritual journey"}
-            </p>
-            
-            {/* Timeline Badges */}
-            <div className="flex flex-wrap justify-center gap-4 mt-6">
-              <div className="bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm">
-                <span className="text-gray-600">Started: </span>
-                <span className="font-semibold">
-                  {new Date(startDate).toLocaleDateString()}
-                </span>
-              </div>
-              <div className="bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm">
-                <span className="text-gray-600">Ends in: </span>
-                <span className="font-semibold text-orange-600">
-                  {daysRemaining > 0 ? daysRemaining : 0} days
-                </span>
-              </div>
-              <div className="bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm">
-                <span className="text-gray-600">Day </span>
-                <span className="font-semibold text-amber-600">
-                  {daysSinceStart}
-                </span>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Global Progress Card */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.2 }}
-          className="bg-white rounded-3xl shadow-xl p-8 mb-8 border border-orange-100"
-        >
-          <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">
-            🌍 Global Progress
-          </h2>
-          
-          <div className="flex justify-between text-sm text-gray-600 mb-3">
-            <span className="font-medium">{globalTotalValue?.toLocaleString() || 0} completed</span>
-            <span className="font-medium">Target: {targetValue?.toLocaleString() || 0}</span>
-          </div>
-
-          <div className="w-full bg-gray-100 rounded-full h-8 overflow-hidden">
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${progress || 0}%` }}
-              transition={{ duration: 1, ease: "easeOut" }}
-              className="h-full bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 relative"
-            >
-              <div className="absolute inset-0 flex items-center justify-end pr-4">
-                <span className="text-white text-sm font-bold drop-shadow-md">
-                  {(progress || 0).toFixed(1)}%
-                </span>
-              </div>
-            </motion.div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4 mt-6">
-            <div className="text-center p-4 bg-orange-50 rounded-xl">
-              <div className="text-sm text-gray-600">Total Contributions</div>
-              <div className="text-2xl font-bold text-orange-600">
-                {globalTotalValue?.toLocaleString() || 0}
-              </div>
-            </div>
-            <div className="text-center p-4 bg-amber-50 rounded-xl">
-              <div className="text-sm text-gray-600">Active Devotees</div>
-              <div className="text-2xl font-bold text-amber-600">
-                {leaderboard.length}
-              </div>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Personal Contribution Card */}
-        {currentUserEntry && (
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3 }}
-            className="bg-gradient-to-r from-orange-100 to-amber-100 border border-orange-300 rounded-2xl p-6 mb-8 shadow-md"
-          >
-            <div className="flex items-center justify-between flex-wrap gap-4">
-              <div className="flex items-center gap-3">
-                <span className="text-4xl">🙏</span>
-                <div>
-                  <p className="text-gray-700">Your Contribution</p>
-                  <p className="text-2xl font-bold text-orange-700">
-                    {currentUserEntry.total?.toLocaleString() || 0} counts
-                  </p>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
+        <div className="fixed inset-0 bg-[linear-gradient(45deg,#f8fafc_25%,transparent_25%),linear-gradient(-45deg,#f8fafc_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#f8fafc_75%),linear-gradient(-45deg,transparent_75%,#f8fafc_75%)] bg-[size:15px_15px] sm:bg-[size:20px_20px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,black_30%,transparent_100%)]"></div>
+        <Navbar />
+        <div className="pt-20 px-3 sm:px-4 relative">
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-white p-6 sm:p-8 rounded-xl sm:rounded-2xl shadow-lg border border-gray-100">
+              <div className="flex justify-center items-center py-12">
+                <div className="flex items-center gap-3 text-gray-600">
+                  <div className="w-6 h-6 border-2 border-[#FF7722] border-t-transparent rounded-full animate-spin"></div>
+                  <span>Loading Bhajan Shastra...</span>
                 </div>
               </div>
-              <div className="bg-white px-6 py-3 rounded-xl">
-                <span className="text-gray-600">Rank </span>
-                <span className="text-2xl font-bold text-amber-600">
-                  #{leaderboard.findIndex(u => u.userId === user?._id) + 1}
-                </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (fetchError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
+        <div className="fixed inset-0 bg-[linear-gradient(45deg,#f8fafc_25%,transparent_25%),linear-gradient(-45deg,#f8fafc_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#f8fafc_75%),linear-gradient(-45deg,transparent_75%,#f8fafc_75%)] bg-[size:15px_15px] sm:bg-[size:20px_20px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,black_30%,transparent_100%)]"></div>
+        <Navbar />
+        <div className="pt-20 px-3 sm:px-4 relative">
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-white p-6 sm:p-8 rounded-xl sm:rounded-2xl shadow-lg border border-gray-100">
+              <div className="text-center py-12">
+                <div className="text-4xl mb-4">⚠️</div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Something went wrong</h3>
+                <p className="text-gray-500 text-sm mb-4">{fetchError}</p>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg font-medium"
+                >
+                  Refresh Page
+                </button>
               </div>
             </div>
-          </motion.div>
-        )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-        {/* Leaderboard Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="bg-white rounded-3xl shadow-xl p-8"
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
+      {/* Background pattern */}
+      <div className="fixed inset-0 bg-[linear-gradient(45deg,#f8fafc_25%,transparent_25%),linear-gradient(-45deg,#f8fafc_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#f8fafc_75%),linear-gradient(-45deg,transparent_75%,#f8fafc_75%)] bg-[size:15px_15px] sm:bg-[size:20px_20px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,black_30%,transparent_100%)]"></div>
+      
+      <Navbar />
+      
+      <div className="relative max-w-6xl mx-auto space-y-6 sm:space-y-8 px-3 sm:px-4 pt-20 pb-8">
+        {/* Header */}
+        <motion.div 
+          className="text-center"
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
         >
-          <h2 className="text-3xl font-bold text-center mb-8">
-            <span className="bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
-              🏆 Top Devotees
-            </span>
-          </h2>
+          <div className="flex flex-col items-center gap-3 sm:gap-4 mb-4">
+            <div className="w-12 sm:w-16 h-0.5 sm:h-1 bg-gradient-to-r from-transparent via-[#FF7722] to-transparent"></div>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 font-sans px-2">
+              Bhajan <span className="text-[#FF7722]">Shastra</span>
+            </h1>
+            <p className="text-gray-600 text-sm sm:text-base lg:text-lg font-light max-w-2xl px-2">
+              Collective spiritual sadhana for utsavs
+            </p>
+            <div className="w-12 sm:w-16 h-0.5 sm:h-1 bg-gradient-to-r from-transparent via-[#FF7722] to-transparent"></div>
+          </div>
+        </motion.div>
 
-          <div className="space-y-3">
-            {leaderboard.slice(0, 10).map((member, index) => {
-              const isCurrentUser = member.userId === user?._id;
-              const rankColors = [
-                "bg-yellow-100 border-yellow-300", // 1st
-                "bg-gray-100 border-gray-300",      // 2nd
-                "bg-amber-100 border-amber-300",    // 3rd
-                "bg-orange-50 border-orange-200"    // 4th+
-              ];
+        <LotusDivider />
+
+        {/* Shatra Selection and Action Buttons */}
+        <motion.div 
+          className="flex flex-col sm:flex-row justify-between items-center gap-4"
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+        >
+          <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-2 sm:pb-0">
+            {shatras.map((shatra) => {
+              const statusInfo = getStatusInfo(shatra);
               
-              const rankColor = index < 3 ? rankColors[index] : rankColors[3];
-              const rankEmoji = index === 0 ? "👑" : index === 1 ? "🥈" : index === 2 ? "🥉" : "📿";
-
               return (
-                <motion.div
-                  key={member.userId || index}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                  className={`flex justify-between items-center p-4 rounded-xl border-2 ${rankColor} ${
-                    isCurrentUser ? "ring-2 ring-blue-400 ring-offset-2" : ""
+                <button
+                  key={shatra._id}
+                  onClick={() => {
+                    setActiveShatra(shatra);
+                    fetchLeaderboard(shatra._id);
+                  }}
+                  className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all duration-200 ${
+                    activeShatra?._id === shatra._id
+                      ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md"
+                      : "bg-white text-gray-600 border border-gray-200 hover:border-orange-300"
                   }`}
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl">{rankEmoji}</span>
-                      <span className="font-bold text-lg min-w-[2rem]">
-                        #{index + 1}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="font-semibold text-gray-800">
-                        {member.name || "Anonymous"}
-                      </span>
-                      {isCurrentUser && (
-                        <span className="ml-3 px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
-                          You
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <span className="font-bold text-lg text-orange-700">
-                      {member.total?.toLocaleString() || 0}
-                    </span>
-                    <span className="text-sm text-gray-500">counts</span>
-                  </div>
-                </motion.div>
+                  {shatra.title}
+                  <span className={`ml-2 text-xs px-2 py-0.5 rounded-full ${
+                    shatra.status === "active" ? "bg-green-100 text-green-600" :
+                    shatra.status === "upcoming" ? "bg-blue-100 text-blue-600" :
+                    "bg-gray-100 text-gray-600"
+                  }`}>
+                    {shatra.status === "active" ? "Ongoing" :
+                     shatra.status === "upcoming" ? "Upcoming" : "Completed"}
+                  </span>
+                </button>
               );
             })}
           </div>
-
-          {leaderboard.length === 0 && (
-            <div className="text-center py-12 text-gray-500">
-              <div className="text-6xl mb-4">🕊️</div>
-              <p>No contributions yet. Be the first to start!</p>
-            </div>
-          )}
-
-          {/* Footer Note */}
-          <div className="mt-8 text-center text-sm text-gray-500 border-t pt-6">
-            <p>Continue your spiritual practice • Every count matters 🙏</p>
+          
+          <div className="flex items-center gap-3">
+            {/* Contributors Button - Always visible when shatra exists */}
+            {activeShatra && (
+              <motion.button
+                onClick={handleOpenContributors}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="flex items-center gap-2 px-4 py-3 bg-blue-500 text-white rounded-lg font-medium shadow-md hover:shadow-lg transition-all whitespace-nowrap"
+              >
+                <span className="text-lg">👥</span>
+                <span className="hidden sm:inline">Contributors</span>
+                {/* This shows the contributor count */}
+                {activeShatra.totalContributors > 0 && (
+                  <span className="ml-1 px-2 py-0.5 bg-white text-blue-600 rounded-full text-xs font-bold">
+                    {activeShatra.totalContributors}
+                  </span>
+                )}
+              </motion.button>
+            )}
+            
+            {/* Plus Button for Admin - Always Visible */}
+            {user?.role === "admin" && (
+              <motion.button
+                onClick={() => setShowCreateForm(!showCreateForm)}
+                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-200 whitespace-nowrap"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <span className="text-2xl font-bold">+</span>
+                <span className="font-semibold hidden sm:inline">Create New</span>
+              </motion.button>
+            )}
           </div>
         </motion.div>
-      </div>
 
-      {/* Create/Edit Goal Modal */}
-      <AnimatePresence>
-        {showCreateForm && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
-            onClick={resetForm}
-          >
+        {/* Create Shatra Form */}
+        <AnimatePresence>
+          {showCreateForm && (
             <motion.div
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              className="bg-white rounded-2xl p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto"
-              onClick={e => e.stopPropagation()}
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="overflow-hidden"
             >
-              <h2 className="text-2xl font-bold text-gray-800 mb-6">
-                {goalData ? "Edit Bhajan Shatra" : "Create New Bhajan Shatra"}
-              </h2>
-
-              <form onSubmit={handleCreateGoal} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Goal Name *
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={newGoal.name}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                    placeholder="e.g., Bhajan Shatra 2026"
-                  />
+              <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-lg">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">Create New Bhajan Shatra</h3>
+                  <button
+                    onClick={() => setShowCreateForm(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    ✕
+                  </button>
                 </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Description *
-                  </label>
-                  <textarea
-                    name="description"
-                    value={newGoal.description}
-                    onChange={handleInputChange}
-                    required
-                    rows="3"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                    placeholder="Describe the spiritual challenge..."
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Target Count *
-                  </label>
-                  <input
-                    type="number"
-                    name="targetCount"
-                    value={newGoal.targetCount}
-                    onChange={handleInputChange}
-                    required
-                    min="1"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                    placeholder="e.g., 1000000"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Target Type *
-                    </label>
-                    <select
-                      name="targetType"
-                      value={newGoal.targetType}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                <form onSubmit={handleCreateShatra} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                      <input
+                        type="text"
+                        value={newShatra.title}
+                        onChange={(e) => setNewShatra({...newShatra, title: e.target.value})}
+                        placeholder="e.g., 20 Lakh Swaminarayan Mala"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        required
+                      />
+                    </div>
+                    
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                      <textarea
+                        value={newShatra.description}
+                        onChange={(e) => setNewShatra({...newShatra, description: e.target.value})}
+                        rows="2"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        required
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Target Count</label>
+                      <input
+                        type="number"
+                        value={newShatra.targetCount}
+                        onChange={(e) => setNewShatra({...newShatra, targetCount: e.target.value})}
+                        placeholder="2000000"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        required
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                      <input
+                        type="date"
+                        value={newShatra.startDate}
+                        onChange={(e) => setNewShatra({...newShatra, startDate: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        required
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                      <input
+                        type="date"
+                        value={newShatra.endDate}
+                        onChange={(e) => setNewShatra({...newShatra, endDate: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        required
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-end gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setShowCreateForm(false)}
+                      className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
                     >
-                      <option value="category">Category</option>
-                      <option value="task">Task</option>
-                    </select>
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg font-medium hover:shadow-md transition-all"
+                    >
+                      Create Shatra
+                    </button>
                   </div>
+                </form>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Target Name *
-                    </label>
-                    <input
-                      type="text"
-                      name="targetName"
-                      value={newGoal.targetName}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                      placeholder="e.g., Bhajan"
-                    />
+        {activeShatra ? (
+          <>
+            {/* Shatra Info Card */}
+            <motion.div
+              className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm"
+              variants={fadeUp}
+              initial="hidden"
+              animate="visible"
+            >
+              <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900 mb-2">{activeShatra.title}</h2>
+                  <p className="text-gray-600 text-sm mb-3">{activeShatra.description}</p>
+                  <div className="flex flex-wrap gap-4 text-sm">
+                    <span className="text-gray-500">
+                      📅 {formatDate(activeShatra.startDate)} - {formatDate(activeShatra.endDate)}
+                    </span>
+                    <span className="text-gray-500">
+                      🎯 Target: {activeShatra.targetCount.toLocaleString()} malas
+                    </span>
+                    <span className="text-gray-500">
+                      📊 Total: {activeShatra.totalContribution?.toLocaleString()} malas
+                    </span>
+                    {/* Contributor count shown here */}
+                    <span className="text-gray-500 flex items-center gap-1">
+                      👥 Contributors: <span className="font-semibold text-blue-600">{activeShatra.totalContributors || 0}</span>
+                    </span>
                   </div>
                 </div>
+                
+                {/* Status Badge */}
+                {(() => {
+                  const statusInfo = getStatusInfo(activeShatra);
+                  return (
+                    <div className={`px-4 py-2 rounded-lg ${statusInfo.color}`}>
+                      <span className={`text-sm font-medium flex items-center gap-1 ${statusInfo.textColor}`}>
+                        {statusInfo.icon}
+                        {statusInfo.label}
+                      </span>
+                    </div>
+                  );
+                })()}
+              </div>
+              
+              {/* Goal Achievement Badge - Only show for active shatras */}
+              {isGoalAchieved && activeShatra.status === "active" && (
+                <div className="mt-4 bg-purple-50 border border-purple-200 rounded-lg p-3">
+                  <p className="text-purple-700 text-sm flex items-center gap-2">
+                    <span className="text-lg">🎉</span>
+                    <span className="font-medium">Goal Achieved! </span>
+                    You've surpassed the target count. Keep going until the end date!
+                  </p>
+                </div>
+              )}
+            </motion.div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Duration (days) *
-                  </label>
-                  <input
-                    type="number"
-                    name="duration"
-                    value={newGoal.duration}
-                    onChange={handleInputChange}
-                    required
-                    min="1"
-                    max="365"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            {/* Progress Card */}
+            <motion.div
+              className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm"
+              variants={fadeUp}
+              initial="hidden"
+              animate="visible"
+            >
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Your Progress</h3>
+              
+              {/* Progress Stats */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                <div className="bg-gradient-to-br from-orange-50 to-amber-50 p-4 rounded-lg">
+                  <p className="text-sm text-gray-600 mb-1">Completed</p>
+                  <p className="text-2xl font-bold text-orange-600">{userTotal.toLocaleString()}</p>
+                  <p className="text-xs text-gray-500">malas</p>
+                </div>
+                
+                <div className="bg-gradient-to-br from-orange-50 to-amber-50 p-4 rounded-lg">
+                  <p className="text-sm text-gray-600 mb-1">Remaining to Target</p>
+                  <p className="text-2xl font-bold text-amber-600">{Math.max(remainingCount, 0).toLocaleString()}</p>
+                  <p className="text-xs text-gray-500">malas</p>
+                </div>
+                
+                <div className="bg-gradient-to-br from-orange-50 to-amber-50 p-4 rounded-lg">
+                  <p className="text-sm text-gray-600 mb-1">Progress</p>
+                  <p className="text-2xl font-bold text-gray-900">{progressPercentage.toFixed(1)}%</p>
+                  <p className="text-xs text-gray-500">of target</p>
+                </div>
+              </div>
+
+              {/* Progress Bar */}
+              <div className="mb-2">
+                <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${barPercentage}%` }}
+                    transition={{ duration: 1 }}
+                    className={`h-full ${
+                      isGoalAchieved && activeShatra.status === "active"
+                        ? "bg-gradient-to-r from-purple-500 to-pink-500" 
+                        : "bg-gradient-to-r from-orange-500 to-amber-500"
+                    }`}
                   />
                 </div>
+              </div>
+              
+              {/* Progress Stats Line */}
+              <div className="flex justify-between text-xs text-gray-500 mb-6">
+                <span>0</span>
+                <span className="text-center">
+                  {userTotal.toLocaleString()} / {activeShatra.targetCount.toLocaleString()} malas
+                </span>
+                <span>{activeShatra.targetCount.toLocaleString()}</span>
+              </div>
 
-                <div className="flex gap-3 pt-4">
+              {/* Add Contribution Form */}
+              {activeShatra.status === "active" && canContribute() ? (
+                <div className="flex gap-3">
+                  <input
+                    type="number"
+                    value={contributionInput}
+                    onChange={(e) => setContributionInput(e.target.value)}
+                    placeholder="Enter malas done today"
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    min="1"
+                  />
                   <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className={`flex-1 px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow ${
-                      isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
+                    onClick={handleAddContribution}
+                    disabled={!contributionInput || leaderboardLoading}
+                    className="px-6 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg font-medium hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isSubmitting ? 'Saving...' : (goalData ? 'Update Goal' : 'Create Goal')}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={resetForm}
-                    disabled={isSubmitting}
-                    className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Cancel
+                    {leaderboardLoading ? "Adding..." : "Add Progress"}
                   </button>
                 </div>
-              </form>
+              ) : activeShatra.status === "upcoming" ? (
+                <div className="bg-blue-50 p-4 rounded-lg text-center">
+                  <p className="text-blue-700 text-sm">
+                    ⏳ This shatra starts on {formatDate(activeShatra.startDate)}. Please wait until then to add progress.
+                  </p>
+                </div>
+              ) : (
+                <div className="bg-gray-50 p-4 rounded-lg text-center">
+                  <p className="text-gray-600 text-sm">
+                    This shatra ended on {formatDate(activeShatra.endDate)}. No more contributions allowed.
+                  </p>
+                </div>
+              )}
             </motion.div>
-          </motion.div>
+
+            {/* Leaderboard */}
+            <motion.div
+              className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm"
+              variants={fadeUp}
+              initial="hidden"
+              animate="visible"
+            >
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-semibold text-gray-900">Sadhana Leaderboard</h3>
+                <span className="text-sm text-gray-500">Top 10 Contributors</span>
+              </div>
+
+              {/* Top 10 Leaderboard */}
+              {leaderboardLoading ? (
+                <div className="flex justify-center py-8">
+                  <div className="w-6 h-6 border-2 border-[#FF7722] border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              ) : leaderboard.top10.length > 0 ? (
+                <>
+                  <div className="space-y-3 mb-6">
+                    {leaderboard.top10.map((entry, index) => (
+                      <motion.div
+                        key={entry.userId}
+                        variants={fadeUp}
+                        className={`flex items-center justify-between p-3 rounded-lg transition-all ${
+                          entry.userId === user?._id 
+                            ? "bg-orange-50 border border-orange-200" 
+                            : "bg-gray-50 hover:bg-orange-50/50"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                            index === 0 ? "bg-amber-500 text-white" :
+                            index === 1 ? "bg-gray-500 text-white" :
+                            index === 2 ? "bg-amber-400 text-white" :
+                            "bg-gray-300 text-gray-700"
+                          }`}>
+                            {entry.rank}
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-900">{entry.name}</span>
+                            {entry.userId === user?._id && (
+                              <span className="ml-2 text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">You</span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-gray-500">{entry.total.toLocaleString()} malas</span>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+
+                  {/* User's rank if not in top 10 */}
+                  {leaderboard.userRank && leaderboard.userRank.rank > 10 && (
+                    <div className="border-t border-gray-200 pt-4">
+                      <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <div className="w-6 h-6 rounded-full bg-gray-400 text-white flex items-center justify-center text-xs font-bold">
+                            {leaderboard.userRank.rank}
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-900">{leaderboard.userRank.name}</span>
+                            <span className="ml-2 text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">You</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-gray-500">{leaderboard.userRank.total.toLocaleString()} malas</span>
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-500 text-center mt-2">
+                        You're #{leaderboard.userRank.rank} overall • {leaderboard.userRank.total.toLocaleString()} malas completed
+                      </p>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">No contributions yet. Be the first to add your sadhana!</p>
+                </div>
+              )}
+            </motion.div>
+          </>
+        ) : (
+          <div className="bg-white p-12 rounded-xl border border-gray-200 text-center">
+            <p className="text-gray-500">No shatras available.</p>
+          </div>
         )}
-      </AnimatePresence>
+
+        {/* Contributors Modal */}
+        <AnimatePresence>
+          {showContributorsModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50"
+              onClick={() => setShowContributorsModal(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.9, y: 20 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.9, y: 20 }}
+                className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Modal Header */}
+                <div className="p-6 border-b border-gray-200">
+                  <div className="flex justify-between items-center">
+                    <h2 className="text-2xl font-bold text-gray-900">
+                      {selectedContributor ? 'Contributor Details' : 'All Contributors'}
+                    </h2>
+                    <button
+                      onClick={() => setShowContributorsModal(false)}
+                      className="text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      <span className="text-2xl">×</span>
+                    </button>
+                  </div>
+                  
+                  {!selectedContributor && (
+                    <div className="flex gap-3 mt-4">
+                      <input
+                        type="text"
+                        placeholder="Search by name..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && fetchContributors(1)}
+                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <button
+                        onClick={() => fetchContributors(1)}
+                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                      >
+                        Search
+                      </button>
+                      {user?.role === "admin" && (
+                        <button
+                          onClick={handleExport}
+                          className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2"
+                        >
+                          <span>📥</span>
+                          Export CSV
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Modal Body */}
+                <div className="p-6 overflow-y-auto max-h-[60vh]">
+                  {selectedContributor ? (
+                    // Contributor Details View
+                    <div>
+                      <button
+                        onClick={() => {
+                          setSelectedContributor(null);
+                          setContributorDetails(null);
+                        }}
+                        className="mb-4 text-blue-500 hover:text-blue-700 flex items-center gap-1"
+                      >
+                        ← Back to list
+                      </button>
+                      
+                      {detailsLoading ? (
+                        <div className="flex justify-center py-8">
+                          <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                        </div>
+                      ) : contributorDetails && (
+                        <div className="space-y-6">
+                          <div className="bg-blue-50 p-4 rounded-lg">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-2">{contributorDetails.user.name}</h3>
+                            <p className="text-sm text-gray-600">{contributorDetails.user.email}</p>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="bg-gray-50 p-4 rounded-lg">
+                              <p className="text-sm text-gray-600 mb-1">Total Malas</p>
+                              <p className="text-2xl font-bold text-blue-600">{contributorDetails.total.toLocaleString()}</p>
+                            </div>
+                            <div className="bg-gray-50 p-4 rounded-lg">
+                              <p className="text-sm text-gray-600 mb-1">Total Days</p>
+                              <p className="text-2xl font-bold text-blue-600">{contributorDetails.totalDays}</p>
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <h4 className="font-semibold text-gray-900 mb-3">Contribution History</h4>
+                            <div className="space-y-2">
+                              {contributorDetails.contributions.map((c, idx) => (
+                                <div key={idx} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                  <span className="text-sm text-gray-600">{formatDate(c.date)}</span>
+                                  <span className="text-sm font-semibold text-orange-600">+{c.count} malas</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    // Contributors List View
+                    contributorsLoading ? (
+                      <div className="flex justify-center py-8">
+                        <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                      </div>
+                    ) : contributors.length > 0 ? (
+                      <div className="space-y-3">
+                        {contributors.map((contributor) => (
+                          <motion.div
+                            key={contributor.userId}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors cursor-pointer"
+                            onClick={() => {
+                              setSelectedContributor(contributor.userId);
+                              fetchContributorDetails(contributor.userId);
+                            }}
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
+                                {contributor.rank}
+                              </div>
+                              <div>
+                                <p className="font-semibold text-gray-900">{contributor.name}</p>
+                                <p className="text-sm text-gray-500">{contributor.email}</p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-xl font-bold text-blue-600">{contributor.total}</p>
+                              <p className="text-xs text-gray-500">malas</p>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <p className="text-gray-500">No contributors found</p>
+                      </div>
+                    )
+                  )}
+                </div>
+
+                {/* Modal Footer - Pagination */}
+                {!selectedContributor && contributorsPagination.totalPages > 1 && (
+                  <div className="p-6 border-t border-gray-200">
+                    <div className="flex justify-center gap-2">
+                      <button
+                        onClick={() => fetchContributors(contributorsPagination.currentPage - 1)}
+                        disabled={!contributorsPagination.hasPrevPage}
+                        className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 transition-colors"
+                      >
+                        Previous
+                      </button>
+                      <span className="px-4 py-2 bg-blue-500 text-white rounded-lg">
+                        Page {contributorsPagination.currentPage} of {contributorsPagination.totalPages}
+                      </span>
+                      <button
+                        onClick={() => fetchContributors(contributorsPagination.currentPage + 1)}
+                        disabled={!contributorsPagination.hasNextPage}
+                        className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 transition-colors"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Footer */}
+        <motion.footer 
+          className="text-center py-6"
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+        >
+          <LotusDivider className="mb-4" />
+          <p className="text-xs sm:text-sm font-semibold text-gray-700 mb-2">श्री स्वामिनारायणाय नमः</p>
+          <p className="text-xs text-gray-500 max-w-xs mx-auto">
+            May our collective sadhana bring divine blessings
+          </p>
+          <p className="text-xs mt-2 text-gray-400">
+            Developed by{' '}
+            <a 
+              href="https://buildcrew.co.in" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
+            >
+              Build Crew
+            </a>
+          </p>
+        </motion.footer>
+      </div>
     </div>
   );
 };
 
-export default BhajanShatra;
+export default BhajanShastra;

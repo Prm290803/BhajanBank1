@@ -107,15 +107,15 @@ router.get("/api/tasks", authMiddleware, async (req, res) => {
 });
 
 /** Leaderboard (placeholder preserved) */
-router.get("/api/leaderboard", async (req, res) => {
-  try {
-    const leaderboard = await Task.aggregate([]);
-    res.json(leaderboard || []);
-  } catch (err) {
-    console.error("Leaderboard error:", err);
-    res.status(500).json([]);
-  }
-});
+// router.get("/api/leaderboard", async (req, res) => {
+//   try {
+//     const leaderboard = await Task.aggregate([]);
+//     res.json(leaderboard || []);
+//   } catch (err) {
+//     console.error("Leaderboard error:", err);
+//     res.status(500).json([]);
+//   }
+// });
 
 
 /** Add task categories manually (Admin or Dev only for now) */
@@ -304,7 +304,59 @@ router.put("/api/tasks/:taskId/:subtaskId", authMiddleware, async (req, res) => 
   }
 });
 
+router.get("/api/leaderboard", authMiddleware, async (req, res) => {
+  try {
+    const now = new Date();
 
+    // 2 AM boundary logic (same as your tasks)
+    let start = new Date(now);
+    start.setHours(2, 0, 0, 0);
+
+    let end = new Date(start);
+    end.setDate(end.getDate() + 1);
+
+    if (now < start) {
+      start.setDate(start.getDate() - 1);
+      end.setDate(end.getDate() - 1);
+    }
+
+    const leaderboard = await Task.aggregate([
+      {
+        $match: { date: { $gte: start, $lt: end } }
+      },
+      {
+        $group: {
+          _id: "$user",
+          totalPoints: { $sum: "$summary.grandTotalPoints" }
+        }
+      },
+      { $sort: { totalPoints: -1 } },
+      { $limit: 50 }
+    ]);
+
+    // Populate user names
+    const userIds = leaderboard.map(l => l._id);
+
+    const users = await User.find({ _id: { $in: userIds } })
+      .select("name");
+
+    const userMap = {};
+    users.forEach(u => {
+      userMap[u._id.toString()] = u.name;
+    });
+
+    const finalLeaderboard = leaderboard.map(l => ({
+      name: userMap[l._id.toString()] || "Unknown",
+      points: l.totalPoints
+    }));
+
+    res.json(finalLeaderboard);
+
+  } catch (err) {
+    console.error("Leaderboard error:", err);
+    res.status(500).json([]);
+  }
+});
 
 
 export default router;

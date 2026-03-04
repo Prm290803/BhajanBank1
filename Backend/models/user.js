@@ -5,7 +5,12 @@ const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String }, // make optional for Google users
-  googleId: { type: String, default: null }, //  store Google account ID
+  googleId: { type: String, default: null },
+  role: {
+  type: String,
+  enum: ["user", "admin"],
+  default: "user"
+}, //  store Google account ID
   profilePic: {
     type: String,
     default: "/1.png", // Default profile image
@@ -32,5 +37,10 @@ userSchema.pre("save", async function (next) {
   }
   next();
 });
+
+// userSchema.index({ email: 1 }, { unique: true }); // login
+userSchema.index({ googleId: 1 });                 // google login
+userSchema.index({ family: 1 });                   // family leaderboard
+
 
 export default mongoose.model("User", userSchema);

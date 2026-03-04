@@ -36,4 +36,13 @@
     next();
   });
 
+  // ⚡ Profile summary + daily fetch
+taskSchema.index({ user: 1, date: -1 });
+
+// ⚡ Leaderboard daily match
+taskSchema.index({ date: -1 });
+
+// ⚡ Super optimized leaderboard compound
+taskSchema.index({ user: 1, date: -1, "summary.grandTotalPoints": -1 });
+
   export default mongoose.model('Task', taskSchema);

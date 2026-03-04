@@ -16,4 +16,10 @@ const familySchema = new mongoose.Schema({
 // ✅ IMPORTANT: Check if model already exists before creating it
 const Family = mongoose.models.Family || mongoose.model('Family', familySchema);
 
+
+// familySchema.index({ code: 1 }, { unique: true }); // join via code
+familySchema.index({ members: 1 });                // reverse member lookup
+familySchema.index({ goalDate: 1 });               // daily goal lookup
+
+
 export default Family;

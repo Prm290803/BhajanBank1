@@ -31,6 +31,7 @@ function Data() {
   const [todayWinner, setTodayWinner] = useState(null);
   const [dailyQuote, setDailyQuote] = useState(null);
   const [taskCategories, setTaskCategories] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     const fetchTaskCategories = async () => {
@@ -50,21 +51,21 @@ function Data() {
   }, [backend_url, token]);
 
   // Divine tasks with Sanskrit names where appropriate
-  const taskPoints = {
-    "Vachnamrut (વચનામૃત)": 10,
-    "BhaktChintamani (ભક્તચિંતામણિ)": 10,
-    "Vandu Sahajanand (વંદુ સહજાનંદ)": 10,
-    "Janmangal Stotra/Namavali (જનમંગલ સ્તોત્ર/નામાવલિ)": 10,
-    "Parcha-Prakrn (પરચા-પ્રકરણ)": 10,
-    "Bhram-Mohurat-Pooja (બ્રહ્મમુહૂર્ત પૂજા)": 50,
-    "Mantra Japp (મંત્ર જપ)": 0.1,
-    "Kirtan Bhajan (કીર્તન ભજન)": 5,
-    "Satsang Participation (સત્સંગ સહભાગિતા)": 15,
-    "shikshapatri shlok Vanchan (શિક્ષાપત્રી શ્લોક વાંચન)": 5,
-    "Nitya Niyam (નિયમ-ચેષ્ટા)": 20,
-    "Harismruti (હરિસ્મૃતિ)": 10,
-    "Pradakshina (પ્રદક્ષિણા)": 5,
-  };
+  // const taskPoints = {
+  //   "Vachnamrut (વચનામૃત)": 10,
+  //   "BhaktChintamani (ભક્તચિંતામણિ)": 10,
+  //   "Vandu Sahajanand (વંદુ સહજાનંદ)": 10,
+  //   "Janmangal Stotra/Namavali (જનમંગલ સ્તોત્ર/નામાવલિ)": 10,
+  //   "Parcha-Prakrn (પરચા-પ્રકરણ)": 10,
+  //   "Bhram-Mohurat-Pooja (બ્રહ્મમુહૂર્ત પૂજા)": 50,
+  //   "Mantra Japp (મંત્ર જપ)": 0.1,
+  //   "Kirtan Bhajan (કીર્તન ભજન)": 5,
+  //   "Satsang Participation (સત્સંગ સહભાગિતા)": 15,
+  //   "shikshapatri shlok Vanchan (શિક્ષાપત્રી શ્લોક વાંચન)": 5,
+  //   "Nitya Niyam (નિયમ-ચેષ્ટા)": 20,
+  //   "Harismruti (હરિસ્મૃતિ)": 10,
+  //   "Pradakshina (પ્રદક્ષિણા)": 5,
+  // };
 
   const dailyQuotes = [
     {
@@ -170,66 +171,58 @@ function Data() {
     setTasks(tasks.filter((_, idx) => idx !== i));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await axios.post(`${backend_url}/api/tasks`, {
-        date: new Date(),
-        tasks,
-      });
-      setTasks([{ task: "", points: 1, count: "" }]);
-      fetchData();
-    } catch (err) {
-      console.error(err);
-    }
-  };
-const fetchData = async () => {
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (submitting) return;
+
   try {
-    const res = await fetch(`${backend_url}/api/tasks`, {
-      headers: { Authorization: `Bearer ${token}` },
+    setSubmitting(true);
+
+    await axios.post(`${backend_url}/api/tasks`, {
+      date: new Date(),
+      tasks,
+    }, {
+      headers: { Authorization: `Bearer ${token}` }
     });
 
-    if (!res.ok) {
-      console.error("Fetch failed:", res.status);
-      return;
-    }
+    setTasks([{ task: "", points: 1, count: "" }]);
+    fetchData();
 
-    const data = await res.json();
-    if (!Array.isArray(data)) {
-      console.error("Expected array but got:", data);
-      return;
-    }
-
-    const userMap = {};
-    data.forEach((entry) => {
-      const uName = entry.user?.name || "Anonymous";
-      if (!userMap[uName]) userMap[uName] = { name: uName, points: 0, count: 0 };
-      userMap[uName].points += entry.summary?.grandTotalPoints || 0;
-      userMap[uName].count += entry.summary?.totalCount || 0;
-    });
-
-    const sorted = Object.values(userMap).sort((a, b) => b.points - a.points);
-    setUsers(sorted);
-    setTodayWinner(sorted[0] || null);
   } catch (err) {
-    console.error("Error fetching data:", err);
+    console.error(err);
+  } finally {
+    setSubmitting(false);
   }
 };
 
 
+const fetchData = async () => {
+  try {
+    const res = await fetch(`${backend_url}/api/leaderboard`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    if (!res.ok) {
+      console.error("Leaderboard fetch failed:", res.status);
+      return;
+    }
+
+    const data = await res.json();
+
+    setUsers(data);
+    setTodayWinner(data[0] || null);
+
+  } catch (err) {
+    console.error("Error fetching leaderboard:", err);
+  }
+};
 
   useEffect(() => {
-  if (!token) return; // Wait until token is ready
-
-  fetchData(); // Initial fetch
-
-  // Optional: periodic refresh (every 60 seconds instead of 1)
-  const interval = setInterval(() => {
-    fetchData();
-  }, 60000);
-
-  return () => clearInterval(interval);
-}, [token]); // 👈 React runs this effect whenever token changes
+  if (!token) return; 
+  fetchData(); 
+}, [token]); 
 
 const [checking, setChecking] = useState(true);
 
@@ -339,7 +332,7 @@ if (loading) {
 
               {/* Category Select */}
               <div className="mb-6">
-                <label className="block text-sm font-semibold text-orange-700 mb-2 flex items-center gap-2">
+                <label className="text-sm font-semibold text-orange-700 mb-2 flex items-center gap-2">
                   <ChevronsUpDown className="h-4 w-4 text-orange-500" />
                   Select Category
                 </label>
@@ -443,12 +436,10 @@ if (loading) {
 
                 <motion.button
                   type="submit"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="w-full py-3 sm:py-4 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white rounded-lg sm:rounded-xl font-bold text-base sm:text-lg transition-all duration-200 shadow-lg flex items-center justify-center gap-2"
+                  disabled={submitting}
+                  className={`${submitting ? "w-full py-3 sm:py-4 bg-orange-500 hover:bg-orange-400 text-white rounded-lg sm:rounded-xl font-medium transition-all duration-200 shadow-lg flex items-center justify-center gap-2 text-sm sm:text-base" : "w-full py-3 sm:py-4 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white rounded-lg sm:rounded-xl font-medium transition-all duration-200 shadow-lg flex items-center justify-center gap-2 text-sm sm:text-base"}`}
                 >
-                  Offer to Maharaj
-                  <span className="text-lg sm:text-xl">🪔</span>
+                  {submitting ? "Offering..." : "Offer to Maharaj 🪔"}
                 </motion.button>
               </form>
             </div>

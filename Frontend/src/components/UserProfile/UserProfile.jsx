@@ -16,57 +16,37 @@ const UserProfile = () => {
   const [pastTasks, setPastTasks] = useState([]);
   const [allTimePoints, setAllTimePoints] = useState(0);
   const [allTimeCount, setAllTimeCount] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
   const [allTimeActiveDays, setAllTimeActiveDays] = useState(0);
 
-const fetchAllTasksSummary = async () => {
+const fetchAllTasksSummary = async (isInitial = false) => {
   try {
-    setLoading(true);
-    const res = await fetch(`${backend_url}/api/taskuser/all`, {
+    if (isInitial) {
+      setLoading(true);       // full page loader
+    } else {
+      setRefreshing(true);    // silent refresh
+    }
+
+    const res = await fetch(`${backend_url}/api/profile-summary`, {
       headers: { Authorization: `Bearer ${token}` },
-    }); 
-    if (!res.ok) throw new Error("Failed to fetch all tasks");
+    });
+
+    if (!res.ok) throw new Error("Failed to fetch profile");
 
     const data = await res.json();
 
-    setAllTimePoints(data.allTimePoints || 0);
-    setAllTimeCount(data.allTimeCount || 0);
-    setAllTimeActiveDays(data.activeDays || 0);
+    setTasks(data.todayTasks);
+    setPastTasks(data.pastTasks);
+    setAllTimePoints(data.allTimePoints);
+    setAllTimeCount(data.allTimeCount);
+    setAllTimeActiveDays(data.activeDays);
 
-   
   } catch (err) {
     console.error(err);
-    setError("Failed to fetch tasks summary");
+    setError("Failed to load profile");
   } finally {
     setLoading(false);
-  }
-};
-
-const fetchTasks = async () => {
-  try {
-    setLoading(true);
-
-    // ✅ Fetch today's tasks
-    const todayRes = await fetch(`${backend_url}/api/taskuser`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!todayRes.ok) throw new Error("Failed to fetch today's tasks");
-    const todayData = await todayRes.json();
-
-    // ✅ Fetch past 10 days' tasks
-    const pastRes = await fetch(`${backend_url}/api/taskuser/past10days`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!pastRes.ok) throw new Error("Failed to fetch past 10 days' tasks");
-    const pastData = await pastRes.json();
-
-    // ✅ Store separately
-    setTasks(todayData);
-    setPastTasks(pastData);
-  } catch (error) {
-    console.error("Error fetching tasks:", error);
-    setError("Failed to load tasks");
-  } finally {
-    setLoading(false);
+    setRefreshing(false);
   }
 };
 
@@ -90,21 +70,26 @@ const fetchTasks = async () => {
   const handleCreateFamily = () => navigate("/create-family");
 
   const handleDeleteTask = async (taskId) => {
-    if (!window.confirm("Are you sure you want to delete this task?")) return;
+  if (!window.confirm("Are you sure you want to delete this task?")) return;
 
-    try {
-      const response = await fetch(`${backend_url}/api/tasks/${taskId}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+  try {
+    const response = await fetch(`${backend_url}/api/tasks/${taskId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
-      if (!response.ok) throw new Error(`Failed to delete task: ${response.status}`);
-      fetchTasks();
-    } catch (error) {
-      console.error("Error deleting task:", error);
-      setError("Failed to delete task");
+    if (!response.ok) {
+      throw new Error(`Failed to delete task: ${response.status}`);
     }
-  };
+
+    await response.json();          // ✅ parse response
+    fetchAllTasksSummary(false);    // ✅ silent refresh (no full page loader)
+
+  } catch (error) {
+    console.error("Error deleting task:", error);
+    setError("Failed to delete task");
+  }
+};
 
   const handleLeaveFamily = async () => {
     if (!window.confirm("Are you sure you want to leave this family?")) return;
@@ -158,9 +143,16 @@ const fetchTasks = async () => {
       });
 
       const data = await res.json();
-      if (res.ok) {
+     if (res.ok) {
+        const updatedUser = { ...user, profilePic: data.profilePic };
+
+        // If you store user in context, update it there
+        // Example:
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+
         alert("Profile picture updated successfully!");
-        window.location.reload();
+        fetchAllTasksSummary(); // just refresh profile data
+
       } else {
         setError(data.error || "Upload failed");
       }
@@ -172,19 +164,17 @@ const fetchTasks = async () => {
     }
   };
 
-  useEffect(() => {
-    if (token && user?._id) {
-     fetchTasks();
-      setFamily(user?.family || null);
-      fetchFamily();
-    
-      fetchAllTasksSummary();
-    }
-    else {
-      setLoading(false);
-      navigate('/login', { replace: true }); // 👉 instant redirect
-    }
-  }, [token, user]);
+ useEffect(() => {
+  if (!token || !user?._id) {
+    navigate('/login', { replace: true });
+    return;
+  }
+
+  fetchAllTasksSummary(true);  // FULL loading
+  setFamily(user?.family || null);
+  fetchFamily();
+
+}, [token, user]);
 
 // const allTaskDocs = [...pastTasks, ...tasks];
 // console.log("All Task Docs:", allTaskDocs);
@@ -200,21 +190,8 @@ const fetchTasks = async () => {
   const past10Date = new Date(today);
   past10Date.setDate(today.getDate() - 10);
 
-const allTasks = [...pastTasks, ...tasks];
 
-const totalPointsAllTime = allTasks.reduce(
-  (total, taskDoc) => total + (taskDoc.tasks?.reduce((sum, t) => sum + (t.totalPoints || 0), 0) || 0),
-  0
-);
 
-const activeDaysSetAllTime = new Set(
-  allTasks.map(taskDoc => {
-    const d = new Date(taskDoc.date);
-    d.setHours(0, 0, 0, 0);
-    return d.getTime();
-  })
-);
-const activeDaysCountAllTime = activeDaysSetAllTime.size;
 
   if (loading) {
     return (
@@ -345,13 +322,13 @@ const activeDaysCountAllTime = activeDaysSetAllTime.size;
       </div>
       <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-4 rounded-xl border border-green-200 shadow-sm">
         <p className="text-2xl select-none font-bold text-green-600 mb-1">
-          {Math.round(totalPointsAllTime)}
+          {Math.round(allTimePoints)}
         </p>
         <p className="text-xs select-none text-gray-600 font-medium">Total Points</p>
       </div>
       <div className="bg-gradient-to-br from-purple-50 to-violet-50 p-4 rounded-xl border border-purple-200 shadow-sm">
         <p className="text-2xl select-none font-bold text-purple-600 mb-1">
-          {activeDaysCountAllTime}
+          {allTimeActiveDays}
         </p>
         <p className="text-xs select-none text-gray-600 font-medium">Active Days</p>
       </div>
@@ -455,7 +432,7 @@ const activeDaysCountAllTime = activeDaysSetAllTime.size;
                 <span className="sm:hidden">Today</span>
               </h2>
               <span className="bg-gradient-to-r from-orange-500 to-amber-500 text-white px-3 sm:px-4 py-1 sm:py-2 rounded-full text-xs sm:text-sm font-semibold shadow">
-                {tasks.reduce((total, taskDoc) => total + taskDoc.tasks.length, 0)} tasks
+                {tasks.reduce((total, taskDoc) => total + (taskDoc.tasks?.length || 0), 0)} tasks
               </span>
             </div>
             
