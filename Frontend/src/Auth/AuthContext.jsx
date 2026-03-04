@@ -70,10 +70,10 @@ useEffect(() => {
   //   }
   // };
 
-  const login = async (email, password) => {
+ const login = async (email, password) => {
   try {
-    setLoading(true); // Start loading
-    
+    setLoading(true);
+
     const res = await axios.post(`${backend_url}/api/login`, { email, password });
 
     const newToken = res.data.token;
@@ -85,20 +85,33 @@ useEffect(() => {
     localStorage.setItem("token", newToken);
     localStorage.setItem("user", JSON.stringify(newUser));
     localStorage.setItem("expiry", Date.now() + 1000 * 60 * 60 * 24);
+
     axios.defaults.headers.common["Authorization"] = `Bearer ${newToken}`;
 
-    // ✅ Get FCM token only if not already stored
-    const existingToken = localStorage.getItem('fcmToken');
-    if (!existingToken) {
-      const fcmToken = await getFCMToken(); // Updated function name
-      if (fcmToken) await saveFcmToken(fcmToken);
-    }
+    setLoading(false);
 
-    setLoading(false); // Stop loading
-    return { success: true, user: newUser };
+    // ✅ Return success immediately
+    const response = { success: true, user: newUser };
+
+    // ✅ Run FCM in background (non-blocking)
+    setTimeout(async () => {
+      try {
+        const existingToken = localStorage.getItem("fcmToken");
+
+        if (!existingToken) {
+          const fcmToken = await getFCMToken();
+          if (fcmToken) await saveFcmToken(fcmToken);
+        }
+      } catch (e) {
+        console.warn("FCM setup failed:", e);
+      }
+    }, 0);
+
+    return response;
 
   } catch (err) {
-    setLoading(false); // Stop loading on error
+    setLoading(false);
+
     return {
       success: false,
       message: err.response?.data?.message || "Login failed",

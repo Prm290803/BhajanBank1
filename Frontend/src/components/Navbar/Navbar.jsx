@@ -11,8 +11,10 @@ const Navbar = () => {
 
   const navigation = [
     { name: "My Profile", href: "/profile", current: location.pathname === "/profile" },
+    {name: "Bhajan Shatra", href: "/bhajan-shatra", current: location.pathname === "/bhajan-shatra"},
     { name: "Tasks", href: "/data", current: location.pathname === "/data" },
-    { name: "Family Dashboard", href: "/family-dashboard", current: location.pathname === "/family-dashboard" },
+    { name: "Family Dashboard", href: "/family-dashboard", current: location.pathname === "/family-dashboard" }
+    
   ];
 
   const handleLogout = () => {

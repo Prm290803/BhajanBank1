@@ -1,769 +1,4 @@
-
-// import { useEffect, useState } from "react";
-// import { useAuth } from "../../Auth/AuthContext";
-// import { motion, AnimatePresence } from "framer-motion";
-// import Navbar from "../Navbar/Navbar";
-// import LotusDivider from "../Common/LotusDivider";
-// import axios from "axios";
-
-// // Motion Variants
-// const fadeUp = {
-//   hidden: { opacity: 0, y: 20 },
-//   visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-// };
-
-// const stagger = {
-//   visible: {
-//     transition: {
-//       staggerChildren: 0.1
-//     }
-//   }
-// };
-
-// const BhajanShastra = () => {
-//   const { user, token } = useAuth();
-//   const backend_url = import.meta.env.VITE_BACKENDURL;
-  
-//   // State for shatras
-//   const [shatras, setShatras] = useState([]);
-//   const [activeShatra, setActiveShatra] = useState(null);
-//   const [loading, setLoading] = useState(true);
-//   const [showCreateForm, setShowCreateForm] = useState(false);
-//   const [contributionInput, setContributionInput] = useState("");
-//   const [fetchError, setFetchError] = useState(null);
-  
-//   // State for leaderboard
-//   const [leaderboard, setLeaderboard] = useState({ top10: [], userRank: null });
-//   const [leaderboardLoading, setLeaderboardLoading] = useState(false);
-  
-//   // Form state for creating shatra
-//   const [newShatra, setNewShatra] = useState({
-//     title: "",
-//     description: "",
-//     targetCount: "",
-//     startDate: "",
-//     endDate: ""
-//   });
-
-//   // Fetch all shatras on component mount and when token changes
-//   useEffect(() => {
-//     if (token) {
-//       fetchShatras();
-//     }
-//   }, [token]);
-
-//   // Load active shatra from localStorage on initial mount
-//   useEffect(() => {
-//     const savedShatraId = localStorage.getItem('activeShatraId');
-//     if (savedShatraId && shatras.length > 0) {
-//       const savedShatra = shatras.find(s => s._id === savedShatraId);
-//       if (savedShatra) {
-//         setActiveShatra(savedShatra);
-//         fetchLeaderboard(savedShatra._id);
-//       }
-//     }
-//   }, [shatras]);
-
-//   // Save active shatra to localStorage whenever it changes
-//   useEffect(() => {
-//     if (activeShatra) {
-//       localStorage.setItem('activeShatraId', activeShatra._id);
-//     }
-//   }, [activeShatra]);
-
-//   const fetchShatras = async () => {
-//     try {
-//       setLoading(true);
-//       setFetchError(null);
-//       const response = await axios.get(`${backend_url}/api/bhajan-shatra`, {
-//         headers: { Authorization: `Bearer ${token}` }
-//       });
-      
-//       setShatras(response.data);
-      
-//       // If no active shatra is set, set the first active one
-//       if (!activeShatra && response.data.length > 0) {
-//         const active = response.data.find(s => s.status === "active") || 
-//                       response.data.find(s => s.status === "upcoming") || 
-//                       response.data[0];
-//         setActiveShatra(active);
-//         fetchLeaderboard(active._id);
-//       }
-//     } catch (error) {
-//       console.error("Error fetching shatras:", error);
-//       setFetchError("Failed to load shatras. Please refresh the page.");
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   // Fetch leaderboard for specific shatra
-//   const fetchLeaderboard = async (shatraId) => {
-//     if (!shatraId) return;
-    
-//     try {
-//       setLeaderboardLoading(true);
-//       const response = await axios.get(
-//         `${backend_url}/api/bhajan-shatra/${shatraId}/leaderboard`,
-//         { headers: { Authorization: `Bearer ${token}` } }
-//       );
-//       setLeaderboard(response.data);
-//     } catch (error) {
-//       console.error("Error fetching leaderboard:", error);
-//     } finally {
-//       setLeaderboardLoading(false);
-//     }
-//   };
-
-//   // Create new shatra (admin only)
-//   const handleCreateShatra = async (e) => {
-//     e.preventDefault();
-//     try {
-//       const response = await axios.post(
-//         `${backend_url}/api/bhajan-shatra`,
-//         {
-//           ...newShatra,
-//           targetCount: parseInt(newShatra.targetCount)
-//         },
-//         { headers: { Authorization: `Bearer ${token}` } }
-//       );
-      
-//       // Add status to the new shatra
-//       const today = new Date();
-//       today.setHours(0, 0, 0, 0);
-      
-//       const startDate = new Date(response.data.startDate);
-//       startDate.setHours(0, 0, 0, 0);
-      
-//       const endDate = new Date(response.data.endDate);
-//       endDate.setHours(23, 59, 59, 999);
-      
-//       let status;
-//       if (today > endDate) {
-//         status = "completed";
-//       } else if (today >= startDate && today <= endDate) {
-//         status = "active";
-//       } else {
-//         status = "upcoming";
-//       }
-      
-//       const newShatraWithStatus = {
-//         ...response.data,
-//         status,
-//         totalContribution: 0,
-//         progress: 0
-//       };
-      
-//       setShatras([newShatraWithStatus, ...shatras]);
-//       setShowCreateForm(false);
-//       setNewShatra({
-//         title: "",
-//         description: "",
-//         targetCount: "",
-//         startDate: "",
-//         endDate: ""
-//       });
-      
-//       // Set the new shatra as active
-//       setActiveShatra(newShatraWithStatus);
-//       fetchLeaderboard(newShatraWithStatus._id);
-      
-//     } catch (error) {
-//       console.error("Error creating shatra:", error);
-//       alert(error.response?.data?.message || "Failed to create shatra");
-//     }
-//   };
-
-//   // Add daily contribution
-//   const handleAddContribution = async () => {
-//     if (!activeShatra || !contributionInput) return;
-    
-//     try {
-//       await axios.post(
-//         `${backend_url}/api/bhajan-shatra/${activeShatra._id}/contribute`,
-//         { count: parseInt(contributionInput) },
-//         { headers: { Authorization: `Bearer ${token}` } }
-//       );
-      
-//       // Refresh shatras to get updated totalContribution
-//       await fetchShatras();
-//       // Refresh leaderboard
-//       await fetchLeaderboard(activeShatra._id);
-      
-//       setContributionInput("");
-      
-//     } catch (error) {
-//       console.error("Error adding contribution:", error);
-//       alert(error.response?.data?.message || "Failed to add contribution");
-//     }
-//   };
-
-//   // Calculate user's total from leaderboard
-//   const userTotal = leaderboard.userRank?.total || 0;
-  
-//   // Calculate progress
-//   const progressPercentage = activeShatra 
-//     ? (userTotal / activeShatra.targetCount) * 100 
-//     : 0;
-  
-//   const barPercentage = Math.min(progressPercentage, 100);
-//   const remainingCount = activeShatra 
-//     ? Math.max(activeShatra.targetCount - userTotal, 0) 
-//     : 0;
-    
-//   const isGoalAchieved = activeShatra && userTotal >= activeShatra.targetCount;
-
-//   // Format date
-//   const formatDate = (dateString) => {
-//     return new Date(dateString).toLocaleDateString('en-US', {
-//       month: 'short',
-//       day: 'numeric',
-//       year: 'numeric'
-//     });
-//   };
-
-//   // Check if user can contribute
-//   const canContribute = () => {
-//     if (!activeShatra) return false;
-    
-//     const today = new Date();
-//     today.setHours(0, 0, 0, 0);
-    
-//     const startDate = new Date(activeShatra.startDate);
-//     startDate.setHours(0, 0, 0, 0);
-    
-//     const endDate = new Date(activeShatra.endDate);
-//     endDate.setHours(23, 59, 59, 999);
-    
-//     return today >= startDate && today <= endDate;
-//   };
-
-//   // Get status color and text
-//   const getStatusInfo = (shatra) => {
-//     if (!shatra) return { color: "bg-gray-50", textColor: "text-gray-700", label: "Unknown", icon: "❓" };
-    
-//     switch(shatra.status) {
-//       case "active":
-//         return { 
-//           color: "bg-green-50", 
-//           textColor: "text-green-700", 
-//           label: "Ongoing", 
-//           icon: <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-//         };
-//       case "upcoming":
-//         return { 
-//           color: "bg-blue-50", 
-//           textColor: "text-blue-700", 
-//           label: "Upcoming", 
-//           icon: "⏳"
-//         };
-//       case "completed":
-//         return { 
-//           color: "bg-gray-50", 
-//           textColor: "text-gray-700", 
-//           label: "Completed", 
-//           icon: "✅"
-//         };
-//       default:
-//         return { 
-//           color: "bg-gray-50", 
-//           textColor: "text-gray-700", 
-//           label: shatra.status || "Unknown", 
-//           icon: "❓"
-//         };
-//     }
-//   };
-
-//   if (loading) {
-//     return (
-//       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
-//         <div className="fixed inset-0 bg-[linear-gradient(45deg,#f8fafc_25%,transparent_25%),linear-gradient(-45deg,#f8fafc_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#f8fafc_75%),linear-gradient(-45deg,transparent_75%,#f8fafc_75%)] bg-[size:15px_15px] sm:bg-[size:20px_20px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,black_30%,transparent_100%)]"></div>
-//         <Navbar />
-//         <div className="pt-20 px-3 sm:px-4 relative">
-//           <div className="max-w-4xl mx-auto">
-//             <div className="bg-white p-6 sm:p-8 rounded-xl sm:rounded-2xl shadow-lg border border-gray-100">
-//               <div className="flex justify-center items-center py-12">
-//                 <div className="flex items-center gap-3 text-gray-600">
-//                   <div className="w-6 h-6 border-2 border-[#FF7722] border-t-transparent rounded-full animate-spin"></div>
-//                   <span>Loading Bhajan Shastra...</span>
-//                 </div>
-//               </div>
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//     );
-//   }
-
-//   if (fetchError) {
-//     return (
-//       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
-//         <div className="fixed inset-0 bg-[linear-gradient(45deg,#f8fafc_25%,transparent_25%),linear-gradient(-45deg,#f8fafc_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#f8fafc_75%),linear-gradient(-45deg,transparent_75%,#f8fafc_75%)] bg-[size:15px_15px] sm:bg-[size:20px_20px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,black_30%,transparent_100%)]"></div>
-//         <Navbar />
-//         <div className="pt-20 px-3 sm:px-4 relative">
-//           <div className="max-w-4xl mx-auto">
-//             <div className="bg-white p-6 sm:p-8 rounded-xl sm:rounded-2xl shadow-lg border border-gray-100">
-//               <div className="text-center py-12">
-//                 <div className="text-4xl mb-4">⚠️</div>
-//                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Something went wrong</h3>
-//                 <p className="text-gray-500 text-sm mb-4">{fetchError}</p>
-//                 <button
-//                   onClick={() => window.location.reload()}
-//                   className="px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg font-medium"
-//                 >
-//                   Refresh Page
-//                 </button>
-//               </div>
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//     );
-//   }
-
-//   return (
-//     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
-//       {/* Background pattern */}
-//       <div className="fixed inset-0 bg-[linear-gradient(45deg,#f8fafc_25%,transparent_25%),linear-gradient(-45deg,#f8fafc_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#f8fafc_75%),linear-gradient(-45deg,transparent_75%,#f8fafc_75%)] bg-[size:15px_15px] sm:bg-[size:20px_20px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,black_30%,transparent_100%)]"></div>
-      
-//       <Navbar />
-      
-//       <div className="relative max-w-6xl mx-auto space-y-6 sm:space-y-8 px-3 sm:px-4 pt-20 pb-8">
-//         {/* Header */}
-//         <motion.div 
-//           className="text-center"
-//           variants={fadeUp}
-//           initial="hidden"
-//           animate="visible"
-//         >
-//           <div className="flex flex-col items-center gap-3 sm:gap-4 mb-4">
-//             <div className="w-12 sm:w-16 h-0.5 sm:h-1 bg-gradient-to-r from-transparent via-[#FF7722] to-transparent"></div>
-//             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 font-sans px-2">
-//               Bhajan <span className="text-[#FF7722]">Shastra</span>
-//             </h1>
-//             <p className="text-gray-600 text-sm sm:text-base lg:text-lg font-light max-w-2xl px-2">
-//               Collective spiritual sadhana for utsavs
-//             </p>
-//             <div className="w-12 sm:w-16 h-0.5 sm:h-1 bg-gradient-to-r from-transparent via-[#FF7722] to-transparent"></div>
-//           </div>
-//         </motion.div>
-
-//         <LotusDivider />
-
-//         {/* Shatra Selection and Create Button */}
-//         <motion.div 
-//           className="flex flex-col sm:flex-row justify-between items-center gap-4"
-//           variants={fadeUp}
-//           initial="hidden"
-//           animate="visible"
-//         >
-//           <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-2 sm:pb-0">
-//             {shatras.map((shatra) => {
-//               const statusInfo = getStatusInfo(shatra);
-              
-//               return (
-//                 <button
-//                   key={shatra._id}
-//                   onClick={() => {
-//                     setActiveShatra(shatra);
-//                     fetchLeaderboard(shatra._id);
-//                   }}
-//                   className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all duration-200 ${
-//                     activeShatra?._id === shatra._id
-//                       ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md"
-//                       : "bg-white text-gray-600 border border-gray-200 hover:border-orange-300"
-//                   }`}
-//                 >
-//                   {shatra.title}
-//                   <span className={`ml-2 text-xs px-2 py-0.5 rounded-full ${
-//                     shatra.status === "active" ? "bg-green-100 text-green-600" :
-//                     shatra.status === "upcoming" ? "bg-blue-100 text-blue-600" :
-//                     "bg-gray-100 text-gray-600"
-//                   }`}>
-//                     {shatra.status === "active" ? "Ongoing" :
-//                      shatra.status === "upcoming" ? "Upcoming" : "Completed"}
-//                   </span>
-//                 </button>
-//               );
-//             })}
-//           </div>
-          
-//           {/* Plus Button for Admin - Always Visible */}
-//           {user?.role === "admin" && (
-//             <motion.button
-//               onClick={() => setShowCreateForm(!showCreateForm)}
-//               className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-200 whitespace-nowrap"
-//               whileHover={{ scale: 1.05 }}
-//               whileTap={{ scale: 0.95 }}
-//             >
-//               <span className="text-2xl font-bold">+</span>
-//               <span className="font-semibold">Create New Shatra</span>
-//             </motion.button>
-//           )}
-//         </motion.div>
-
-//         {/* Create Shatra Form */}
-//         <AnimatePresence>
-//           {showCreateForm && (
-//             <motion.div
-//               initial={{ opacity: 0, height: 0 }}
-//               animate={{ opacity: 1, height: "auto" }}
-//               exit={{ opacity: 0, height: 0 }}
-//               className="overflow-hidden"
-//             >
-//               <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-lg">
-//                 <div className="flex justify-between items-center mb-4">
-//                   <h3 className="text-lg font-semibold text-gray-900">Create New Bhajan Shatra</h3>
-//                   <button
-//                     onClick={() => setShowCreateForm(false)}
-//                     className="text-gray-400 hover:text-gray-600"
-//                   >
-//                     ✕
-//                   </button>
-//                 </div>
-//                 <form onSubmit={handleCreateShatra} className="space-y-4">
-//                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-//                     <div className="md:col-span-2">
-//                       <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-//                       <input
-//                         type="text"
-//                         value={newShatra.title}
-//                         onChange={(e) => setNewShatra({...newShatra, title: e.target.value})}
-//                         placeholder="e.g., 20 Lakh Swaminarayan Mala"
-//                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-//                         required
-//                       />
-//                     </div>
-                    
-//                     <div className="md:col-span-2">
-//                       <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-//                       <textarea
-//                         value={newShatra.description}
-//                         onChange={(e) => setNewShatra({...newShatra, description: e.target.value})}
-//                         rows="2"
-//                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-//                         required
-//                       />
-//                     </div>
-                    
-//                     <div>
-//                       <label className="block text-sm font-medium text-gray-700 mb-1">Target Count</label>
-//                       <input
-//                         type="number"
-//                         value={newShatra.targetCount}
-//                         onChange={(e) => setNewShatra({...newShatra, targetCount: e.target.value})}
-//                         placeholder="2000000"
-//                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-//                         required
-//                       />
-//                     </div>
-                    
-//                     <div>
-//                       <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
-//                       <input
-//                         type="date"
-//                         value={newShatra.startDate}
-//                         onChange={(e) => setNewShatra({...newShatra, startDate: e.target.value})}
-//                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-//                         required
-//                       />
-//                     </div>
-                    
-//                     <div>
-//                       <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
-//                       <input
-//                         type="date"
-//                         value={newShatra.endDate}
-//                         onChange={(e) => setNewShatra({...newShatra, endDate: e.target.value})}
-//                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-//                         required
-//                       />
-//                     </div>
-//                   </div>
-                  
-//                   <div className="flex justify-end gap-3">
-//                     <button
-//                       type="button"
-//                       onClick={() => setShowCreateForm(false)}
-//                       className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
-//                     >
-//                       Cancel
-//                     </button>
-//                     <button
-//                       type="submit"
-//                       className="px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg font-medium hover:shadow-md transition-all"
-//                     >
-//                       Create Shatra
-//                     </button>
-//                   </div>
-//                 </form>
-//               </div>
-//             </motion.div>
-//           )}
-//         </AnimatePresence>
-
-//         {activeShatra ? (
-//           <>
-//             {/* Shatra Info Card */}
-//             <motion.div
-//               className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm"
-//               variants={fadeUp}
-//               initial="hidden"
-//               animate="visible"
-//             >
-//               <div className="flex flex-col md:flex-row justify-between items-start gap-4">
-//                 <div>
-//                   <h2 className="text-xl font-bold text-gray-900 mb-2">{activeShatra.title}</h2>
-//                   <p className="text-gray-600 text-sm mb-3">{activeShatra.description}</p>
-//                   <div className="flex flex-wrap gap-4 text-sm">
-//                     <span className="text-gray-500">
-//                       📅 {formatDate(activeShatra.startDate)} - {formatDate(activeShatra.endDate)}
-//                     </span>
-//                     <span className="text-gray-500">
-//                       🎯 Target: {activeShatra.targetCount.toLocaleString()} malas
-//                     </span>
-//                     <span className="text-gray-500">
-//                       📊 Total: {activeShatra.totalContribution?.toLocaleString()} malas
-//                     </span>
-//                   </div>
-//                 </div>
-                
-//                 {/* Status Badge */}
-//                 {(() => {
-//                   const statusInfo = getStatusInfo(activeShatra);
-//                   return (
-//                     <div className={`px-4 py-2 rounded-lg ${statusInfo.color}`}>
-//                       <span className={`text-sm font-medium flex items-center gap-1 ${statusInfo.textColor}`}>
-//                         {statusInfo.icon}
-//                         {statusInfo.label}
-//                       </span>
-//                     </div>
-//                   );
-//                 })()}
-//               </div>
-              
-//               {/* Goal Achievement Badge - Only show for active shatras */}
-//               {isGoalAchieved && activeShatra.status === "active" && (
-//                 <div className="mt-4 bg-purple-50 border border-purple-200 rounded-lg p-3">
-//                   <p className="text-purple-700 text-sm flex items-center gap-2">
-//                     <span className="text-lg">🎉</span>
-//                     <span className="font-medium">Goal Achieved! </span>
-//                     You've surpassed the target count. Keep going until the end date!
-//                   </p>
-//                 </div>
-//               )}
-//             </motion.div>
-
-//             {/* Progress Card */}
-//             <motion.div
-//               className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm"
-//               variants={fadeUp}
-//               initial="hidden"
-//               animate="visible"
-//             >
-//               <h3 className="text-lg font-semibold text-gray-900 mb-4">Your Progress</h3>
-              
-//               {/* Progress Stats */}
-//               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-//                 <div className="bg-gradient-to-br from-orange-50 to-amber-50 p-4 rounded-lg">
-//                   <p className="text-sm text-gray-600 mb-1">Completed</p>
-//                   <p className="text-2xl font-bold text-orange-600">{userTotal.toLocaleString()}</p>
-//                   <p className="text-xs text-gray-500">malas</p>
-//                 </div>
-                
-//                 <div className="bg-gradient-to-br from-orange-50 to-amber-50 p-4 rounded-lg">
-//                   <p className="text-sm text-gray-600 mb-1">Remaining to Target</p>
-//                   <p className="text-2xl font-bold text-amber-600">{Math.max(remainingCount, 0).toLocaleString()}</p>
-//                   <p className="text-xs text-gray-500">malas</p>
-//                 </div>
-                
-//                 <div className="bg-gradient-to-br from-orange-50 to-amber-50 p-4 rounded-lg">
-//                   <p className="text-sm text-gray-600 mb-1">Progress</p>
-//                   <p className="text-2xl font-bold text-gray-900">{progressPercentage.toFixed(1)}%</p>
-//                   <p className="text-xs text-gray-500">of target</p>
-//                 </div>
-//               </div>
-
-//               {/* Progress Bar */}
-//               <div className="mb-2">
-//                 <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
-//                   <motion.div
-//                     initial={{ width: 0 }}
-//                     animate={{ width: `${barPercentage}%` }}
-//                     transition={{ duration: 1 }}
-//                     className={`h-full ${
-//                       isGoalAchieved && activeShatra.status === "active"
-//                         ? "bg-gradient-to-r from-purple-500 to-pink-500" 
-//                         : "bg-gradient-to-r from-orange-500 to-amber-500"
-//                     }`}
-//                   />
-//                 </div>
-//               </div>
-              
-//               {/* Progress Stats Line */}
-//               <div className="flex justify-between text-xs text-gray-500 mb-6">
-//                 <span>0</span>
-//                 <span className="text-center">
-//                   {userTotal.toLocaleString()} / {activeShatra.targetCount.toLocaleString()} malas
-//                 </span>
-//                 <span>{activeShatra.targetCount.toLocaleString()}</span>
-//               </div>
-
-//               {/* Add Contribution Form */}
-//               {activeShatra.status === "active" && canContribute() ? (
-//                 <div className="flex gap-3">
-//                   <input
-//                     type="number"
-//                     value={contributionInput}
-//                     onChange={(e) => setContributionInput(e.target.value)}
-//                     placeholder="Enter malas done today"
-//                     className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-//                     min="1"
-//                   />
-//                   <button
-//                     onClick={handleAddContribution}
-//                     disabled={!contributionInput || leaderboardLoading}
-//                     className="px-6 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg font-medium hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-//                   >
-//                     {leaderboardLoading ? "Adding..." : "Add Progress"}
-//                   </button>
-//                 </div>
-//               ) : activeShatra.status === "upcoming" ? (
-//                 <div className="bg-blue-50 p-4 rounded-lg text-center">
-//                   <p className="text-blue-700 text-sm">
-//                     ⏳ This shatra starts on {formatDate(activeShatra.startDate)}. Please wait until then to add progress.
-//                   </p>
-//                 </div>
-//               ) : (
-//                 <div className="bg-gray-50 p-4 rounded-lg text-center">
-//                   <p className="text-gray-600 text-sm">
-//                     This shatra ended on {formatDate(activeShatra.endDate)}. No more contributions allowed.
-//                   </p>
-//                 </div>
-//               )}
-//             </motion.div>
-
-//             {/* Leaderboard */}
-//             <motion.div
-//               className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm"
-//               variants={fadeUp}
-//               initial="hidden"
-//               animate="visible"
-//             >
-//               <div className="flex justify-between items-center mb-6">
-//                 <h3 className="text-lg font-semibold text-gray-900">Sadhana Leaderboard</h3>
-//                 <span className="text-sm text-gray-500">Top 10 Contributors</span>
-//               </div>
-
-//               {/* Top 10 Leaderboard */}
-//               {leaderboardLoading ? (
-//                 <div className="flex justify-center py-8">
-//                   <div className="w-6 h-6 border-2 border-[#FF7722] border-t-transparent rounded-full animate-spin"></div>
-//                 </div>
-//               ) : leaderboard.top10.length > 0 ? (
-//                 <>
-//                   <div className="space-y-3 mb-6">
-//                     {leaderboard.top10.map((entry, index) => (
-//                       <motion.div
-//                         key={entry.userId}
-//                         variants={fadeUp}
-//                         className={`flex items-center justify-between p-3 rounded-lg transition-all ${
-//                           entry.userId === user?._id 
-//                             ? "bg-orange-50 border border-orange-200" 
-//                             : "bg-gray-50 hover:bg-orange-50/50"
-//                         }`}
-//                       >
-//                         <div className="flex items-center gap-3">
-//                           <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-//                             index === 0 ? "bg-amber-500 text-white" :
-//                             index === 1 ? "bg-gray-500 text-white" :
-//                             index === 2 ? "bg-amber-400 text-white" :
-//                             "bg-gray-300 text-gray-700"
-//                           }`}>
-//                             {entry.rank}
-//                           </div>
-//                           <div>
-//                             <span className="font-medium text-gray-900">{entry.name}</span>
-//                             {entry.userId === user?._id && (
-//                               <span className="ml-2 text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">You</span>
-//                             )}
-//                           </div>
-//                         </div>
-//                         <div className="flex items-center gap-2">
-//                           <span className="text-sm text-gray-500">{entry.total.toLocaleString()} malas</span>
-//                         </div>
-//                       </motion.div>
-//                     ))}
-//                   </div>
-
-//                   {/* User's rank if not in top 10 */}
-//                   {leaderboard.userRank && leaderboard.userRank.rank > 10 && (
-//                     <div className="border-t border-gray-200 pt-4">
-//                       <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
-//                         <div className="flex items-center gap-3">
-//                           <div className="w-6 h-6 rounded-full bg-gray-400 text-white flex items-center justify-center text-xs font-bold">
-//                             {leaderboard.userRank.rank}
-//                           </div>
-//                           <div>
-//                             <span className="font-medium text-gray-900">{leaderboard.userRank.name}</span>
-//                             <span className="ml-2 text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">You</span>
-//                           </div>
-//                         </div>
-//                         <div className="flex items-center gap-2">
-//                           <span className="text-sm text-gray-500">{leaderboard.userRank.total.toLocaleString()} malas</span>
-//                         </div>
-//                       </div>
-//                       <p className="text-xs text-gray-500 text-center mt-2">
-//                         You're #{leaderboard.userRank.rank} overall • {leaderboard.userRank.total.toLocaleString()} malas completed
-//                       </p>
-//                     </div>
-//                   )}
-//                 </>
-//               ) : (
-//                 <div className="text-center py-8">
-//                   <p className="text-gray-500">No contributions yet. Be the first to add your sadhana!</p>
-//                 </div>
-//               )}
-//             </motion.div>
-//           </>
-//         ) : (
-//           <div className="bg-white p-12 rounded-xl border border-gray-200 text-center">
-//             <p className="text-gray-500">No shatras available.</p>
-//           </div>
-//         )}
-
-//         {/* Footer */}
-//         <motion.footer 
-//           className="text-center py-6"
-//           variants={fadeUp}
-//           initial="hidden"
-//           animate="visible"
-//         >
-//           <LotusDivider className="mb-4" />
-//           <p className="text-xs sm:text-sm font-semibold text-gray-700 mb-2">श्री स्वामिनारायणाय नमः</p>
-//           <p className="text-xs text-gray-500 max-w-xs mx-auto">
-//             May our collective sadhana bring divine blessings
-//           </p>
-//           <p className="text-xs mt-2 text-gray-400">
-//             Developed by{' '}
-//             <a 
-//               href="https://buildcrew.co.in" 
-//               target="_blank" 
-//               rel="noopener noreferrer"
-//               className="text-gray-600 hover:text-gray-900 transition-colors font-medium"
-//             >
-//               Build Crew
-//             </a>
-//           </p>
-//         </motion.footer>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default BhajanShastra;
-
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useAuth } from "../../Auth/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "../Navbar/Navbar";
@@ -776,17 +11,13 @@ const fadeUp = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
 };
 
-const stagger = {
-  visible: {
-    transition: {
-      staggerChildren: 0.1
-    }
-  }
-};
-
 const BhajanShastra = () => {
   const { user, token } = useAuth();
   const backend_url = import.meta.env.VITE_BACKENDURL;
+  
+  // Use refs to track if data is already fetched
+  const initialFetchDone = useRef(false);
+  const contributionsCache = useRef(new Map());
   
   // State for shatras
   const [shatras, setShatras] = useState([]);
@@ -795,6 +26,8 @@ const BhajanShastra = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [contributionInput, setContributionInput] = useState("");
   const [fetchError, setFetchError] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   // State for leaderboard
   const [leaderboard, setLeaderboard] = useState({ top10: [], userRank: null });
@@ -825,31 +58,37 @@ const BhajanShastra = () => {
     endDate: ""
   });
 
-  // Fetch all shatras on component mount and when token changes
+  // Fetch shatras
   useEffect(() => {
-    if (token) {
+    if (token && !initialFetchDone.current) {
+      initialFetchDone.current = true;
       fetchShatras();
     }
   }, [token]);
 
-  // Load active shatra from localStorage on initial mount
+  // Load active shatra from localStorage
   useEffect(() => {
     const savedShatraId = localStorage.getItem('activeShatraId');
-    if (savedShatraId && shatras.length > 0) {
+    if (savedShatraId && shatras.length > 0 && !activeShatra) {
       const savedShatra = shatras.find(s => s._id === savedShatraId);
       if (savedShatra) {
         setActiveShatra(savedShatra);
-        fetchLeaderboard(savedShatra._id);
       }
     }
   }, [shatras]);
 
-  // Save active shatra to localStorage whenever it changes
+  // Fetch leaderboard when activeShatra changes
   useEffect(() => {
-    if (activeShatra) {
+    if (activeShatra?._id) {
+      const cached = contributionsCache.current.get(activeShatra._id);
+      if (cached) {
+        setLeaderboard(cached);
+      } else {
+        fetchLeaderboard(activeShatra._id);
+      }
       localStorage.setItem('activeShatraId', activeShatra._id);
     }
-  }, [activeShatra]);
+  }, [activeShatra?._id]);
 
   const fetchShatras = async () => {
     try {
@@ -861,13 +100,21 @@ const BhajanShastra = () => {
       
       setShatras(response.data);
       
-      // If no active shatra is set, set the first active one
-      if (!activeShatra && response.data.length > 0) {
-        const active = response.data.find(s => s.status === "active") || 
-                      response.data.find(s => s.status === "upcoming") || 
-                      response.data[0];
+      const savedShatraId = localStorage.getItem('activeShatraId');
+      let active = null;
+      
+      if (savedShatraId) {
+        active = response.data.find(s => s._id === savedShatraId);
+      }
+      
+      if (!active) {
+        active = response.data.find(s => s.status === "active") || 
+                response.data.find(s => s.status === "upcoming") || 
+                response.data[0];
+      }
+      
+      if (active) {
         setActiveShatra(active);
-        fetchLeaderboard(active._id);
       }
     } catch (error) {
       console.error("Error fetching shatras:", error);
@@ -877,9 +124,13 @@ const BhajanShastra = () => {
     }
   };
 
-  // Fetch leaderboard for specific shatra
   const fetchLeaderboard = async (shatraId) => {
     if (!shatraId) return;
+    
+    if (contributionsCache.current.has(shatraId)) {
+      setLeaderboard(contributionsCache.current.get(shatraId));
+      return;
+    }
     
     try {
       setLeaderboardLoading(true);
@@ -887,6 +138,8 @@ const BhajanShastra = () => {
         `${backend_url}/api/bhajan-shatra/${shatraId}/leaderboard`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      
+      contributionsCache.current.set(shatraId, response.data);
       setLeaderboard(response.data);
     } catch (error) {
       console.error("Error fetching leaderboard:", error);
@@ -895,9 +148,8 @@ const BhajanShastra = () => {
     }
   };
 
-  // Fetch contributors for current shatra
-  const fetchContributors = async (page = 1) => {
-    if (!activeShatra) return;
+  const fetchContributors = useCallback(async (page = 1) => {
+    if (!activeShatra || contributorsLoading) return;
     
     try {
       setContributorsLoading(true);
@@ -905,23 +157,22 @@ const BhajanShastra = () => {
         `${backend_url}/api/bhajan-shatra/${activeShatra._id}/contributors?page=${page}&limit=10&search=${searchTerm}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      
       setContributors(response.data.contributors);
       setContributorsPagination(response.data.pagination);
       
-      // Update the active shatra with latest contributor count
-      setActiveShatra(prev => ({
+      setActiveShatra(prev => prev ? {
         ...prev,
         totalContributors: response.data.pagination.totalItems
-      }));
+      } : null);
       
     } catch (error) {
       console.error("Error fetching contributors:", error);
     } finally {
       setContributorsLoading(false);
     }
-  };
+  }, [activeShatra?._id, searchTerm]);
 
-  // Fetch single contributor details
   const fetchContributorDetails = async (userId) => {
     if (!activeShatra) return;
     
@@ -939,7 +190,6 @@ const BhajanShastra = () => {
     }
   };
 
-  // Export contributors to CSV
   const handleExport = async () => {
     if (!activeShatra) return;
     
@@ -952,7 +202,6 @@ const BhajanShastra = () => {
         }
       );
       
-      // Create download link
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
@@ -965,7 +214,6 @@ const BhajanShastra = () => {
     }
   };
 
-  // Open contributors modal
   const handleOpenContributors = () => {
     setShowContributorsModal(true);
     setSearchTerm("");
@@ -974,9 +222,9 @@ const BhajanShastra = () => {
     fetchContributors(1);
   };
 
-  // Create new shatra (admin only)
   const handleCreateShatra = async (e) => {
     e.preventDefault();
+    
     try {
       const response = await axios.post(
         `${backend_url}/api/bhajan-shatra`,
@@ -987,7 +235,6 @@ const BhajanShastra = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      // Add status to the new shatra
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       
@@ -1014,7 +261,7 @@ const BhajanShastra = () => {
         totalContributors: 0
       };
       
-      setShatras([newShatraWithStatus, ...shatras]);
+      setShatras(prev => [newShatraWithStatus, ...prev]);
       setShowCreateForm(false);
       setNewShatra({
         title: "",
@@ -1024,9 +271,8 @@ const BhajanShastra = () => {
         endDate: ""
       });
       
-      // Set the new shatra as active
       setActiveShatra(newShatraWithStatus);
-      fetchLeaderboard(newShatraWithStatus._id);
+      setMobileMenuOpen(false);
       
     } catch (error) {
       console.error("Error creating shatra:", error);
@@ -1034,46 +280,68 @@ const BhajanShastra = () => {
     }
   };
 
-  // Add daily contribution
-  const handleAddContribution = async () => {
-    if (!activeShatra || !contributionInput) return;
+  const handleAddContribution = async (e) => {
+    e.preventDefault();
+    
+    if (!activeShatra || !contributionInput || isSubmitting) return;
+    
+    const count = parseInt(contributionInput);
+    setIsSubmitting(true);
+    
+    const previousLeaderboard = { ...leaderboard };
+    const previousActiveShatra = { ...activeShatra };
     
     try {
-      await axios.post(
+      const response = await axios.post(
         `${backend_url}/api/bhajan-shatra/${activeShatra._id}/contribute`,
-        { count: parseInt(contributionInput) },
+        { count },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      // Refresh shatras to get updated totalContribution
-      await fetchShatras();
-      // Refresh leaderboard
+      const { totalContributions, totalContributors } = response.data;
+      
+      setActiveShatra(prev => ({
+        ...prev,
+        totalContribution: totalContributions,
+        totalContributors: totalContributors || prev.totalContributors
+      }));
+      
+      setShatras(prev => prev.map(s => 
+        s._id === activeShatra._id 
+          ? { 
+              ...s, 
+              totalContribution: totalContributions,
+              totalContributors: totalContributors || s.totalContributors
+            }
+          : s
+      ));
+      
+      contributionsCache.current.delete(activeShatra._id);
       await fetchLeaderboard(activeShatra._id);
       
       setContributionInput("");
       
     } catch (error) {
       console.error("Error adding contribution:", error);
+      setLeaderboard(previousLeaderboard);
+      setActiveShatra(previousActiveShatra);
       alert(error.response?.data?.message || "Failed to add contribution");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  // Calculate user's total from leaderboard
-  const userTotal = leaderboard.userRank?.total || 0;
-  
-  // Calculate progress
-  const progressPercentage = activeShatra 
-    ? (userTotal / activeShatra.targetCount) * 100 
+  // Calculate COLLECTIVE progress (all users combined)
+  const collectiveTotal = activeShatra?.totalContribution || 0;
+  const collectiveProgress = activeShatra 
+    ? (collectiveTotal / activeShatra.targetCount) * 100 
     : 0;
-  
-  const barPercentage = Math.min(progressPercentage, 100);
-  const remainingCount = activeShatra 
-    ? Math.max(activeShatra.targetCount - userTotal, 0) 
+  const collectiveBarPercentage = Math.min(collectiveProgress, 100);
+  const collectiveRemaining = activeShatra 
+    ? Math.max(activeShatra.targetCount - collectiveTotal, 0) 
     : 0;
-    
-  const isGoalAchieved = activeShatra && userTotal >= activeShatra.targetCount;
+  const isCollectiveGoalAchieved = activeShatra && collectiveTotal >= activeShatra.targetCount;
 
-  // Format date
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
@@ -1082,8 +350,7 @@ const BhajanShastra = () => {
     });
   };
 
-  // Check if user can contribute
-  const canContribute = () => {
+  const canContribute = useCallback(() => {
     if (!activeShatra) return false;
     
     const today = new Date();
@@ -1095,10 +362,9 @@ const BhajanShastra = () => {
     const endDate = new Date(activeShatra.endDate);
     endDate.setHours(23, 59, 59, 999);
     
-    return today >= startDate && today <= endDate;
-  };
+    return today >= startDate && today <= endDate && activeShatra.status === "active";
+  }, [activeShatra]);
 
-  // Get status color and text
   const getStatusInfo = (shatra) => {
     if (!shatra) return { color: "bg-gray-50", textColor: "text-gray-700", label: "Unknown", icon: "❓" };
     
@@ -1139,12 +405,12 @@ const BhajanShastra = () => {
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
         <div className="fixed inset-0 bg-[linear-gradient(45deg,#f8fafc_25%,transparent_25%),linear-gradient(-45deg,#f8fafc_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#f8fafc_75%),linear-gradient(-45deg,transparent_75%,#f8fafc_75%)] bg-[size:15px_15px] sm:bg-[size:20px_20px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,black_30%,transparent_100%)]"></div>
         <Navbar />
-        <div className="pt-20 px-3 sm:px-4 relative">
+        <div className="pt-16 sm:pt-20 px-3 sm:px-4 relative">
           <div className="max-w-4xl mx-auto">
-            <div className="bg-white p-6 sm:p-8 rounded-xl sm:rounded-2xl shadow-lg border border-gray-100">
-              <div className="flex justify-center items-center py-12">
-                <div className="flex items-center gap-3 text-gray-600">
-                  <div className="w-6 h-6 border-2 border-[#FF7722] border-t-transparent rounded-full animate-spin"></div>
+            <div className="bg-white p-4 sm:p-6 md:p-8 rounded-xl sm:rounded-2xl shadow-lg border border-gray-100">
+              <div className="flex justify-center items-center py-8 sm:py-12">
+                <div className="flex items-center gap-2 sm:gap-3 text-gray-600 text-sm sm:text-base">
+                  <div className="w-5 h-5 sm:w-6 sm:h-6 border-2 border-[#FF7722] border-t-transparent rounded-full animate-spin"></div>
                   <span>Loading Bhajan Shastra...</span>
                 </div>
               </div>
@@ -1160,16 +426,16 @@ const BhajanShastra = () => {
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
         <div className="fixed inset-0 bg-[linear-gradient(45deg,#f8fafc_25%,transparent_25%),linear-gradient(-45deg,#f8fafc_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#f8fafc_75%),linear-gradient(-45deg,transparent_75%,#f8fafc_75%)] bg-[size:15px_15px] sm:bg-[size:20px_20px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,black_30%,transparent_100%)]"></div>
         <Navbar />
-        <div className="pt-20 px-3 sm:px-4 relative">
+        <div className="pt-16 sm:pt-20 px-3 sm:px-4 relative">
           <div className="max-w-4xl mx-auto">
-            <div className="bg-white p-6 sm:p-8 rounded-xl sm:rounded-2xl shadow-lg border border-gray-100">
-              <div className="text-center py-12">
-                <div className="text-4xl mb-4">⚠️</div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Something went wrong</h3>
-                <p className="text-gray-500 text-sm mb-4">{fetchError}</p>
+            <div className="bg-white p-4 sm:p-6 md:p-8 rounded-xl sm:rounded-2xl shadow-lg border border-gray-100">
+              <div className="text-center py-8 sm:py-12">
+                <div className="text-3xl sm:text-4xl mb-3 sm:mb-4">⚠️</div>
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">Something went wrong</h3>
+                <p className="text-gray-500 text-xs sm:text-sm mb-4">{fetchError}</p>
                 <button
                   onClick={() => window.location.reload()}
-                  className="px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg font-medium"
+                  className="px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg text-sm sm:text-base font-medium"
                 >
                   Refresh Page
                 </button>
@@ -1188,96 +454,160 @@ const BhajanShastra = () => {
       
       <Navbar />
       
-      <div className="relative max-w-6xl mx-auto space-y-6 sm:space-y-8 px-3 sm:px-4 pt-20 pb-8">
+      <div className="relative max-w-6xl mx-auto px-3 sm:px-4 pt-16 sm:pt-20 pb-6 sm:pb-8">
         {/* Header */}
         <motion.div 
-          className="text-center"
+          className="text-center mb-4 sm:mb-6"
           variants={fadeUp}
           initial="hidden"
           animate="visible"
         >
-          <div className="flex flex-col items-center gap-3 sm:gap-4 mb-4">
-            <div className="w-12 sm:w-16 h-0.5 sm:h-1 bg-gradient-to-r from-transparent via-[#FF7722] to-transparent"></div>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 font-sans px-2">
+          <div className="flex flex-col items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+            <div className="w-10 sm:w-12 h-0.5 sm:h-1 bg-gradient-to-r from-transparent via-[#FF7722] to-transparent"></div>
+            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 font-sans px-2">
               Bhajan <span className="text-[#FF7722]">Shastra</span>
             </h1>
-            <p className="text-gray-600 text-sm sm:text-base lg:text-lg font-light max-w-2xl px-2">
+            <p className="text-gray-600 text-xs sm:text-sm md:text-base font-light max-w-xs sm:max-w-sm md:max-w-md px-2">
               Collective spiritual sadhana for utsavs
             </p>
-            <div className="w-12 sm:w-16 h-0.5 sm:h-1 bg-gradient-to-r from-transparent via-[#FF7722] to-transparent"></div>
+            <div className="w-10 sm:w-12 h-0.5 sm:h-1 bg-gradient-to-r from-transparent via-[#FF7722] to-transparent"></div>
           </div>
         </motion.div>
 
-        <LotusDivider />
+        <LotusDivider className="my-3 sm:my-4" />
 
-        {/* Shatra Selection and Action Buttons */}
+        {/* Mobile Action Buttons */}
+        <div className="sm:hidden mb-4">
+          <div className="flex gap-2">
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="flex-1 px-4 py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg font-medium text-sm shadow-md"
+            >
+              {mobileMenuOpen ? 'Hide Shatras' : 'Select Shatra'}
+            </button>
+            
+            {activeShatra && (
+              <button
+                onClick={handleOpenContributors}
+                className="px-4 py-2.5 bg-blue-500 text-white rounded-lg font-medium text-sm shadow-md flex items-center justify-center gap-1"
+              >
+                <span>👥</span>
+                <span>{activeShatra.totalContributors || 0}</span>
+              </button>
+            )}
+            
+            {user?.role === "admin" && (
+              <button
+                onClick={() => setShowCreateForm(!showCreateForm)}
+                className="px-4 py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg font-medium text-sm shadow-md"
+              >
+                <span className="text-lg">+</span>
+              </button>
+            )}
+          </div>
+          
+          {/* Mobile Shatra Menu */}
+          <AnimatePresence>
+            {mobileMenuOpen && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="mt-2 overflow-hidden"
+              >
+                <div className="bg-white rounded-lg border border-gray-200 shadow-lg p-2 max-h-60 overflow-y-auto">
+                  {shatras.map((shatra) => (
+                    <button
+                      key={shatra._id}
+                      onClick={() => {
+                        setActiveShatra(shatra);
+                        setMobileMenuOpen(false);
+                      }}
+                      className={`w-full text-left px-3 py-2.5 rounded-lg text-sm mb-1 last:mb-0 ${
+                        activeShatra?._id === shatra._id
+                          ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white"
+                          : "bg-gray-50 text-gray-700"
+                      }`}
+                    >
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium truncate max-w-[150px]">{shatra.title}</span>
+                        <span className={`text-xs px-2 py-1 rounded-full ${
+                          shatra.status === "active" ? "bg-green-100 text-green-700" :
+                          shatra.status === "upcoming" ? "bg-blue-100 text-blue-700" :
+                          "bg-gray-200 text-gray-700"
+                        }`}>
+                          {shatra.status === "active" ? "Live" :
+                           shatra.status === "upcoming" ? "Soon" : "Done"}
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Desktop Shatra Selection */}
         <motion.div 
-          className="flex flex-col sm:flex-row justify-between items-center gap-4"
+          className="hidden sm:flex sm:flex-row justify-between items-center gap-4 mb-4 sm:mb-6"
           variants={fadeUp}
           initial="hidden"
           animate="visible"
         >
-          <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-2 sm:pb-0">
-            {shatras.map((shatra) => {
-              const statusInfo = getStatusInfo(shatra);
-              
-              return (
-                <button
-                  key={shatra._id}
-                  onClick={() => {
-                    setActiveShatra(shatra);
-                    fetchLeaderboard(shatra._id);
-                  }}
-                  className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all duration-200 ${
-                    activeShatra?._id === shatra._id
-                      ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md"
-                      : "bg-white text-gray-600 border border-gray-200 hover:border-orange-300"
-                  }`}
-                >
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+            {shatras.map((shatra) => (
+              <button
+                key={shatra._id}
+                onClick={() => setActiveShatra(shatra)}
+                className={`px-3 sm:px-4 py-2 rounded-lg font-medium text-xs sm:text-sm whitespace-nowrap transition-all duration-200 ${
+                  activeShatra?._id === shatra._id
+                    ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md"
+                    : "bg-white text-gray-600 border border-gray-200 hover:border-orange-300"
+                }`}
+              >
+                <span className="max-w-[100px] sm:max-w-[150px] truncate inline-block align-middle">
                   {shatra.title}
-                  <span className={`ml-2 text-xs px-2 py-0.5 rounded-full ${
-                    shatra.status === "active" ? "bg-green-100 text-green-600" :
-                    shatra.status === "upcoming" ? "bg-blue-100 text-blue-600" :
-                    "bg-gray-100 text-gray-600"
-                  }`}>
-                    {shatra.status === "active" ? "Ongoing" :
-                     shatra.status === "upcoming" ? "Upcoming" : "Completed"}
-                  </span>
-                </button>
-              );
-            })}
+                </span>
+                <span className={`ml-1 sm:ml-2 text-xs px-1.5 sm:px-2 py-0.5 rounded-full ${
+                  shatra.status === "active" ? "bg-green-100 text-green-600" :
+                  shatra.status === "upcoming" ? "bg-blue-100 text-blue-600" :
+                  "bg-gray-100 text-gray-600"
+                }`}>
+                  {shatra.status === "active" ? "Live" :
+                   shatra.status === "upcoming" ? "Soon" : "Done"}
+                </span>
+              </button>
+            ))}
           </div>
           
-          <div className="flex items-center gap-3">
-            {/* Contributors Button - Always visible when shatra exists */}
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
             {activeShatra && (
               <motion.button
                 onClick={handleOpenContributors}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="flex items-center gap-2 px-4 py-3 bg-blue-500 text-white rounded-lg font-medium shadow-md hover:shadow-lg transition-all whitespace-nowrap"
+                className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-blue-500 text-white rounded-lg text-xs sm:text-sm font-medium shadow-md hover:shadow-lg transition-all whitespace-nowrap"
               >
-                <span className="text-lg">👥</span>
-                <span className="hidden sm:inline">Contributors</span>
-                {/* This shows the contributor count */}
+                <span className="text-base sm:text-lg">👥</span>
+                <span className="hidden xs:inline">Contributors</span>
                 {activeShatra.totalContributors > 0 && (
-                  <span className="ml-1 px-2 py-0.5 bg-white text-blue-600 rounded-full text-xs font-bold">
+                  <span className="ml-0.5 sm:ml-1 px-1.5 sm:px-2 py-0.5 bg-white text-blue-600 rounded-full text-xs font-bold">
                     {activeShatra.totalContributors}
                   </span>
                 )}
               </motion.button>
             )}
             
-            {/* Plus Button for Admin - Always Visible */}
             {user?.role === "admin" && (
               <motion.button
                 onClick={() => setShowCreateForm(!showCreateForm)}
-                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-200 whitespace-nowrap"
+                className="flex items-center gap-1 sm:gap-2 px-4 sm:px-6 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg text-xs sm:text-sm font-medium shadow-lg hover:shadow-xl transition-all whitespace-nowrap"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <span className="text-2xl font-bold">+</span>
-                <span className="font-semibold hidden sm:inline">Create New</span>
+                <span className="text-lg sm:text-xl font-bold">+</span>
+                <span className="hidden sm:inline">Create</span>
               </motion.button>
             )}
           </div>
@@ -1290,91 +620,91 @@ const BhajanShastra = () => {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className="overflow-hidden"
+              className="overflow-hidden mb-4 sm:mb-6"
             >
-              <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-lg">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Create New Bhajan Shatra</h3>
+              <div className="bg-white p-4 sm:p-6 rounded-xl border border-gray-200 shadow-lg">
+                <div className="flex justify-between items-center mb-3 sm:mb-4">
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900">Create New Bhajan Shatra</h3>
                   <button
                     onClick={() => setShowCreateForm(false)}
-                    className="text-gray-400 hover:text-gray-600"
+                    className="text-gray-400 hover:text-gray-600 text-xl"
                   >
                     ✕
                   </button>
                 </div>
-                <form onSubmit={handleCreateShatra} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-                      <input
-                        type="text"
-                        value={newShatra.title}
-                        onChange={(e) => setNewShatra({...newShatra, title: e.target.value})}
-                        placeholder="e.g., 20 Lakh Swaminarayan Mala"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                        required
-                      />
-                    </div>
-                    
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                      <textarea
-                        value={newShatra.description}
-                        onChange={(e) => setNewShatra({...newShatra, description: e.target.value})}
-                        rows="2"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                        required
-                      />
-                    </div>
-                    
+                <form onSubmit={handleCreateShatra} className="space-y-3 sm:space-y-4">
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Title</label>
+                    <input
+                      type="text"
+                      value={newShatra.title}
+                      onChange={(e) => setNewShatra({...newShatra, title: e.target.value})}
+                      placeholder="e.g., 20 Lakh Swaminarayan Mala"
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <textarea
+                      value={newShatra.description}
+                      onChange={(e) => setNewShatra({...newShatra, description: e.target.value})}
+                      rows="2"
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      required
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Target Count</label>
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Target Count</label>
                       <input
                         type="number"
                         value={newShatra.targetCount}
                         onChange={(e) => setNewShatra({...newShatra, targetCount: e.target.value})}
                         placeholder="2000000"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                         required
                       />
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Start Date</label>
                       <input
                         type="date"
                         value={newShatra.startDate}
                         onChange={(e) => setNewShatra({...newShatra, startDate: e.target.value})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                         required
                       />
                     </div>
                     
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                    <div className="sm:col-span-2">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">End Date</label>
                       <input
                         type="date"
                         value={newShatra.endDate}
                         onChange={(e) => setNewShatra({...newShatra, endDate: e.target.value})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                         required
                       />
                     </div>
                   </div>
                   
-                  <div className="flex justify-end gap-3">
+                  <div className="flex justify-end gap-2 sm:gap-3 pt-2">
                     <button
                       type="button"
                       onClick={() => setShowCreateForm(false)}
-                      className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+                      className="px-3 sm:px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-xs sm:text-sm font-medium hover:bg-gray-200"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
-                      className="px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg font-medium hover:shadow-md transition-all"
+                      className="px-4 sm:px-6 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg text-xs sm:text-sm font-medium hover:shadow-md"
                     >
-                      Create Shatra
+                      Create
                     </button>
                   </div>
                 </form>
@@ -1387,28 +717,27 @@ const BhajanShastra = () => {
           <>
             {/* Shatra Info Card */}
             <motion.div
-              className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm"
+              className="bg-white p-4 sm:p-6 rounded-xl border border-gray-200 shadow-sm mb-4 sm:mb-6"
               variants={fadeUp}
               initial="hidden"
               animate="visible"
             >
-              <div className="flex flex-col md:flex-row justify-between items-start gap-4">
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900 mb-2">{activeShatra.title}</h2>
-                  <p className="text-gray-600 text-sm mb-3">{activeShatra.description}</p>
-                  <div className="flex flex-wrap gap-4 text-sm">
-                    <span className="text-gray-500">
+              <div className="flex flex-col sm:flex-row justify-between items-start gap-3 sm:gap-4">
+                <div className="w-full">
+                  <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-1 sm:mb-2">{activeShatra.title}</h2>
+                  <p className="text-gray-600 text-xs sm:text-sm mb-2 sm:mb-3">{activeShatra.description}</p>
+                  <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-4 text-xs sm:text-sm">
+                    <span className="text-gray-500 col-span-2 sm:col-auto">
                       📅 {formatDate(activeShatra.startDate)} - {formatDate(activeShatra.endDate)}
                     </span>
                     <span className="text-gray-500">
-                      🎯 Target: {activeShatra.targetCount.toLocaleString()} malas
+                      🎯 Target: {activeShatra.targetCount.toLocaleString()}
                     </span>
                     <span className="text-gray-500">
-                      📊 Total: {activeShatra.totalContribution?.toLocaleString()} malas
+                      📊 Total: {collectiveTotal.toLocaleString()}
                     </span>
-                    {/* Contributor count shown here */}
                     <span className="text-gray-500 flex items-center gap-1">
-                      👥 Contributors: <span className="font-semibold text-blue-600">{activeShatra.totalContributors || 0}</span>
+                      👥 <span className="font-semibold text-blue-600">{activeShatra.totalContributors || 0}</span>
                     </span>
                   </div>
                 </div>
@@ -1417,8 +746,8 @@ const BhajanShastra = () => {
                 {(() => {
                   const statusInfo = getStatusInfo(activeShatra);
                   return (
-                    <div className={`px-4 py-2 rounded-lg ${statusInfo.color}`}>
-                      <span className={`text-sm font-medium flex items-center gap-1 ${statusInfo.textColor}`}>
+                    <div className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg ${statusInfo.color} self-start`}>
+                      <span className={`text-xs sm:text-sm font-medium flex items-center gap-1 ${statusInfo.textColor}`}>
                         {statusInfo.icon}
                         {statusInfo.label}
                       </span>
@@ -1427,57 +756,53 @@ const BhajanShastra = () => {
                 })()}
               </div>
               
-              {/* Goal Achievement Badge - Only show for active shatras */}
-              {isGoalAchieved && activeShatra.status === "active" && (
-                <div className="mt-4 bg-purple-50 border border-purple-200 rounded-lg p-3">
-                  <p className="text-purple-700 text-sm flex items-center gap-2">
-                    <span className="text-lg">🎉</span>
-                    <span className="font-medium">Goal Achieved! </span>
-                    You've surpassed the target count. Keep going until the end date!
+              {/* Collective Goal Achievement Badge */}
+              {isCollectiveGoalAchieved && activeShatra.status === "active" && (
+                <div className="mt-3 sm:mt-4 bg-purple-50 border border-purple-200 rounded-lg p-2 sm:p-3">
+                  <p className="text-purple-700 text-xs sm:text-sm flex items-center gap-2">
+                    <span className="text-base sm:text-lg">🎉</span>
+                    <span className="font-medium">Collective Goal Achieved!</span>
                   </p>
                 </div>
               )}
             </motion.div>
 
-            {/* Progress Card */}
+            {/* Collective Progress Card */}
             <motion.div
-              className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm"
+              className="bg-white p-4 sm:p-6 rounded-xl border border-gray-200 shadow-sm mb-4 sm:mb-6"
               variants={fadeUp}
               initial="hidden"
               animate="visible"
             >
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Your Progress</h3>
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Collective Progress</h3>
               
               {/* Progress Stats */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-                <div className="bg-gradient-to-br from-orange-50 to-amber-50 p-4 rounded-lg">
-                  <p className="text-sm text-gray-600 mb-1">Completed</p>
-                  <p className="text-2xl font-bold text-orange-600">{userTotal.toLocaleString()}</p>
-                  <p className="text-xs text-gray-500">malas</p>
+              <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-6">
+                <div className="bg-gradient-to-br from-orange-50 to-amber-50 p-2 sm:p-4 rounded-lg text-center">
+                  <p className="text-[10px] sm:text-sm text-gray-600 mb-0.5 sm:mb-1">Total Done</p>
+                  <p className="text-base sm:text-2xl font-bold text-orange-600">{collectiveTotal.toLocaleString()}</p>
                 </div>
                 
-                <div className="bg-gradient-to-br from-orange-50 to-amber-50 p-4 rounded-lg">
-                  <p className="text-sm text-gray-600 mb-1">Remaining to Target</p>
-                  <p className="text-2xl font-bold text-amber-600">{Math.max(remainingCount, 0).toLocaleString()}</p>
-                  <p className="text-xs text-gray-500">malas</p>
+                <div className="bg-gradient-to-br from-orange-50 to-amber-50 p-2 sm:p-4 rounded-lg text-center">
+                  <p className="text-[10px] sm:text-sm text-gray-600 mb-0.5 sm:mb-1">Remaining</p>
+                  <p className="text-base sm:text-2xl font-bold text-amber-600">{collectiveRemaining.toLocaleString()}</p>
                 </div>
                 
-                <div className="bg-gradient-to-br from-orange-50 to-amber-50 p-4 rounded-lg">
-                  <p className="text-sm text-gray-600 mb-1">Progress</p>
-                  <p className="text-2xl font-bold text-gray-900">{progressPercentage.toFixed(1)}%</p>
-                  <p className="text-xs text-gray-500">of target</p>
+                <div className="bg-gradient-to-br from-orange-50 to-amber-50 p-2 sm:p-4 rounded-lg text-center">
+                  <p className="text-[10px] sm:text-sm text-gray-600 mb-0.5 sm:mb-1">Progress</p>
+                  <p className="text-base sm:text-2xl font-bold text-gray-900">{collectiveProgress.toFixed(1)}%</p>
                 </div>
               </div>
 
               {/* Progress Bar */}
-              <div className="mb-2">
-                <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+              <div className="mb-2 sm:mb-3">
+                <div className="w-full bg-gray-200 rounded-full h-2 sm:h-4 overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
-                    animate={{ width: `${barPercentage}%` }}
+                    animate={{ width: `${collectiveBarPercentage}%` }}
                     transition={{ duration: 1 }}
                     className={`h-full ${
-                      isGoalAchieved && activeShatra.status === "active"
+                      isCollectiveGoalAchieved && activeShatra.status === "active"
                         ? "bg-gradient-to-r from-purple-500 to-pink-500" 
                         : "bg-gradient-to-r from-orange-500 to-amber-500"
                     }`}
@@ -1485,44 +810,49 @@ const BhajanShastra = () => {
                 </div>
               </div>
               
-              {/* Progress Stats Line */}
-              <div className="flex justify-between text-xs text-gray-500 mb-6">
+              <div className="flex justify-between text-[10px] sm:text-xs text-gray-500 mb-4 sm:mb-6">
                 <span>0</span>
-                <span className="text-center">
-                  {userTotal.toLocaleString()} / {activeShatra.targetCount.toLocaleString()} malas
-                </span>
+                <span>{collectiveTotal.toLocaleString()} / {activeShatra.targetCount.toLocaleString()}</span>
                 <span>{activeShatra.targetCount.toLocaleString()}</span>
               </div>
 
               {/* Add Contribution Form */}
               {activeShatra.status === "active" && canContribute() ? (
-                <div className="flex gap-3">
+                <form onSubmit={handleAddContribution} className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                   <input
                     type="number"
                     value={contributionInput}
                     onChange={(e) => setContributionInput(e.target.value)}
-                    placeholder="Enter malas done today"
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    placeholder="Add your malas today"
+                    className="w-full sm:flex-1 px-3 sm:px-4 py-2.5 sm:py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                     min="1"
+                    disabled={isSubmitting}
                   />
                   <button
-                    onClick={handleAddContribution}
-                    disabled={!contributionInput || leaderboardLoading}
-                    className="px-6 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg font-medium hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    type="submit"
+                    disabled={!contributionInput || isSubmitting}
+                    className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg text-sm font-medium hover:shadow-md disabled:opacity-50"
                   >
-                    {leaderboardLoading ? "Adding..." : "Add Progress"}
+                    {isSubmitting ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span>Adding...</span>
+                      </span>
+                    ) : (
+                      "Add Progress"
+                    )}
                   </button>
-                </div>
+                </form>
               ) : activeShatra.status === "upcoming" ? (
-                <div className="bg-blue-50 p-4 rounded-lg text-center">
-                  <p className="text-blue-700 text-sm">
-                    ⏳ This shatra starts on {formatDate(activeShatra.startDate)}. Please wait until then to add progress.
+                <div className="bg-blue-50 p-3 sm:p-4 rounded-lg text-center">
+                  <p className="text-blue-700 text-xs sm:text-sm">
+                    ⏳ Starts {formatDate(activeShatra.startDate)}
                   </p>
                 </div>
               ) : (
-                <div className="bg-gray-50 p-4 rounded-lg text-center">
-                  <p className="text-gray-600 text-sm">
-                    This shatra ended on {formatDate(activeShatra.endDate)}. No more contributions allowed.
+                <div className="bg-gray-50 p-3 sm:p-4 rounded-lg text-center">
+                  <p className="text-gray-600 text-xs sm:text-sm">
+                    Ended {formatDate(activeShatra.endDate)}
                   </p>
                 </div>
               )}
@@ -1530,36 +860,35 @@ const BhajanShastra = () => {
 
             {/* Leaderboard */}
             <motion.div
-              className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm"
+              className="bg-white p-4 sm:p-6 rounded-xl border border-gray-200 shadow-sm"
               variants={fadeUp}
               initial="hidden"
               animate="visible"
             >
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-lg font-semibold text-gray-900">Sadhana Leaderboard</h3>
-                <span className="text-sm text-gray-500">Top 10 Contributors</span>
+              <div className="flex justify-between items-center mb-3 sm:mb-4">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900">Leaderboard</h3>
+                <span className="text-[10px] sm:text-xs text-gray-500">Top 10 Contributors</span>
               </div>
 
-              {/* Top 10 Leaderboard */}
               {leaderboardLoading ? (
-                <div className="flex justify-center py-8">
-                  <div className="w-6 h-6 border-2 border-[#FF7722] border-t-transparent rounded-full animate-spin"></div>
+                <div className="flex justify-center py-6 sm:py-8">
+                  <div className="w-5 h-5 sm:w-6 sm:h-6 border-2 border-[#FF7722] border-t-transparent rounded-full animate-spin"></div>
                 </div>
               ) : leaderboard.top10.length > 0 ? (
                 <>
-                  <div className="space-y-3 mb-6">
+                  <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
                     {leaderboard.top10.map((entry, index) => (
                       <motion.div
                         key={entry.userId}
                         variants={fadeUp}
-                        className={`flex items-center justify-between p-3 rounded-lg transition-all ${
+                        className={`flex items-center justify-between p-2 sm:p-3 rounded-lg ${
                           entry.userId === user?._id 
                             ? "bg-orange-50 border border-orange-200" 
-                            : "bg-gray-50 hover:bg-orange-50/50"
+                            : "bg-gray-50"
                         }`}
                       >
-                        <div className="flex items-center gap-3">
-                          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                          <div className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-[10px] sm:text-xs font-bold flex-shrink-0 ${
                             index === 0 ? "bg-amber-500 text-white" :
                             index === 1 ? "bg-gray-500 text-white" :
                             index === 2 ? "bg-amber-400 text-white" :
@@ -1567,160 +896,150 @@ const BhajanShastra = () => {
                           }`}>
                             {entry.rank}
                           </div>
-                          <div>
-                            <span className="font-medium text-gray-900">{entry.name}</span>
-                            {entry.userId === user?._id && (
-                              <span className="ml-2 text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">You</span>
-                            )}
+                          <div className="min-w-0 flex-1">
+                            <p className="font-medium text-gray-900 text-xs sm:text-sm truncate">
+                              {entry.name}
+                            </p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-gray-500">{entry.total.toLocaleString()} malas</span>
+                        <div className="flex items-center gap-1 sm:gap-2 ml-2 flex-shrink-0">
+                          <span className="text-[10px] sm:text-xs text-gray-500 hidden xs:inline">malas</span>
+                          <span className="font-bold text-orange-600 text-xs sm:text-sm">
+                            {entry.total.toLocaleString()}
+                          </span>
                         </div>
                       </motion.div>
                     ))}
                   </div>
 
-                  {/* User's rank if not in top 10 */}
                   {leaderboard.userRank && leaderboard.userRank.rank > 10 && (
-                    <div className="border-t border-gray-200 pt-4">
-                      <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <div className="w-6 h-6 rounded-full bg-gray-400 text-white flex items-center justify-center text-xs font-bold">
+                    <div className="border-t border-gray-200 pt-3 sm:pt-4">
+                      <div className="flex items-center justify-between p-2 sm:p-3 bg-orange-50 rounded-lg">
+                        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                          <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gray-400 text-white flex items-center justify-center text-[10px] sm:text-xs font-bold flex-shrink-0">
                             {leaderboard.userRank.rank}
                           </div>
-                          <div>
-                            <span className="font-medium text-gray-900">{leaderboard.userRank.name}</span>
-                            <span className="ml-2 text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">You</span>
+                          <div className="min-w-0 flex-1">
+                            <p className="font-medium text-gray-900 text-xs sm:text-sm truncate">
+                              {leaderboard.userRank.name}
+                            </p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-gray-500">{leaderboard.userRank.total.toLocaleString()} malas</span>
+                        <div className="flex items-center gap-1 sm:gap-2 ml-2 flex-shrink-0">
+                          <span className="text-[10px] sm:text-xs text-gray-500">{leaderboard.userRank.total.toLocaleString()}</span>
                         </div>
                       </div>
-                      <p className="text-xs text-gray-500 text-center mt-2">
-                        You're #{leaderboard.userRank.rank} overall • {leaderboard.userRank.total.toLocaleString()} malas completed
-                      </p>
                     </div>
                   )}
                 </>
               ) : (
-                <div className="text-center py-8">
-                  <p className="text-gray-500">No contributions yet. Be the first to add your sadhana!</p>
+                <div className="text-center py-6 sm:py-8">
+                  <p className="text-gray-500 text-xs sm:text-sm">No contributions yet</p>
                 </div>
               )}
             </motion.div>
           </>
         ) : (
-          <div className="bg-white p-12 rounded-xl border border-gray-200 text-center">
-            <p className="text-gray-500">No shatras available.</p>
+          <div className="bg-white p-8 sm:p-12 rounded-xl border border-gray-200 text-center">
+            <p className="text-gray-500 text-sm sm:text-base">No shatras available.</p>
           </div>
         )}
 
-        {/* Contributors Modal */}
+        {/* Contributors Modal - Mobile Responsive */}
         <AnimatePresence>
           {showContributorsModal && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50"
+              className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black bg-opacity-50"
               onClick={() => setShowContributorsModal(false)}
             >
               <motion.div
-                initial={{ scale: 0.9, y: 20 }}
-                animate={{ scale: 1, y: 0 }}
-                exit={{ scale: 0.9, y: 20 }}
-                className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden"
+                initial={{ y: "100%", scale: 1 }}
+                animate={{ y: 0, scale: 1 }}
+                exit={{ y: "100%", scale: 1 }}
+                transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                className="bg-white rounded-t-xl sm:rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] sm:max-h-[80vh] overflow-hidden"
                 onClick={(e) => e.stopPropagation()}
               >
-                {/* Modal Header */}
-                <div className="p-6 border-b border-gray-200">
+                <div className="p-3 sm:p-4 border-b border-gray-200 sticky top-0 bg-white z-10">
                   <div className="flex justify-between items-center">
-                    <h2 className="text-2xl font-bold text-gray-900">
-                      {selectedContributor ? 'Contributor Details' : 'All Contributors'}
+                    <h2 className="text-base sm:text-lg font-semibold text-gray-900">
+                      {selectedContributor ? 'Contributor Details' : 'Contributors'}
                     </h2>
                     <button
                       onClick={() => setShowContributorsModal(false)}
-                      className="text-gray-400 hover:text-gray-600 transition-colors"
+                      className="text-gray-400 hover:text-gray-600 text-xl"
                     >
-                      <span className="text-2xl">×</span>
+                      ✕
                     </button>
                   </div>
                   
                   {!selectedContributor && (
-                    <div className="flex gap-3 mt-4">
+                    <div className="flex gap-2 mt-2">
                       <input
                         type="text"
-                        placeholder="Search by name..."
+                        placeholder="Search..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && fetchContributors(1)}
-                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                       <button
                         onClick={() => fetchContributors(1)}
-                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                        className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600"
                       >
-                        Search
+                        Go
                       </button>
-                      {user?.role === "admin" && (
-                        <button
-                          onClick={handleExport}
-                          className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2"
-                        >
-                          <span>📥</span>
-                          Export CSV
-                        </button>
-                      )}
                     </div>
                   )}
                 </div>
 
-                {/* Modal Body */}
-                <div className="p-6 overflow-y-auto max-h-[60vh]">
+                <div className="p-3 sm:p-4 overflow-y-auto" style={{ maxHeight: "calc(90vh - 120px)" }}>
+                  {/* Modal content - same as before but with responsive text sizes */}
                   {selectedContributor ? (
-                    // Contributor Details View
+                    // Contributor details
                     <div>
                       <button
                         onClick={() => {
                           setSelectedContributor(null);
                           setContributorDetails(null);
                         }}
-                        className="mb-4 text-blue-500 hover:text-blue-700 flex items-center gap-1"
+                        className="mb-3 text-blue-500 hover:text-blue-700 text-sm flex items-center gap-1"
                       >
-                        ← Back to list
+                        ← Back
                       </button>
                       
                       {detailsLoading ? (
-                        <div className="flex justify-center py-8">
-                          <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                        <div className="flex justify-center py-6">
+                          <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
                         </div>
                       ) : contributorDetails && (
-                        <div className="space-y-6">
-                          <div className="bg-blue-50 p-4 rounded-lg">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">{contributorDetails.user.name}</h3>
-                            <p className="text-sm text-gray-600">{contributorDetails.user.email}</p>
+                        <div className="space-y-4">
+                          <div className="bg-blue-50 p-3 rounded-lg">
+                            <p className="font-medium text-gray-900 text-sm">{contributorDetails.user.name}</p>
+                            <p className="text-xs text-gray-600">{contributorDetails.user.email}</p>
                           </div>
                           
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="bg-gray-50 p-4 rounded-lg">
-                              <p className="text-sm text-gray-600 mb-1">Total Malas</p>
-                              <p className="text-2xl font-bold text-blue-600">{contributorDetails.total.toLocaleString()}</p>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="bg-gray-50 p-3 rounded-lg">
+                              <p className="text-xs text-gray-600">Total</p>
+                              <p className="text-base font-bold text-blue-600">{contributorDetails.total.toLocaleString()}</p>
                             </div>
-                            <div className="bg-gray-50 p-4 rounded-lg">
-                              <p className="text-sm text-gray-600 mb-1">Total Days</p>
-                              <p className="text-2xl font-bold text-blue-600">{contributorDetails.totalDays}</p>
+                            <div className="bg-gray-50 p-3 rounded-lg">
+                              <p className="text-xs text-gray-600">Days</p>
+                              <p className="text-base font-bold text-blue-600">{contributorDetails.totalDays}</p>
                             </div>
                           </div>
                           
                           <div>
-                            <h4 className="font-semibold text-gray-900 mb-3">Contribution History</h4>
-                            <div className="space-y-2">
+                            <p className="text-sm font-medium text-gray-700 mb-2">History</p>
+                            <div className="space-y-2 max-h-40 overflow-y-auto">
                               {contributorDetails.contributions.map((c, idx) => (
-                                <div key={idx} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                                  <span className="text-sm text-gray-600">{formatDate(c.date)}</span>
-                                  <span className="text-sm font-semibold text-orange-600">+{c.count} malas</span>
+                                <div key={idx} className="flex justify-between items-center p-2 bg-gray-50 rounded-lg text-xs">
+                                  <span>{formatDate(c.date)}</span>
+                                  <span className="font-semibold text-orange-600">+{c.count}</span>
                                 </div>
                               ))}
                             </div>
@@ -1729,66 +1048,59 @@ const BhajanShastra = () => {
                       )}
                     </div>
                   ) : (
-                    // Contributors List View
+                    // Contributors list
                     contributorsLoading ? (
-                      <div className="flex justify-center py-8">
-                        <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                      <div className="flex justify-center py-6">
+                        <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
                       </div>
                     ) : contributors.length > 0 ? (
-                      <div className="space-y-3">
+                      <div className="space-y-2">
                         {contributors.map((contributor) => (
-                          <motion.div
+                          <div
                             key={contributor.userId}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors cursor-pointer"
+                            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg active:bg-blue-50 cursor-pointer"
                             onClick={() => {
                               setSelectedContributor(contributor.userId);
                               fetchContributorDetails(contributor.userId);
                             }}
                           >
-                            <div className="flex items-center gap-4">
-                              <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
+                            <div className="flex items-center gap-3 min-w-0 flex-1">
+                              <div className="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
                                 {contributor.rank}
                               </div>
-                              <div>
-                                <p className="font-semibold text-gray-900">{contributor.name}</p>
-                                <p className="text-sm text-gray-500">{contributor.email}</p>
+                              <div className="min-w-0 flex-1">
+                                <p className="font-medium text-gray-900 text-sm truncate">{contributor.name}</p>
                               </div>
                             </div>
-                            <div className="text-right">
-                              <p className="text-xl font-bold text-blue-600">{contributor.total}</p>
-                              <p className="text-xs text-gray-500">malas</p>
+                            <div className="text-right ml-2 flex-shrink-0">
+                              <p className="text-sm font-bold text-blue-600">{contributor.total}</p>
                             </div>
-                          </motion.div>
+                          </div>
                         ))}
                       </div>
                     ) : (
-                      <div className="text-center py-8">
-                        <p className="text-gray-500">No contributors found</p>
-                      </div>
+                      <p className="text-center text-gray-500 text-sm py-6">No contributors found</p>
                     )
                   )}
                 </div>
 
-                {/* Modal Footer - Pagination */}
                 {!selectedContributor && contributorsPagination.totalPages > 1 && (
-                  <div className="p-6 border-t border-gray-200">
+                  <div className="p-3 border-t border-gray-200 sticky bottom-0 bg-white">
                     <div className="flex justify-center gap-2">
                       <button
                         onClick={() => fetchContributors(contributorsPagination.currentPage - 1)}
                         disabled={!contributorsPagination.hasPrevPage}
-                        className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 transition-colors"
+                        className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-xs disabled:opacity-50"
                       >
-                        Previous
+                        Prev
                       </button>
-                      <span className="px-4 py-2 bg-blue-500 text-white rounded-lg">
-                        Page {contributorsPagination.currentPage} of {contributorsPagination.totalPages}
+                      <span className="px-3 py-1.5 bg-blue-500 text-white rounded-lg text-xs">
+                        {contributorsPagination.currentPage}/{contributorsPagination.totalPages}
                       </span>
                       <button
                         onClick={() => fetchContributors(contributorsPagination.currentPage + 1)}
                         disabled={!contributorsPagination.hasNextPage}
-                        className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 transition-colors"
+                        className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-xs disabled:opacity-50"
                       >
                         Next
                       </button>
@@ -1802,17 +1114,17 @@ const BhajanShastra = () => {
 
         {/* Footer */}
         <motion.footer 
-          className="text-center py-6"
+          className="text-center py-4 sm:py-6 mt-4 sm:mt-6"
           variants={fadeUp}
           initial="hidden"
           animate="visible"
         >
-          <LotusDivider className="mb-4" />
-          <p className="text-xs sm:text-sm font-semibold text-gray-700 mb-2">श्री स्वामिनारायणाय नमः</p>
-          <p className="text-xs text-gray-500 max-w-xs mx-auto">
+          <LotusDivider className="mb-2 sm:mb-3" />
+          <p className="text-[10px] sm:text-xs font-semibold text-gray-700 mb-1">श्री स्वामिनारायणाय नमः</p>
+          <p className="text-[8px] sm:text-xs text-gray-500 max-w-[250px] sm:max-w-xs mx-auto">
             May our collective sadhana bring divine blessings
           </p>
-          <p className="text-xs mt-2 text-gray-400">
+          <p className="text-[8px] sm:text-xs mt-1 sm:mt-2 text-gray-400">
             Developed by{' '}
             <a 
               href="https://buildcrew.co.in" 

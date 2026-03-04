@@ -456,7 +456,7 @@ router.post("/:id/contribute", authMiddleware, async (req, res) => {
     }
 
     // Get the updated shatra to return
-    const updatedShatra = await BhajanShatra.findById(shastraId);
+    const updatedShatra = await BhajanShatra.findById(shatraId);
 
     res.json({ 
       success: true,
