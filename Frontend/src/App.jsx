@@ -19,6 +19,9 @@ import BhajanShatra from './components/BhajanShatra/BhajanShatra';
 import AnnouncementPopup from './components/Common/AnnouncementPopup';
 import { getFCMToken } from './message/firebase';
 import TestNotifications from './components/testcomponent';
+import TermsAndConditions from './components/Terms&Conditions/Terms&Conditions';
+import PrivacyPolicy from './components/Terms&Conditions/PrivacyPolicy';
+import PageNotFound from './components/Common/PageNotFound';
 
 // FCM Initializer Component
 function FCMInitializer() {
@@ -82,6 +85,10 @@ function App() {
           <Route path="/tasks/update/:id" element={<TaskUpdatePage />} />
           <Route path="/bhajan-shatra" element={<BhajanShatra />} />
           <Route path="/test-notifications" element={<TestNotifications />} />
+
+          <Route path="*" element={<PageNotFound />} />
+          <Route path="/termsandconditions" element={<TermsAndConditions />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         </Routes>
       </Router>
     </AuthProvider>

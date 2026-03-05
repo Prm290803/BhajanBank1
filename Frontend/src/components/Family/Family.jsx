@@ -767,43 +767,6 @@ useEffect(() => {
       )}
     </div>
 
-    {/* Today's Completed Tasks */}
-    <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200 p-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-        <span>✅</span>
-        Today's Completed Tasks
-      </h3>
-      
-      {todayUserTasks.length > 0 ? (
-        <div className="space-y-4">
-          {todayUserTasks.map((taskDoc) => (
-            <div key={taskDoc._id}>
-              {taskDoc.tasks?.map((task, idx) => (
-                <div key={idx} className="flex items-center justify-between p-2 bg-orange-50 rounded-lg mb-2">
-                  <div>
-                    <span className="font-medium">{task.task}</span>
-                    <span className="text-xs text-gray-500 ml-2">({task.category})</span>
-                    <span className="text-sm ml-2">x{task.count}</span>
-                  </div>
-                  <span className="text-orange-600 font-bold">+{task.totalPoints} pts</span>
-                </div>
-              ))}
-            </div>
-          ))}
-          
-          <div className="mt-4 pt-4 border-t border-gray-200 flex justify-between items-center">
-            <span className="font-semibold">Total Today:</span>
-            <span className="text-orange-600 font-bold">
-              {todayUserTasks.reduce((sum, taskDoc) => 
-                sum + (taskDoc.summary?.grandTotalPoints || 0), 0
-              )} pts
-            </span>
-          </div>
-        </div>
-      ) : (
-        <p className="text-center text-gray-500 py-8">No tasks completed today</p>
-      )}
-    </div>
 
     {/* Family Tasks Progress */}
     <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200 p-6">
@@ -822,7 +785,7 @@ useEffect(() => {
                 </div>
                 <span className="font-medium">{member.name}</span>
               </div>
-              <span className="text-orange-600 font-semibold">{member.points} pts</span>
+              <span className="text-orange-600 font-semibold">{member.points} </span>
             </div>
             
             {/* Progress bar towards goal */}
