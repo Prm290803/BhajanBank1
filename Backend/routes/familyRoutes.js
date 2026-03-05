@@ -53,6 +53,113 @@ router.get("/api/family/goal", authMiddleware, async (req, res) => {
   }
 });
 
+
+/** GET /api/family/dashboard - Combined data for family dashboard */
+router.get("/api/family/dashboard", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.userId;
+    
+    // Find user with family
+    const user = await User.findById(userId).populate('family');
+    if (!user || !user.family) {
+      return res.status(400).json({ error: "You are not part of any family" });
+    }
+
+    const family = await Family.findById(user.family._id).populate('members');
+    
+    // Get today's date range (2 AM boundary)
+    const today = new Date();
+    today.setHours(2, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    // 1. Get family goal
+    const currentGoal = family.goalDate === today.toISOString().slice(0, 10) 
+      ? { goal: family.dailyGoal, goalName: family.goalname, goalTasks: family.goalTasks || [] }
+      : { goal: 0, goalName: "Today's Goal", goalTasks: [] };
+
+    // 2. Get leaderboard data with points
+    const membersWithPoints = await Promise.all(
+      family.members.map(async (member) => {
+        const tasks = await Task.find({ 
+          user: member._id, 
+          date: { $gte: today, $lt: tomorrow } 
+        });
+
+        const totalPoints = tasks.reduce((sum, t) => sum + (t.summary?.grandTotalPoints || 0), 0);
+        
+        // Get member's tasks for today
+        const memberTasks = tasks.map(t => ({
+          _id: t._id,
+          tasks: t.tasks,
+          summary: t.summary
+        }));
+
+        return {
+          _id: member._id,
+          name: member.name,
+          email: member.email,
+          points: totalPoints,
+          tasks: memberTasks
+        };
+      })
+    );
+
+    // Sort by points
+    membersWithPoints.sort((a, b) => b.points - a.points);
+
+    // 3. Get current user's tasks
+    const userTasks = await Task.find({ 
+      user: userId, 
+      date: { $gte: today, $lt: tomorrow } 
+    }).sort({ createdAt: -1 });
+
+    // 4. Get task categories (cached in memory if possible)
+    const categories = await TaskCategory.find().sort({ name: 1 });
+
+    // Send combined response
+    res.json({
+      familyName: family.name,
+      members: membersWithPoints,
+      goal: currentGoal.goal,
+      goalName: currentGoal.goalName,
+      goalTasks: currentGoal.goalTasks, // Added this line
+      userTasks: userTasks,
+      taskCategories: categories,
+      totalPoints: membersWithPoints.reduce((sum, m) => sum + m.points, 0)
+    });
+
+  } catch (err) {
+    console.error("Dashboard error:", err);
+    res.status(500).json({ error: "Failed to fetch dashboard data" });
+  }
+});
+
+
+// Get user's today's tasks
+router.get("/api/user/today-tasks", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.userId;
+    
+    // Get today's date range (2 AM to next day 2 AM)
+    const today = new Date();
+    today.setHours(2, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const tasks = await Task.find({ 
+      user: userId, 
+      date: { $gte: today, $lt: tomorrow } 
+    }).sort({ createdAt: -1 });
+
+    res.json({ tasks });
+  } catch (err) {
+    console.error("Error fetching today's tasks:", err);
+    res.status(500).json({ error: "Failed to fetch tasks" });
+  }
+});
+
+
 /** DELETE /api/family/goal */
 router.delete("/api/family/goal", authMiddleware, async (req, res) => {
   try {

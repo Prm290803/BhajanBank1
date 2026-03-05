@@ -98,19 +98,41 @@ const BhajanShastra = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      setShatras(response.data);
+      // Fetch contributor counts for each shatra
+      const shatrasWithCounts = await Promise.all(
+        response.data.map(async (shatra) => {
+          try {
+            const contributorsResponse = await axios.get(
+              `${backend_url}/api/bhajan-shatra/${shatra._id}/contributors?page=1&limit=1`,
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+            return {
+              ...shatra,
+              totalContributors: contributorsResponse.data.pagination?.totalItems || 0
+            };
+          } catch (error) {
+            console.error(`Error fetching contributors for shatra ${shatra._id}:`, error);
+            return {
+              ...shatra,
+              totalContributors: 0
+            };
+          }
+        })
+      );
+      
+      setShatras(shatrasWithCounts);
       
       const savedShatraId = localStorage.getItem('activeShatraId');
       let active = null;
       
       if (savedShatraId) {
-        active = response.data.find(s => s._id === savedShatraId);
+        active = shatrasWithCounts.find(s => s._id === savedShatraId);
       }
       
       if (!active) {
-        active = response.data.find(s => s.status === "active") || 
-                response.data.find(s => s.status === "upcoming") || 
-                response.data[0];
+        active = shatrasWithCounts.find(s => s.status === "active") || 
+                shatrasWithCounts.find(s => s.status === "upcoming") || 
+                shatrasWithCounts[0];
       }
       
       if (active) {
@@ -161,10 +183,18 @@ const BhajanShastra = () => {
       setContributors(response.data.contributors);
       setContributorsPagination(response.data.pagination);
       
+      // Update the total contributors count in active shatra
       setActiveShatra(prev => prev ? {
         ...prev,
         totalContributors: response.data.pagination.totalItems
       } : null);
+      
+      // Also update in shatras list
+      setShatras(prev => prev.map(s => 
+        s._id === activeShatra._id 
+          ? { ...s, totalContributors: response.data.pagination.totalItems }
+          : s
+      ));
       
     } catch (error) {
       console.error("Error fetching contributors:", error);
@@ -190,31 +220,7 @@ const BhajanShastra = () => {
     }
   };
 
-  const handleExport = async () => {
-    if (!activeShatra) return;
-    
-    try {
-      const response = await axios.get(
-        `${backend_url}/api/bhajan-shatra/${activeShatra._id}/contributors/export`,
-        { 
-          headers: { Authorization: `Bearer ${token}` },
-          responseType: 'blob'
-        }
-      );
-      
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `${activeShatra.title}_contributors.csv`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    } catch (error) {
-      console.error("Error exporting:", error);
-    }
-  };
-
-  const handleOpenContributors = () => {
+    const handleOpenContributors = () => {
     setShowContributorsModal(true);
     setSearchTerm("");
     setSelectedContributor(null);
@@ -300,18 +306,26 @@ const BhajanShastra = () => {
       
       const { totalContributions, totalContributors } = response.data;
       
+      // Calculate new total contributors
+      // Check if this is user's first contribution
+      const isFirstContribution = !previousLeaderboard.top10?.some(e => e.userId === user?._id) && 
+                                  !previousLeaderboard.userRank;
+      
+      const newTotalContributors = totalContributors || 
+                                  (isFirstContribution ? previousActiveShatra.totalContributors + 1 : previousActiveShatra.totalContributors);
+      
       setActiveShatra(prev => ({
         ...prev,
-        totalContribution: totalContributions,
-        totalContributors: totalContributors || prev.totalContributors
+        totalContributions: totalContributions,
+        totalContributors: newTotalContributors
       }));
       
       setShatras(prev => prev.map(s => 
         s._id === activeShatra._id 
           ? { 
               ...s, 
-              totalContribution: totalContributions,
-              totalContributors: totalContributors || s.totalContributors
+              totalContributions: totalContributions,
+              totalContributors: newTotalContributors
             }
           : s
       ));
@@ -332,7 +346,7 @@ const BhajanShastra = () => {
   };
 
   // Calculate COLLECTIVE progress (all users combined)
-  const collectiveTotal = activeShatra?.totalContribution || 0;
+  const collectiveTotal = activeShatra?.totalContributions || 0;
   const collectiveProgress = activeShatra 
     ? (collectiveTotal / activeShatra.targetCount) * 100 
     : 0;
@@ -582,22 +596,23 @@ const BhajanShastra = () => {
           </div>
           
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-            {activeShatra && (
-              <motion.button
-                onClick={handleOpenContributors}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-blue-500 text-white rounded-lg text-xs sm:text-sm font-medium shadow-md hover:shadow-lg transition-all whitespace-nowrap"
-              >
-                <span className="text-base sm:text-lg">👥</span>
-                <span className="hidden xs:inline">Contributors</span>
-                {activeShatra.totalContributors > 0 && (
-                  <span className="ml-0.5 sm:ml-1 px-1.5 sm:px-2 py-0.5 bg-white text-blue-600 rounded-full text-xs font-bold">
-                    {activeShatra.totalContributors}
-                  </span>
-                )}
-              </motion.button>
-            )}
+           {user?.role === "admin" && activeShatra && (
+  <motion.button
+    onClick={handleOpenContributors}
+    whileHover={{ scale: 1.05 }}
+    whileTap={{ scale: 0.95 }}
+    className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-blue-500 text-white rounded-lg text-xs sm:text-sm font-medium shadow-md hover:shadow-lg transition-all whitespace-nowrap"
+  >
+    <span className="text-base sm:text-lg">👥</span>
+    <span className="hidden xs:inline">Contributors</span>
+
+    {activeShatra.totalContributors > 0 && (
+      <span className="ml-0.5 sm:ml-1 px-1.5 sm:px-2 py-0.5 bg-white text-blue-600 rounded-full text-xs font-bold">
+        {activeShatra.totalContributors}
+      </span>
+    )}
+  </motion.button>
+)}
             
             {user?.role === "admin" && (
               <motion.button
@@ -997,7 +1012,6 @@ const BhajanShastra = () => {
                 </div>
 
                 <div className="p-3 sm:p-4 overflow-y-auto" style={{ maxHeight: "calc(90vh - 120px)" }}>
-                  {/* Modal content - same as before but with responsive text sizes */}
                   {selectedContributor ? (
                     // Contributor details
                     <div>

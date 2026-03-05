@@ -27,6 +27,16 @@ const FamilyLeaderboard = () => {
   const [selectedView, setSelectedView] = useState("leaderboard");
   const { user, token } = useAuth();
   const backend_url = import.meta.env.VITE_BACKENDURL || "";
+  const [todayUserTasks, setTodayUserTasks] = useState([]);
+  const [showGoalForm, setShowGoalForm] = useState(false);
+  const [taskCategories, setTaskCategories] = useState([]);
+const [selectedTasks, setSelectedTasks] = useState([]);
+const [showCreateGoal, setShowCreateGoal] = useState(false);
+const [goalTasks, setGoalTasks] = useState([]);
+const [goalMessage, setGoalMessage] = useState({ type: '', text: '' });
+const [goalNameInput, setGoalNameInput] = useState('');
+const [showNameInput, setShowNameInput] = useState(false);
+
 
   // Fetch leaderboard + goal
   useEffect(() => {
@@ -63,38 +73,83 @@ const FamilyLeaderboard = () => {
     if (token) fetchData();
   }, [token, backend_url]);
 
-  const handleSetGoal = async () => {
-    const goalNameInput = prompt("Enter goal name:", "");
-    if (!goalNameInput) return;
-
-    const input = prompt("Enter today's goal (points):", "");
-    if (!input) return;
-
-    const newGoal = parseInt(input);
-    if (isNaN(newGoal) || newGoal <= 0) return alert("Please enter a valid number.");
-
+  // Fetch task categories
+useEffect(() => {
+  const fetchTaskCategories = async () => {
     try {
-      const res = await fetch(`${backend_url}/api/family/goal`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ goal: newGoal, goalName: goalNameInput }),
+      const res = await fetch(`${backend_url}/api/taskcategories`, {
+        headers: { Authorization: `Bearer ${token}` }
       });
-
       const data = await res.json();
       if (res.ok) {
-        setGoal(data.goal);
-        setGoalName(data.goalName);
-        alert(`✅ Goal set successfully: ${data.goalName} - ${data.goal.toLocaleString()} points`);
-      } else {
-        alert(data.message || "Failed to set goal");
+        setTaskCategories(data);
       }
     } catch (err) {
-      console.error(err);
+      console.error("Error fetching task categories:", err);
     }
   };
+
+  if (token) fetchTaskCategories();
+}, [token, backend_url]);
+
+
+const handleSetGoal = async () => {
+  if (selectedTasks.length === 0) {
+    setGoalMessage({ type: 'error', text: 'Please select at least one task for the goal' });
+    setTimeout(() => setGoalMessage({ type: '', text: '' }), 3000);
+    return;
+  }
+
+  if (!goalNameInput.trim()) {
+    setGoalMessage({ type: 'error', text: 'Please enter a goal name' });
+    setTimeout(() => setGoalMessage({ type: '', text: '' }), 3000);
+    return;
+  }
+
+  // Calculate total possible points from selected tasks
+  const totalPossiblePoints = selectedTasks.reduce((sum, task) => {
+    return sum + (task.points * (task.targetCount || 1));
+  }, 0);
+
+  try {
+    const res = await fetch(`${backend_url}/api/family/goal`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ 
+        goal: totalPossiblePoints, 
+        goalName: goalNameInput,
+        goalTasks: selectedTasks
+      }),
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      setGoal(data.goal);
+      setGoalName(data.goalName);
+      setGoalTasks(selectedTasks);
+      setShowCreateGoal(false);
+      setShowNameInput(false);
+      setSelectedTasks([]);
+      setGoalNameInput('');
+      
+      // Show success message inline
+      setGoalMessage({ type: 'success', text: '✅ Goal set successfully!' });
+      setTimeout(() => setGoalMessage({ type: '', text: '' }), 3000);
+    } else {
+      setGoalMessage({ type: 'error', text: data.message || 'Failed to set goal' });
+      setTimeout(() => setGoalMessage({ type: '', text: '' }), 3000);
+    }
+  } catch (err) {
+    console.error(err);
+    setGoalMessage({ type: 'error', text: 'Failed to set goal' });
+    setTimeout(() => setGoalMessage({ type: '', text: '' }), 3000);
+  }
+};
+
+
 
   const handleDeleteGoal = async () => {
     if (!window.confirm("Are you sure you want to delete today's goal?")) return;
@@ -120,7 +175,29 @@ const FamilyLeaderboard = () => {
       alert("Failed to delete goal");
     }
   };
+// Fetch user's tasks for today
+useEffect(() => {
+  const fetchUserTasks = async () => {
+    if (!token || !user) return;
+    
+    try {
+      const res = await fetch(`${backend_url}/api/user/today-tasks`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+     
+      const data = await res.json();
+      //  console.log("Fetching today's tasks for user:", data); 
+      if (res.ok) {
+        setTodayUserTasks(data.tasks || []);
+      }
+    } catch (err) {
+      console.error("Error fetching tasks:", err);
+    }
+  };
 
+
+  fetchUserTasks();
+}, [token, user, backend_url]);
   // Calculate total points and progress
   const totalPoints = members.reduce((sum, member) => sum + member.points, 0);
   const progress = goal > 0 ? Math.min((totalPoints / goal) * 100, 100) : 0;
@@ -455,123 +532,317 @@ const FamilyLeaderboard = () => {
             </motion.div>
           )}
 
-          {selectedView === "goals" && (
-            <motion.div
-              key="goals"
-              variants={fadeUp}
-              initial="hidden"
-              animate="visible"
-              exit={{ opacity: 0, y: -20 }}
-              className="bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-lg border border-gray-200 p-6 sm:p-8"
-            >
-              <div className="text-center mb-6">
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 flex items-center justify-center gap-2">
-                  <span className="text-2xl">🎯</span>
-                  Daily Family Goal
-                </h2>
-                <p className="text-gray-600 text-sm">Set and track your family's daily spiritual target</p>
-              </div>
+{selectedView === "goals" && (
+  <motion.div
+    key="goals"
+    variants={fadeUp}
+    initial="hidden"
+    animate="visible"
+    exit={{ opacity: 0, y: -20 }}
+    className="space-y-6"
+  >
+    {/* Goal Card */}
+    <div className="bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-lg border border-gray-200 p-6 sm:p-8">
+      <div className="text-center mb-6">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 flex items-center justify-center gap-2">
+          <span className="text-2xl">🎯</span>
+          Daily Family Goal
+        </h2>
+      </div>
 
-              {goal > 0 ? (
-                <div className="max-w-2xl mx-auto">
-                  {/* Goal Card */}
-                  <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl p-6 border border-gray-200 shadow-sm mb-6">
-                    <div className="text-center mb-4">
-                      <span className="inline-block text-3xl mb-2">🎯</span>
-                      <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-1">{goalName}</h3>
-                      <p className="text-sm text-gray-600">Today's Target: {goal.toLocaleString()} points</p>
+      {/* Inline Message */}
+      {goalMessage.text && (
+        <div className={`mb-4 p-3 rounded-lg text-center ${
+          goalMessage.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+        }`}>
+          {goalMessage.text}
+        </div>
+      )}
+
+      {!showCreateGoal && goal === 0 && (
+        <div className="text-center py-8">
+          <button
+            onClick={() => setShowCreateGoal(true)}
+            className="bg-orange-500 text-white px-6 py-3 rounded-xl font-medium hover:bg-orange-600"
+          >
+            Create New Goal
+          </button>
+        </div>
+      )}
+
+      {/* Create Goal Form */}
+      {showCreateGoal && !showNameInput && (
+        <div className="max-w-2xl mx-auto bg-orange-50 rounded-xl p-6">
+          <h3 className="text-lg font-semibold mb-4">Select Tasks for Today's Goal</h3>
+          
+          <div className="space-y-3 max-h-96 overflow-y-auto mb-4">
+            {taskCategories.map((category) => (
+              <div key={category._id} className="bg-white rounded-lg p-3 border border-gray-200">
+                <label className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    checked={selectedTasks.some(t => t.name === category.name)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedTasks([...selectedTasks, {
+                          name: category.name,
+                          points: category.points,
+                          category: category.categoryType,
+                          targetCount: 1
+                        }]);
+                      } else {
+                        setSelectedTasks(selectedTasks.filter(t => t.name !== category.name));
+                      }
+                    }}
+                    className="w-4 h-4 text-orange-500"
+                  />
+                  <div className="flex-1">
+                    <div className="flex justify-between">
+                      <span className="font-medium">{category.name}</span>
+                      <span className="text-orange-600">{category.points} pts each</span>
                     </div>
+                    <span className="text-xs text-gray-500">{category.categoryType}</span>
+                  </div>
+                </label>
+                
+                {/* Target count input for selected tasks */}
+                {selectedTasks.some(t => t.name === category.name) && (
+                  <div className="mt-2 ml-7">
+                    <label className="text-sm text-gray-600">Target count:</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={selectedTasks.find(t => t.name === category.name)?.targetCount || 1}
+                      onChange={(e) => {
+                        const count = parseInt(e.target.value) || 1;
+                        setSelectedTasks(selectedTasks.map(t => 
+                          t.name === category.name ? {...t, targetCount: count} : t
+                        ));
+                      }}
+                      className="ml-2 w-20 px-2 py-1 border rounded"
+                    />
+                    <span className="ml-2 text-sm text-gray-500">
+                      = {category.points * (selectedTasks.find(t => t.name === category.name)?.targetCount || 1)} pts
+                    </span>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
 
-                    {/* Progress Bar */}
-                    <div className="mb-4">
-                      <div className="flex justify-between text-xs sm:text-sm text-gray-600 mb-2">
-                        <span>{totalPoints.toLocaleString()} pts</span>
-                        <span className="font-semibold text-orange-600">{progress.toFixed(1)}%</span>
-                        <span>{goal.toLocaleString()} pts</span>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setShowNameInput(true)}
+              disabled={selectedTasks.length === 0}
+              className="flex-1 bg-orange-500 text-white py-2 rounded-lg disabled:opacity-50"
+            >
+              Next ({selectedTasks.reduce((sum, t) => sum + (t.points * t.targetCount), 0)} pts)
+            </button>
+            <button
+              onClick={() => {
+                setShowCreateGoal(false);
+                setSelectedTasks([]);
+              }}
+              className="px-4 py-2 bg-gray-200 rounded-lg"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Goal Name Input Form */}
+      {showNameInput && (
+        <div className="max-w-md mx-auto bg-orange-50 rounded-xl p-6">
+          <h3 className="text-lg font-semibold mb-4">Name Your Goal</h3>
+          
+          <input
+            type="text"
+            value={goalNameInput}
+            onChange={(e) => setGoalNameInput(e.target.value)}
+            placeholder="e.g., Morning Sadhana, Family Prayer Time..."
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg mb-4 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+            autoFocus
+          />
+          
+          <div className="flex gap-3">
+            <button
+              onClick={handleSetGoal}
+              className="flex-1 bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600"
+            >
+              Create Goal
+            </button>
+            <button
+              onClick={() => {
+                setShowNameInput(false);
+                setGoalNameInput('');
+              }}
+              className="px-4 py-2 bg-gray-200 rounded-lg"
+            >
+              Back
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Active Goal Display */}
+      {goal > 0 && !showCreateGoal && !showNameInput && (
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl p-6 border border-gray-200 shadow-sm mb-6">
+            <div className="text-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">{goalName}</h3>
+              <p className="text-sm text-gray-600">Target: {goal.toLocaleString()} points</p>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="mb-4">
+              <div className="flex justify-between text-sm text-gray-600 mb-2">
+                <span>{totalPoints} pts</span>
+                <span className="font-semibold text-orange-600">{progress.toFixed(1)}%</span>
+                <span>{goal} pts</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progress}%` }}
+                  className={`h-full rounded-full ${
+                    progress >= 100 ? "bg-green-500" : "bg-orange-500"
+                  }`}
+                />
+              </div>
+            </div>
+
+            {/* Goal Tasks Progress */}
+            {goalTasks.length > 0 && (
+              <div className="mt-4 pt-4 border-t border-orange-200">
+                <h4 className="font-medium mb-2">Task Progress:</h4>
+                {goalTasks.map((goalTask) => {
+                  // Find how many times this task was done today
+                  const completedCount = todayUserTasks.reduce((sum, taskDoc) => {
+                    const matchingTask = taskDoc.tasks?.find(t => t.task === goalTask.name);
+                    return sum + (matchingTask?.count || 0);
+                  }, 0);
+                  
+                  const targetCount = goalTask.targetCount || 1;
+                  const taskProgress = Math.min((completedCount / targetCount) * 100, 100);
+                  
+                  return (
+                    <div key={goalTask.name} className="mb-2">
+                      <div className="flex justify-between text-sm">
+                        <span>{goalTask.name}</span>
+                        <span>{completedCount}/{targetCount}</span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-3 sm:h-4 overflow-hidden">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: `${progress}%` }}
-                          transition={{ duration: 1, ease: "easeOut" }}
-                          className={`h-full rounded-full ${
-                            progress >= 100 
-                              ? "bg-gradient-to-r from-green-500 to-emerald-500" 
-                              : "bg-gradient-to-r from-orange-500 to-amber-500"
-                          }`}
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                          className="bg-orange-400 h-2 rounded-full"
+                          style={{ width: `${taskProgress}%` }}
                         />
                       </div>
                     </div>
+                  );
+                })}
+              </div>
+            )}
 
-                    {/* Progress Message */}
-                    <div className="text-center mb-4">
-                      {progress >= 100 ? (
-                        <div className="bg-green-100 text-green-700 p-3 rounded-lg text-sm">
-                          <p className="font-semibold">🎉 Congratulations! Family goal achieved!</p>
-                        </div>
-                      ) : (
-                        <div className="bg-orange-100 text-orange-700 p-3 rounded-lg text-sm">
-                          <p className="font-semibold">{remainingPoints.toLocaleString()} points remaining</p>
-                          <p className="text-xs mt-1">Keep up the spiritual momentum!</p>
-                        </div>
-                      )}
-                    </div>
+            {/* Action Buttons */}
+            <div className="flex justify-center gap-3 mt-4">
+              <button
+                onClick={() => {
+                  setShowCreateGoal(true);
+                  setSelectedTasks(goalTasks);
+                }}
+                className="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm hover:bg-orange-600"
+              >
+                Update Goal
+              </button>
+              <button
+                onClick={handleDeleteGoal}
+                className="px-4 py-2 bg-red-100 text-red-600 rounded-lg text-sm hover:bg-red-200"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
 
-                    {/* Action Buttons */}
-                    <div className="flex justify-center gap-3">
-                      <button
-                        onClick={handleSetGoal}
-                        className="px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg font-medium text-sm hover:shadow-md transition-all duration-200"
-                      >
-                        Update Goal
-                      </button>
-                      <button
-                        onClick={handleDeleteGoal}
-                        className="px-4 py-2 bg-red-100 text-red-600 rounded-lg font-medium text-sm hover:bg-red-200 transition-all duration-200"
-                      >
-                        Delete
-                      </button>
-                    </div>
+    {/* Today's Completed Tasks */}
+    <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200 p-6">
+      <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+        <span>✅</span>
+        Today's Completed Tasks
+      </h3>
+      
+      {todayUserTasks.length > 0 ? (
+        <div className="space-y-4">
+          {todayUserTasks.map((taskDoc) => (
+            <div key={taskDoc._id}>
+              {taskDoc.tasks?.map((task, idx) => (
+                <div key={idx} className="flex items-center justify-between p-2 bg-orange-50 rounded-lg mb-2">
+                  <div>
+                    <span className="font-medium">{task.task}</span>
+                    <span className="text-xs text-gray-500 ml-2">({task.category})</span>
+                    <span className="text-sm ml-2">x{task.count}</span>
                   </div>
+                  <span className="text-orange-600 font-bold">+{task.totalPoints} pts</span>
+                </div>
+              ))}
+            </div>
+          ))}
+          
+          <div className="mt-4 pt-4 border-t border-gray-200 flex justify-between items-center">
+            <span className="font-semibold">Total Today:</span>
+            <span className="text-orange-600 font-bold">
+              {todayUserTasks.reduce((sum, taskDoc) => 
+                sum + (taskDoc.summary?.grandTotalPoints || 0), 0
+              )} pts
+            </span>
+          </div>
+        </div>
+      ) : (
+        <p className="text-center text-gray-500 py-8">No tasks completed today</p>
+      )}
+    </div>
 
-                  {/* Recent Contributors */}
-                  <div className="bg-white rounded-xl p-4 border border-gray-200">
-                    <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2 text-sm">
-                      <span>📈</span>
-                      Today's Contributors
-                    </h4>
-                    <div className="space-y-2">
-                      {members.filter(m => m.points > 0).slice(0, 3).map((member) => (
-                        <div key={member._id} className="flex items-center justify-between p-2 bg-orange-50/50 rounded-lg">
-                          <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 flex items-center justify-center text-white text-xs font-bold">
-                              {member.name.charAt(0)}
-                            </div>
-                            <span className="text-sm font-medium text-gray-900">{member.name}</span>
-                          </div>
-                          <span className="text-orange-600 font-semibold text-sm">+{member.points}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+    {/* Family Tasks Progress */}
+    <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200 p-6">
+      <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+        <span>👪</span>
+        Family Progress
+      </h3>
+      
+      <div className="space-y-4">
+        {members.filter(m => m.points > 0).map((member) => (
+          <div key={member._id} className="border-b border-gray-100 pb-3">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center text-white font-bold">
+                  {member.name.charAt(0)}
                 </div>
-              ) : (
-                <div className="text-center py-8">
-                  <div className="text-4xl mb-3">🎯</div>
-                  <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">No Active Goal</h3>
-                  <p className="text-gray-500 text-sm mb-4">Set a daily goal to motivate your family!</p>
-                  <button
-                    onClick={handleSetGoal}
-                    className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white px-6 py-3 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-200"
-                  >
-                    <span>🎯</span>
-                    Set Today's Goal
-                  </button>
+                <span className="font-medium">{member.name}</span>
+              </div>
+              <span className="text-orange-600 font-semibold">{member.points} pts</span>
+            </div>
+            
+            {/* Progress bar towards goal */}
+            {goal > 0 && (
+              <div className="ml-10">
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-orange-400 h-2 rounded-full"
+                    style={{ width: `${(member.points / goal) * 100}%` }}
+                  />
                 </div>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  </motion.div>
+)}
+     </AnimatePresence>
 
         {/* Footer */}
         <motion.footer 
@@ -598,23 +869,7 @@ const FamilyLeaderboard = () => {
         </motion.footer>
       </div>
 
-      <style jsx>{`
-        @keyframes blob {
-          0% { transform: translate(0px, 0px) scale(1); }
-          33% { transform: translate(30px, -50px) scale(1.1); }
-          66% { transform: translate(-20px, 20px) scale(0.9); }
-          100% { transform: translate(0px, 0px) scale(1); }
-        }
-        .animate-blob {
-          animation: blob 7s infinite;
-        }
-        .animation-delay-2000 {
-          animation-delay: 2s;
-        }
-        .animation-delay-4000 {
-          animation-delay: 4s;
-        }
-      `}</style>
+     
     </div>
   );
 };

@@ -26,7 +26,6 @@ function FamilyDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const backend_url = import.meta.env.VITE_BACKENDURL;
-
   
 
   const fetchFamilies = async () => {

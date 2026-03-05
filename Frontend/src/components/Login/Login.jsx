@@ -125,6 +125,7 @@ function Login() {
               <input
                 id="email"
                 type="email"
+                autoComplete="username"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full border border-gray-300 p-3 sm:p-4 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 text-sm sm:text-base"
@@ -134,32 +135,38 @@ function Login() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                Password
-              </label>
-              <div className="relative">
-                <input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full border border-gray-300 p-3 sm:p-4 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 text-sm sm:text-base pr-10 sm:pr-12"
-                  placeholder="Enter your password"
-                  required
-                />
-                <button
-                  type="button"
-                  className="absolute inset-y-0 right-0 pr-3 sm:pr-4 flex items-center text-gray-400 hover:text-gray-600 transition-colors duration-200"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? (
-                    <EyeSlashIcon className="w-4 h-4 sm:w-5 sm:h-5" />
-                  ) : (
-                    <EyeIcon className="w-4 h-4 sm:w-5 sm:h-5" />
-                  )}
-                </button>
-              </div>
-            </div>
+  <label
+    htmlFor="password"
+    className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2"
+  >
+    Password
+  </label>
+
+  <div className="relative">
+    <input
+      id="password"
+      type={showPassword ? "text" : "password"}
+      value={password}
+      onChange={(e) => setPassword(e.target.value)}
+      autoComplete="current-password"
+      className="w-full border border-gray-300 p-3 sm:p-4 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 text-sm sm:text-base pr-10 sm:pr-12"
+      placeholder="Enter your password"
+      required
+    />
+
+    <button
+      type="button"
+      className="absolute inset-y-0 right-0 pr-3 sm:pr-4 flex items-center text-gray-400 hover:text-gray-600 transition-colors duration-200"
+      onClick={() => setShowPassword(!showPassword)}
+    >
+      {showPassword ? (
+        <EyeSlashIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+      ) : (
+        <EyeIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+      )}
+    </button>
+  </div>
+</div>
 
             {/* Error Message - Mobile optimized */}
             {error && (

@@ -220,23 +220,15 @@ const fetchData = async () => {
 };
 
   useEffect(() => {
-  if (!token) return; 
-  fetchData(); 
-}, [token]); 
+  if (loading) return;
 
-const [checking, setChecking] = useState(true);
-
-useEffect(() => {
-  if (!loading) {
-    if (!token) {
-      navigate('/login', { replace: true }); // 👉 instant redirect
-      return;
-    }
-    
-    setChecking(false);
-    fetchData(); // normal fetch
+  if (!token) {
+    navigate("/login", { replace: true });
+    return;
   }
-}, [loading, token, navigate]);
+
+  fetchData();
+}, [loading, token]);
 
 
 
