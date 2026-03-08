@@ -22,16 +22,7 @@ router.get("/api/user", authMiddleware, async (req, res) => {
   }
 });
 
-// Save FCM Token
-// router.post("/save-token", async (req, res) => {
-//   const { userId, token } = req.body;
 
-//   if (!userId || !token)
-//     return res.status(400).json({ message: "Missing userId or token" });
-
-//   await User.findByIdAndUpdate(userId, { fcmtoken: token });
-//   res.json({ success: true, message: "Token saved" });
-// });
 router.post("/save-token", authMiddleware, async (req, res) => {
   try {
     const { token } = req.body;

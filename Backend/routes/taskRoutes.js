@@ -139,7 +139,7 @@ router.post("/api/taskcategories", async (req, res) => {
 router.get("/api/taskcategories", async (req, res) => {
   try {
     const categories = await TaskCategory.find().sort({ name: 1 });
-    res.json(categories);
+    res.json(categories);X
   } catch (err) {
     console.error("Error fetching task categories:", err);
     res.status(500).json({ error: "Failed to fetch task categories" });
