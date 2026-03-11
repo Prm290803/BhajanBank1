@@ -7,6 +7,39 @@ import authMiddleware from "../middleware/auth.js";
 
 const router = express.Router();
 
+
+// Save or update FCM token for logged-in user
+router.post("/save-fcm-token", authMiddleware, async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    if (!req.userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized"
+      });
+    }
+
+    await User.findByIdAndUpdate(req.userId, {
+      fcmtoken: token
+    });
+
+    res.json({
+      success: true,
+      message: "FCM token saved successfully"
+    });
+
+  } catch (error) {
+    console.error("Save FCM token error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Internal server error"
+    });
+  }
+});
+
+
 // Test notification (no auth required)
 router.get("/test", async (req, res) => {
   try {

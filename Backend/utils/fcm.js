@@ -1,4 +1,3 @@
-// backend/utils/fcm.js
 import admin from "firebase-admin";
 
 let isInitialized = false;
@@ -29,7 +28,10 @@ const initializeFirebase = () => {
   isInitialized = true;
 };
 
-// Send notification to a single device
+
+// ==============================
+// Send notification to ONE user
+// ==============================
 export const sendNotification = async (token, notification) => {
   try {
     initializeFirebase();
@@ -40,7 +42,7 @@ export const sendNotification = async (token, notification) => {
     }
 
     const message = {
-      token: token,
+      token,
       notification: {
         title: notification.title || "BhajanBank",
         body: notification.body || "You have a new notification",
@@ -60,58 +62,80 @@ export const sendNotification = async (token, notification) => {
     };
 
     const response = await admin.messaging().send(message);
+
     console.log("✅ Notification sent successfully:", response);
     return true;
+
   } catch (error) {
     console.error("❌ Error sending notification:", error);
     return false;
   }
 };
 
-// Send notification to multiple devices
+
+// ===================================
+// Send notification to MULTIPLE users
+// ===================================
 export const sendNotificationToMultiple = async (tokens, notification) => {
   try {
     initializeFirebase();
 
     if (!tokens || tokens.length === 0) {
       console.error("❌ No FCM tokens provided");
-      return false;
+      return {
+        successCount: 0,
+        failureCount: 0,
+      };
     }
 
     const message = {
-      tokens: tokens,
+      tokens,
       notification: {
         title: notification.title || "BhajanBank",
         body: notification.body || "You have a new notification",
       },
       data: notification.data || {},
+      android: {
+        priority: "high",
+      },
+      apns: {
+        payload: {
+          aps: {
+            sound: "default",
+          },
+        },
+      },
     };
 
-    const response = await admin.messaging().sendMulticast(message);
+    // Correct method for latest Firebase Admin SDK
+    const response = await admin.messaging().sendEachForMulticast(message);
 
-    console.log(`✅ Sent ${response.successCount} notifications successfully`);
+    console.log(`✅ Sent ${response.successCount} notifications`);
     console.log(`❌ Failed ${response.failureCount} notifications`);
 
     if (response.failureCount > 0) {
       response.responses.forEach((resp, idx) => {
         if (!resp.success) {
-          console.error(`Failed for token ${tokens[idx]}:`, resp.error);
+          console.error(`❌ Failed token ${tokens[idx]}:`, resp.error);
         }
       });
     }
 
-    return {
-      successCount: response.successCount,
-      failureCount: response.failureCount,
-      responses: response.responses,
-    };
+    return response;
+
   } catch (error) {
     console.error("❌ Error sending multiple notifications:", error);
-    return false;
+    return {
+      successCount: 0,
+      failureCount: 0,
+    };
   }
 };
 
-// Send notification to all users in a family
+
+// ===================================
+// Send notification to FAMILY members
+// ===================================
 export const sendNotificationToFamily = async (familyId, notification) => {
   try {
     initializeFirebase();
@@ -119,30 +143,36 @@ export const sendNotificationToFamily = async (familyId, notification) => {
     const { default: User } = await import("../models/user.js");
 
     const users = await User.find({ family: familyId }).select("fcmtoken");
-    const tokens = users.map(user => user.fcmtoken).filter(token => token);
 
-    if (tokens.length === 0) {
+    const tokens = users
+      .map(user => user.fcmtoken)
+      .filter(Boolean);
+
+    if (!tokens.length) {
       console.log("⚠ No FCM tokens found for family members");
       return {
         successCount: 0,
         failureCount: 0,
-        message: "No FCM tokens found",
       };
     }
 
     console.log(`📢 Sending notification to ${tokens.length} family members`);
+
     return await sendNotificationToMultiple(tokens, notification);
+
   } catch (error) {
     console.error("❌ Error sending to family:", error);
     return {
       successCount: 0,
       failureCount: 0,
-      error: error.message,
     };
   }
 };
 
-// Send notification to specific user by ID
+
+// ===================================
+// Send notification to specific USER
+// ===================================
 export const sendNotificationToUser = async (userId, notification) => {
   try {
     initializeFirebase();
@@ -157,7 +187,9 @@ export const sendNotificationToUser = async (userId, notification) => {
     }
 
     console.log(`📢 Sending notification to user: ${userId}`);
+
     return await sendNotification(user.fcmtoken, notification);
+
   } catch (error) {
     console.error("❌ Error sending to user:", error);
     return false;

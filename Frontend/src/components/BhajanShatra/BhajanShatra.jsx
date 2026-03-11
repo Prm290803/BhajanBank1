@@ -479,7 +479,7 @@ const BhajanShastra = () => {
           <div className="flex flex-col items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
             <div className="w-10 sm:w-12 h-0.5 sm:h-1 bg-gradient-to-r from-transparent via-[#FF7722] to-transparent"></div>
             <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 font-sans px-2">
-              Bhajan <span className="text-[#FF7722]">Shastra</span>
+              Bhajan <span className="text-[#FF7722]">Shatra</span>
             </h1>
             <p className="text-gray-600 text-xs sm:text-sm md:text-base font-light max-w-xs sm:max-w-sm md:max-w-md px-2">
               Collective spiritual sadhana for utsavs

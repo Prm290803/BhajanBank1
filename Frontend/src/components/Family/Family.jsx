@@ -199,7 +199,7 @@ useEffect(() => {
   fetchUserTasks();
 }, [token, user, backend_url]);
   // Calculate total points and progress
-  const totalPoints = members.reduce((sum, member) => sum + member.points, 0);
+  const totalPoints = members.reduce((sum, member) => sum + Math.round(member.points), 0);
   const progress = goal > 0 ? Math.min((totalPoints / goal) * 100, 100) : 0;
   const remainingPoints = Math.max(goal - totalPoints, 0);
   
@@ -386,7 +386,7 @@ useEffect(() => {
                             index === 2 ? "text-amber-500" :
                             "text-gray-700"
                           }`}>
-                            {member.points}
+                            {Math.round(member.points)}
                           </span>
                         </div>
                       </div>
@@ -483,14 +483,14 @@ useEffect(() => {
                   <div className="grid grid-cols-2 gap-3 sm:gap-4">
                     <div className="bg-gradient-to-br from-orange-50 to-amber-50 p-4 rounded-xl border border-gray-200">
                       <p className="text-xs text-gray-600 mb-1">Highest</p>
-                      <p className="text-xl sm:text-2xl font-bold text-orange-600">{Math.max(...members.map(m => m.points))}</p>
-                      <p className="text-xs text-gray-500 mt-1 truncate">{members.find(m => m.points === Math.max(...members.map(m => m.points)))?.name}</p>
+                      <p className="text-xl sm:text-2xl font-bold text-orange-600">{Math.round(...members.map(m => m.points))}</p>
+                      <p className="text-xs text-gray-500 mt-1 truncate">{members.find(m => m.points === Math.round(...members.map(m => m.points)))?.name}</p>
                     </div>
                     
                     <div className="bg-gradient-to-br from-orange-50 to-amber-50 p-4 rounded-xl border border-gray-200">
                       <p className="text-xs text-gray-600 mb-1">Lowest</p>
-                      <p className="text-xl sm:text-2xl font-bold text-amber-600">{Math.min(...members.map(m => m.points))}</p>
-                      <p className="text-xs text-gray-500 mt-1 truncate">{members.find(m => m.points === Math.min(...members.map(m => m.points)))?.name}</p>
+                      <p className="text-xl sm:text-2xl font-bold text-amber-600">{Math.round(Math.min(...members.map(m => m.points)))}</p>
+                      <p className="text-xs text-gray-500 mt-1 truncate">{members.find(m => m.points === Math.round(Math.min(...members.map(m => m.points))))?.name}</p>
                     </div>
                     
                     <div className="bg-gradient-to-br from-orange-50 to-amber-50 p-4 rounded-xl border border-gray-200">
@@ -521,7 +521,7 @@ useEffect(() => {
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium text-gray-900 truncate">{member.name}</p>
-                            <p className="text-xs text-gray-500">{member.points} points</p>
+                            <p className="text-xs text-gray-500">{Math.round(member.points)} points</p>
                           </div>
                         </div>
                       ))}
@@ -697,7 +697,7 @@ useEffect(() => {
             {/* Progress Bar */}
             <div className="mb-4">
               <div className="flex justify-between text-sm text-gray-600 mb-2">
-                <span>{totalPoints} pts</span>
+                <span>{Math.round(totalPoints)} pts</span>
                 <span className="font-semibold text-orange-600">{progress.toFixed(1)}%</span>
                 <span>{goal} pts</span>
               </div>
@@ -785,7 +785,7 @@ useEffect(() => {
                 </div>
                 <span className="font-medium">{member.name}</span>
               </div>
-              <span className="text-orange-600 font-semibold">{member.points} </span>
+              <span className="text-orange-600 font-semibold">{Math.round(member.points)}</span>
             </div>
             
             {/* Progress bar towards goal */}

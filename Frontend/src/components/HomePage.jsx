@@ -119,7 +119,7 @@ export default function Home() {
         </motion.div> 
 
         {/* Three Images Container - FIXED RESPONSIVE LAYOUT */}
-        <div className="flex flex-wrap items-center justify-center gap-5 sm:gap-4 md:gap-6 lg:gap-55 mb-4 sm:mb-6 md:mb-8 px-2">
+        <div className="flex flex-wrap items-center justify-center  gap-5 sm:gap-4 md:gap-6 lg:gap-55 mb-4 sm:mb-6 md:mb-8 px-2">
           
           
           {/* Laxminarayan Image */}
@@ -130,11 +130,11 @@ export default function Home() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
           >
-            <div className="relative overflow-hidden rounded-xl shadow-xl border-2 border-orange-200">
+            <div className="relative overflow-hidden rounded-xl shadow-xl ">
               <img
-                src="https://res.cloudinary.com/dq85wnwj3/image/upload/v1772954518/laxminarayan-dev1_bymawj.jpg"
+                src="/luxminarayandev.png"
                 alt="Laxminarayan Bhagwan"
-                className="h-24 w-24 xs:h-28 xs:w-28 sm:h-32 sm:w-32 md:h-36 md:w-36 lg:h-40 lg:w-40 object-cover"
+                className="h-28 w-28 xs:h-28 xs:w-28 sm:h-32 sm:w-32 md:h-36 md:w-36 lg:h-40 lg:w-40 object-cover"
               />
             </div>
             <p className="mt-1 sm:mt-2 text-[10px] xs:text-xs sm:text-sm font-semibold text-orange-700 whitespace-nowrap">
@@ -152,7 +152,7 @@ export default function Home() {
               <img
                 src="https://res.cloudinary.com/dq85wnwj3/image/upload/v1772954406/img2_dcfres.png"
                 alt="Shri Maharaj"
-                className="h-32 w-24 xs:h-36 xs:w-28 sm:h-44 sm:w-32 md:h-52 md:w-36 lg:h-60 lg:w-40 object-cover"
+                className="h-40 w-24 xs:h-36 xs:w-28 sm:h-44 sm:w-32 md:h-52 md:w-36 lg:h-60 lg:w-40 object-cover"
                 style={{
                   maskImage: 'linear-gradient(to bottom, black 80%, transparent 99%)',
                   WebkitMaskImage: 'linear-gradient(to bottom, black 80%, transparent 99%)'
@@ -171,9 +171,9 @@ export default function Home() {
             animate={{ opacity: 1, scale: 1 }}
           
           >
-            <div className="relative overflow-hidden rounded-xl shadow-xl border-2 border-amber-200">
+            <div className="relative overflow-hidden rounded-xl  shadow-xl ">
               <img
-                src="https://res.cloudinary.com/dq85wnwj3/image/upload/v1772954366/Acharya_Maharaj_Shree_y6ade6.jpg"
+                src="../../public/maharajshree.png"
                 alt="Acharya Maharaj Shree"
                 className="h-24 w-24 xs:h-28 xs:w-28 sm:h-32 sm:w-32 md:h-36 md:w-36 lg:h-40 lg:w-40 object-cover"
               />
@@ -195,7 +195,7 @@ export default function Home() {
           transition={{ duration: 0.8, delay: 0.2 }}
         >
           <span className="bg-gradient-to-br from-orange-600 to-amber-600 bg-clip-text text-transparent">
-            Bhajan Bank
+            Bhajan Bank Vadtal
           </span>
         </motion.h1>
 
@@ -313,6 +313,18 @@ export default function Home() {
           <p className="text-gray-500 text-[10px] xs:text-xs sm:text-sm">
             May your devotion blossom like a lotus in divine light
           </p>
+              <p className="text-xs mt-2 text-gray-400">
+    Developed with <span className="text-red-500">❤️</span> for the devotional community By {' '}
+    <a 
+      href="https://buildcrew.co.in" 
+      target="_blank" 
+      rel="noopener noreferrer"
+      className="text-gray-600 block hover:text-gray-900 transition-colors duration-200 font-medium"
+    >
+      Build Crew
+    </a>
+  </p>
+
         </motion.div>
       </div>
     </div>

@@ -6,7 +6,7 @@ import cors from "cors";
 import session from "express-session";
 import passport from "passport";
 import { v2 as cloudinary } from "cloudinary";
-// import "./scheduler/dailyCheck.js"; // <-- import the scheduler
+import startDailyCheck from "./scheduler/dailyCheck.js"; // <-- import the scheduler
 
 // import "./passportConfig.js"; // <-- new file (see below)
 
@@ -40,6 +40,8 @@ app.use(cors({
   credentials: true
 }));
 
+
+
 /** Express Session (required for Passport) */
 app.use(
   session({
@@ -72,10 +74,17 @@ app.use(taskRoutes);
 app.use(familyRoutes);
 app.use(goalRoutres);
 app.use("/api/bhajan-shatra", bhajanShatraRoutes);
-app.use("/api/notifications", notificationRoutes);
+app.use("/api",notificationRoutes);
 /** Root */
 app.get("/", (req, res) => res.send("API running"));
 
 /** Start */
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+
+  startDailyCheck();
+});
+
+// app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

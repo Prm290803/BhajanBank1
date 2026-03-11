@@ -583,7 +583,7 @@ const UserProfile = () => {
                             Rank #{item.rank}
                           </span>
                           <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded-full">
-                            {item.total.toLocaleString()} / {item.targetCount.toLocaleString()}
+                            {Math.round(item.total.toLocaleString())} / {Math.round(item.targetCount.toLocaleString())}
                           </span>
                         </div>
 
@@ -600,7 +600,7 @@ const UserProfile = () => {
                           {item.progress.toFixed(1)}%
                         </div>
                         <div className="text-xs text-gray-500">
-                          {item.total.toLocaleString()} पुण्य
+                          {Math.round(item.total.toLocaleString())} पुण्य
                         </div>
                       </div>
                     </div>
@@ -657,7 +657,7 @@ const UserProfile = () => {
                         <h4 className="font-semibold text-gray-800 text-sm sm:text-lg mb-1 sm:mb-2 line-clamp-2">{task.task}</h4>
                         <div className="flex flex-wrap gap-2 text-xs sm:text-sm text-gray-600">
                           <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full">Count: {task.count}</span>
-                          <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full">Points: {task.totalPoints}</span>
+                          <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full">Points: {Math.round(task.totalPoints)}</span>
                         </div>
                       </div>
                       <div className="flex gap-2 w-full sm:w-auto">

@@ -25,7 +25,7 @@ const seedTaskCategories = async () => {
   { name: "Janmangal Anusthan (જનમંગલ અનુષ્ઠાન)", displayName: "Janmangal Anusthan", points: 100, categoryType: "Tap" },
   { name: "Vandu Sahajanand (વંદુ સહજાનંદ)", displayName: "Vandu Sahajanand", points: 10, categoryType: "Path" },
   { name: "Parcha Prakaran (પરચા પ્રકરણ)", displayName: "Parcha Prakaran", points: 5, categoryType: "Path" },
-  { name: "Vachnamrut Parayan (વચનામૃત પરાયણ)", displayName: "Vachnamrut Parayan", points: 50, categoryType: "Path" },
+  { name: "Vachnamrut Paarayan (વચનામૃત પારાયણ)", displayName: "Vachnamrut Paarayan", points: 50, categoryType: "Path" },
   { name: "Mala (માળા)", displayName: "Mala", points: 10.8, categoryType: "Tap" },
   { name: "Gurumantra Mala (ગુરુમંત્ર માળા)", displayName: "Gurumantra Mala", points: 10.5, categoryType: "Tap" },
   { name: "Hanuman Chalisa (હનુમાન ચાલીસા)", displayName: "Hanuman Chalisa", points: 5, categoryType: "Path" },
@@ -37,7 +37,7 @@ const seedTaskCategories = async () => {
   { name: "Yuva Sabha (યુવા સભા)", displayName: "Yuva Sabha", points: 15, categoryType: "Satsang" },
   { name: "Mahila Sabha (મહિલા સભા)", displayName: "Mahila Sabha", points: 15, categoryType: "Satsang" },
   { name: "Ravi Sabha (રવિ સભા)", displayName: "Ravi Sabha", points: 15, categoryType: "Satsang" },
-  { name: "Shikshapatri Parayan (શિક્ષાપત્રી પરાયણ)", displayName: "Shikshapatri Parayan", points: 212, categoryType: "Path" },
+  { name: "Shikshapatri Paarayan (શિક્ષાપત્રી પારાયણ)", displayName: "Shikshapatri Paarayan", points: 212, categoryType: "Path" },
   { name: "Pad Yatra (પદ યાત્રા)", displayName: "Pad Yatra", points: 10, categoryType: "Tap" }
 ]
 
