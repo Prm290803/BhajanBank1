@@ -2,20 +2,69 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
-
 const IntroScreen = () => {
   const navigate = useNavigate();
   const [particles, setParticles] = useState([]);
 
   const mantras = [
-    "ॐ श्री स्वामिनारायणाय नमः",
-    "ॐ श्री सहजानन्दाय नमः", 
-    "ॐ श्री हरिकृष्णाय नमः",
-    "ॐ श्री घनश्यामाय नमः",
-    "ॐ श्री भक्तवत्सलाय नमः",
-    "ॐ श्री नारायणमुनये नमः",
-    "ॐ श्री धर्मनन्दनाय नमः",
-    "ॐ श्री अक्षरपुरुषोत्तमाय नमः"
+    "ॐ श्रीकृष्णाय नमः",
+    "ॐ श्रीवासुदेवाय नमः",
+    "ॐ श्रीनरनारायणाय नमः",
+    "ॐ श्रीप्रभवे नमः",
+    "ॐ श्रीभक्तिधर्मात्मजाय नमः",
+    "ॐ श्रीअजन्मने नमः",
+    "ॐ श्रीकृष्णनारायणाय नमः",
+    "ॐ श्रीहरये नमः",
+    "ॐ श्रीहरिकृष्णाय नमः",
+    "ॐ श्रीघनश्यामाय नमः",
+
+    "ॐ श्रीधर्मनन्दनाय नमः",
+    "ॐ श्रीभक्तिप्रियाय नमः",
+    "ॐ श्रीनारायणमुनये नमः",
+    "ॐ श्रीनित्यसुखदाय नमः",
+    "ॐ श्रीसर्वेश्वराय नमः",
+    "ॐ श्रीसर्वकारणकारणाय नमः",
+    "ॐ श्रीसर्वाधाराय नमः",
+    "ॐ श्रीसर्वावतारिणे नमः",
+    "ॐ श्रीपरब्रह्मणे नमः",
+    "ॐ श्रीपुरुषोत्तमाय नमः",
+
+    "ॐ श्रीअक्षरधामाधिपतये नमः",
+    "ॐ श्रीअक्षरातीताय नमः",
+    "ॐ श्रीअनन्ताय नमः",
+    "ॐ श्रीअव्यक्ताय नमः",
+    "ॐ श्रीअच्युताय नमः",
+    "ॐ श्रीअचिन्त्याय नमः",
+    "ॐ श्रीअमृताय नमः",
+    "ॐ श्रीअजिताय नमः",
+    "ॐ श्रीआनन्दाय नमः",
+    "ॐ श्रीआदिदेवाय नमः",
+
+    "ॐ श्रीईश्वराय नमः",
+    "ॐ श्रीउत्तमाय नमः",
+    "ॐ श्रीउद्धारकाय नमः",
+    "ॐ श्रीएकात्मने नमः",
+    "ॐ श्रीओंकारस्वरूपाय नमः",
+    "ॐ श्रीकृपानिधानाय नमः",
+    "ॐ श्रीकरुणाकराय नमः",
+    "ॐ श्रीकल्याणप्रदाय नमः",
+    "ॐ श्रीकामितफलप्रदाय नमः",
+    "ॐ श्रीकीर्तिमते नमः",
+
+    "ॐ श्रीकृष्णवल्लभाय नमः",
+    "ॐ श्रीगुणातीताय नमः",
+    "ॐ श्रीगोपालाय नमः",
+    "ॐ श्रीगोविन्दाय नमः",
+    "ॐ श्रीज्ञानप्रदाय नमः",
+    "ॐ श्रीज्ञानस्वरूपाय नमः",
+    "ॐ श्रीचैतन्याय नमः",
+    "ॐ श्रीचिदानन्दाय नमः",
+    "ॐ श्रीजगदीश्वराय नमः",
+    "ॐ श्रीजगन्नाथाय नमः",
+
+    "ॐ श्रीजगदाधाराय नमः",
+    "ॐ श्रीजगद्गुरवे नमः",
+    "ॐ श्रीजयन्ताय नमः",
   ];
 
   // Different font styles for variety
@@ -32,10 +81,10 @@ const IntroScreen = () => {
 
   // Different animation patterns
   const animationPatterns = [
-    { duration: 8, ease: "easeInOut" },     // Slow smooth
-    { duration: 10, ease: "anticipate" },    // Very slow with anticipation
-    { duration: 7, ease: "easeOut" },        // Medium slow
-    { duration: 9, ease: [0.43, 0.13, 0.23, 0.96] } // Custom cubic bezier
+    { duration: 5, ease: "easeInOut" },
+    { duration: 6, ease: "anticipate" },
+    { duration: 5.5, ease: "easeOut" },
+    { duration: 6, ease: [0.43, 0.13, 0.23, 0.96] }
   ];
 
   useEffect(() => {
@@ -54,7 +103,6 @@ const IntroScreen = () => {
 
       const coords = [];
 
-      // Adjust sampling density for more particles
       for (let y = 0; y < size; y += 4) {
         for (let x = 0; x < size; x += 4) {
           const index = (y * size + x) * 4;
@@ -69,54 +117,52 @@ const IntroScreen = () => {
         }
       }
 
-      // Create particles with different styles and animations
       const particlesData = coords.slice(0, 150).map((p, i) => {
         const angle = Math.random() * Math.PI * 2;
-        const distance = 1200; // Increased distance for slower appearance
+        const distance = 1000;
         
-        // Select different styles based on index
         const fontStyle = fontStyles[i % fontStyles.length];
         const pattern = animationPatterns[i % animationPatterns.length];
         
-        // Add random rotation for some mantras
         const rotation = i % 4 === 0 ? Math.random() * 10 - 5 : 0;
-        
-        // Vary the starting distance for layered effect
-        const layerDistance = distance + (i % 3) * 200;
+        const layerDistance = distance + (i % 3) * 150;
 
         return {
           id: i,
           text: mantras[i % mantras.length],
           startX: Math.cos(angle) * layerDistance,
           startY: Math.sin(angle) * layerDistance,
-          targetX: p.x * 3.5, // Slightly spread out
-          targetY: p.y * 3.5,
-          fontSize: fontStyle.size,
+          targetX: p.x * 3,
+          targetY: p.y * 3,
+          fontSize: window.innerWidth < 768 ? '12px' : fontStyle.size,
           fontWeight: fontStyle.weight,
           fontFamily: fontStyle.family,
           duration: pattern.duration,
           ease: pattern.ease,
           rotation: rotation,
-          delay: (i % 4) * 0.3, // Staggered start
-          opacity: 0.7 + (i % 3) * 0.15 // Varied opacity
+          delay: (i % 4) * 0.2,
+          opacity: 0.8 + (i % 3) * 0.1
         };
       });
 
       setParticles(particlesData);
     };
 
-    // Extended timeout for slower overall animation
     setTimeout(() => {
       navigate("/home");
-    }, 12000); // Increased to 12 seconds
+    }, 9000); // 9 seconds total
 
   }, []);
 
   return (
     <div className="intro">
-      <div className="fixed inset-0 bg-[linear-gradient(45deg,#f8fafc_25%,transparent_25%),linear-gradient(-45deg,#f8fafc_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#f8fafc_75%),linear-gradient(-45deg,transparent_75%,#f8fafc_75%)] bg-[size:20px_20px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,black_20%,transparent_100%)]"></div>
+      {/* Light gradient background */}
+      <div className="fixed inset-0 bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50"></div>
       
-      {/* mantra particles with enhanced animations */}
+      {/* Decorative pattern overlay */}
+      <div className="fixed inset-0 bg-[linear-gradient(45deg,#f8fafc_25%,transparent_25%),linear-gradient(-45deg,#f8fafc_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#f8fafc_75%),linear-gradient(-45deg,transparent_75%,#f8fafc_75%)] bg-[size:20px_20px] opacity-30"></div>
+      
+      {/* mantra particles - now stay visible longer */}
       {particles.map(p => (
         <motion.div
           key={p.id}
@@ -125,31 +171,29 @@ const IntroScreen = () => {
             fontSize: p.fontSize,
             fontWeight: p.fontWeight,
             fontFamily: p.fontFamily,
-            opacity: p.opacity,
             rotate: p.rotation,
-            filter: `blur(${p.id % 5 === 0 ? '0.5px' : '0px'})` // Slight blur on some
           }}
           initial={{
             x: p.startX,
             y: p.startY,
             opacity: 0,
-            scale: 0.5
+            scale: 0.6
           }}
           animate={{
             x: p.targetX,
             y: p.targetY,
-            opacity: [0, p.opacity, 0],
-            scale: [0.5, 1.2, 0.8],
-            rotate: [p.rotation * 2, 0, p.rotation]
+            opacity: [0, p.opacity, p.opacity, p.opacity, 0.5, 0], // Stay visible longer
+            scale: [0.6, 1.1, 1, 1, 1, 0.7],
+            rotate: [p.rotation * 2, 0, 0, 0, 0, p.rotation]
           }}
           transition={{
-            duration: p.duration,
+            duration: p.duration + 2, // Longer duration
             delay: p.delay,
             ease: p.ease,
-            times: [0, 0.6, 1],
+            times: [0, 0.2, 0.4, 0.6, 0.8, 1], // Adjusted timing
             opacity: {
-              duration: p.duration,
-              times: [0, 0.3, 1]
+              duration: p.duration + 2,
+              times: [0, 0.15, 0.5, 0.7, 0.9, 1] // Maintain opacity through most of animation
             }
           }}
         >
@@ -157,20 +201,20 @@ const IntroScreen = () => {
         </motion.div>
       ))}
 
-      {/* real logo with enhanced animation */}
+      {/* logo with enhanced animation */}
       <motion.img
         src="/1.png"
         className="logo"
+        alt="logo"
         initial={{ opacity: 0, scale: 0.5, rotate: -5 }}
         animate={{
           opacity: 1,
           scale: 1,
           rotate: 0,
-          filter: ["blur(2px)", "blur(0px)", "blur(0px)"]
         }}
         transition={{
-          delay: 7,
-          duration: 2.5,
+          delay: 5,
+          duration: 2,
           ease: "easeOut"
         }}
       />
@@ -183,15 +227,10 @@ const IntroScreen = () => {
           opacity: 1, 
           y: 0,
           scale: 1,
-          textShadow: [
-            "0 0 0px rgba(255,111,0,0)",
-            "0 0 20px rgba(255,111,0,0.5)",
-            "0 0 0px rgba(255,111,0,0)"
-          ]
         }}
         transition={{
-          delay: 9,
-          duration: 2,
+          delay: 6.5,
+          duration: 1.8,
           ease: "easeOut"
         }}
       >
