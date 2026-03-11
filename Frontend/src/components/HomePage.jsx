@@ -130,11 +130,11 @@ export default function Home() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
           >
-            <div className="relative overflow-hidden rounded-xl shadow-xl ">
+            <div className="relative overflow-hidden rounded-xl shadow-sm border-3 border-orange-300">
               <img
                 src="/luxminarayandev.png"
                 alt="Laxminarayan Bhagwan"
-                className="h-28 w-28 xs:h-28 xs:w-28 sm:h-32 sm:w-32 md:h-36 md:w-36 lg:h-40 lg:w-40 object-cover"
+                className="h-28 w-28 xs:h-28 xs:w-28 sm:h-32 sm:w-32 md:h-36 md:w-36 lg:h-40 lg:w-40 object-cover "
               />
             </div>
             <p className="mt-1 sm:mt-2 text-[10px] xs:text-xs sm:text-sm font-semibold text-orange-700 whitespace-nowrap">
@@ -171,7 +171,7 @@ export default function Home() {
             animate={{ opacity: 1, scale: 1 }}
           
           >
-            <div className="relative overflow-hidden rounded-xl  shadow-xl ">
+            <div className="relative overflow-hidden rounded-xl  shadow-sm border-3 border-orange-300">
               <img
                 src="/maharajshree.png"
                 alt="Acharya Maharaj Shree"
