@@ -135,7 +135,7 @@ animation:pulseGlow 4s infinite alternate;
 }
 
 .mantra.very-slow {
-  animation-duration: 12s;
+  animation-duration: 6s;
 }
 
 .mantra.medium {

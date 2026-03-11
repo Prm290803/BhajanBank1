@@ -173,7 +173,7 @@ export default function Home() {
           >
             <div className="relative overflow-hidden rounded-xl  shadow-xl ">
               <img
-                src="../../public/maharajshree.png"
+                src="/maharajshree.png"
                 alt="Acharya Maharaj Shree"
                 className="h-24 w-24 xs:h-28 xs:w-28 sm:h-32 sm:w-32 md:h-36 md:w-36 lg:h-40 lg:w-40 object-cover"
               />
