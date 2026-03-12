@@ -89,17 +89,17 @@ export default function Home() {
           <img
             src="https://res.cloudinary.com/dq85wnwj3/image/upload/v1772954400/vadtal_h6egqf.png"
             alt="Vadtal Logo"
-            className="w-auto h-10 sm:h-14 md:h-16 lg:h-20 object-contain"
+            className="w-auto h-15 sm:h-15 md:h-18 lg:h-25 object-contain"
           />
         </div>
          {/* Sanskrit Blessing Text */}
         <motion.div
-          className="mb-2 flex items-end justify-center  sm:mb-3 md:mb-4"
+          className="mb-1 flex items-end justify-center  sm:mb-3 md:mb-4"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
         >
-          <p className="text-xs sm:text-sm  mt-1 md:text-base lg:text-lg font-bold text-orange-600">
+          <p className="text-xs sm:text-sm  mt-3 md:text-base lg:text-lg font-bold text-orange-600">
             ।। श्री स्वामिनारायणो विजयतेतराम् ।।
           </p>
         </motion.div> 
@@ -108,19 +108,19 @@ export default function Home() {
           <img
             src="https://res.cloudinary.com/dq85wnwj3/image/upload/v1772957604/umreth-Photoroom_bkmtqg.png"
             alt="Umreth Logo"
-            className="w-auto h-10 sm:h-14 md:h-16 lg:h-20 object-contain"
+            className="w-auto h-15 sm:h-15 md:h-18 lg:h-25 object-contain"
           />
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-3 sm:px-4 md:px-6 text-center pt-20 sm:pt-24 md:pt-16">
+      <div className="relative z-10 mt-1 lg:mt-25 md:mt-15 min-h-screen flex flex-col items-center justify-center px-3 sm:px-4 md:px-6 text-center pt-20 sm:pt-24 md:pt-16">
         
        
 
         
         {/* Three Images Container - PERFECTLY ALIGNED */}
-<div className="flex flex-wrap items-end justify-center gap-4 xs:gap-5 sm:gap-6 md:gap-8 lg:gap-10 mb-4 sm:mb-6 md:mb-8 px-2">
+<div className="flex flex-wrap items-end justify-center gap-4 xs:gap-5 sm:gap-6 md:gap-8 lg:gap-40 mb-4 sm:mb-6 md:mb-8 px-2">
   
   {/* Laxminarayan Image */}
   <motion.div
@@ -190,15 +190,24 @@ export default function Home() {
 
         {/* Main Heading */}
         <motion.h1
-          className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-2 sm:mb-3 md:mb-4"
+          className="text-2xl mt-5 xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-2 sm:mb-3 md:mb-4"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
         >
           <span className="bg-gradient-to-br from-orange-600 to-amber-600 bg-clip-text text-transparent">
-            Bhajan Bank Vadtal
+          BHAJAN BANK VADTAL
           </span>
         </motion.h1>
+         <motion.p
+          className="text-sm xs:text-base sm:text-lg md:text-xl text-orange-600 font-bold mb-4 sm:mb-6 md:mb-8 max-w-[280px] xs:max-w-sm sm:max-w-md md:max-w-2xl mx-auto leading-relaxed px-2"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.4 }}
+        >
+         તમારી ભક્તિ, હવે ડિજિટલ ડાયરીમાં!
+          <br />
+        </motion.p>
 
         {/* Subtitle */}
         <motion.p
