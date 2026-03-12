@@ -35,7 +35,7 @@ import PrivacyPolicy from "./components/Terms&Conditions/PrivacyPolicy";
 import PageNotFound from "./components/Common/PageNotFound";
 
 import IntroPage from "./IntroPage/Intro";
-
+import { Analytics } from "@vercel/analytics/react";
 
 // ===============================
 // FCM Initializer
@@ -86,16 +86,21 @@ function App() {
   const introPlayed = sessionStorage.getItem("introPlayed");
 
   return (
-
+<>
+     
     <AuthProvider>
 
       <Router basename="/">
+       
+       <Analytics />
 
         <FCMInitializer />
 
         <AnnouncementPopup />
 
         <InstallButton />
+
+       
 
         <Routes>
 
@@ -142,7 +147,7 @@ function App() {
       </Router>
 
     </AuthProvider>
-
+</>
   );
 
 }

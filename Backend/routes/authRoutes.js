@@ -18,7 +18,7 @@ router.post("/api/register", async (req, res) => {
     // Normalize inputs
     name = name.trim();
     email = email.trim().toLowerCase();
-    password = password.trim();
+    
 
     if (!name || !email || !password)
       return res.status(400).json({ error: "All fields are required!" });
@@ -35,7 +35,7 @@ router.post("/api/register", async (req, res) => {
     const user = new User({
       name,
       email,
-      password: hashed
+      password 
     });
 
     await user.save();
@@ -100,14 +100,13 @@ router.post("/api/login", async (req, res) => {
     let { email, password } = req.body;
 
     email = email.trim().toLowerCase();
-    password = password.trim();
+    // Don't trim password — match registration behavior
 
     const user = await User.findOne({ email });
     if (!user) return res.status(401).json({ error: "Invalid credentials" });
 
+    // ✅ Correct order: plaintext first, hash second
     const isMatch = await bcrypt.compare(password, user.password);
-
-    console.log("Password match:", isMatch);
 
     if (!isMatch)
       return res.status(401).json({ error: "Invalid credentials" });
@@ -126,7 +125,6 @@ router.post("/api/login", async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
-
 /* ===============================
    🔁 Reset Password
 ================================= */
