@@ -13,22 +13,31 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 ================================= */
 router.post("/api/register", async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    let { name, email, password } = req.body;
+
+    // Normalize inputs
+    name = name.trim();
+    email = email.trim().toLowerCase();
+    password = password.trim();
 
     if (!name || !email || !password)
       return res.status(400).json({ error: "All fields are required!" });
 
     if (password.length < 6)
-      return res
-        .status(400)
-        .json({ error: "Password must be at least 6 characters!" });
+      return res.status(400).json({ error: "Password must be at least 6 characters!" });
 
     const existingUser = await User.findOne({ email });
     if (existingUser)
       return res.status(400).json({ error: "Email already registered!" });
 
     const hashed = await bcrypt.hash(password, 10);
-    const user = new User({ name, email, password: hashed });
+
+    const user = new User({
+      name,
+      email,
+      password: hashed
+    });
+
     await user.save();
 
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
@@ -39,22 +48,67 @@ router.post("/api/register", async (req, res) => {
       token,
       user: { id: user._id, name: user.name, email: user.email },
     });
+
   } catch (err) {
     console.error("Registration error:", err);
     res.status(500).json({ error: "Registration failed" });
   }
 });
 
+
 /* ===============================
    🔐 Login (Email + Password)
 ================================= */
+// router.post("/api/login", async (req, res) => {
+//   try {
+//     const { email, password } = req.body;
+
+//     console.log("Login attempt:", email, password);
+
+//     const user = await User.findOne({ email });
+
+//     console.log("User found:", user);
+
+//     if (!user) {
+//       return res.status(401).json({ error: "Invalid credentials" });
+//     }
+
+//     const isMatch = await bcrypt.compare(password, user.password);
+
+//     console.log("Password match:", isMatch);
+
+//     if (!isMatch) {
+//       return res.status(401).json({ error: "Invalid credentials" });
+//     }
+
+//     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+//       expiresIn: "5d",
+//     });
+
+//     res.json({
+//       token,
+//       user: { id: user._id, name: user.name, email: user.email },
+//     });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ error: "Server error" });
+//   }
+// });
+
 router.post("/api/login", async (req, res) => {
   try {
-    const { email, password } = req.body;
+    let { email, password } = req.body;
+
+    email = email.trim().toLowerCase();
+    password = password.trim();
+
     const user = await User.findOne({ email });
     if (!user) return res.status(401).json({ error: "Invalid credentials" });
 
     const isMatch = await bcrypt.compare(password, user.password);
+
+    console.log("Password match:", isMatch);
+
     if (!isMatch)
       return res.status(401).json({ error: "Invalid credentials" });
 
@@ -66,6 +120,7 @@ router.post("/api/login", async (req, res) => {
       token,
       user: { id: user._id, name: user.name, email: user.email },
     });
+
   } catch (err) {
     console.error("Login error:", err);
     res.status(500).json({ error: "Server error" });

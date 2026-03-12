@@ -12,18 +12,30 @@ const firebaseConfig = {
   measurementId: "G-7DMH0NNB49"
 };
 
+
 firebase.initializeApp(firebaseConfig);
+
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
-  console.log("Received background message ", 
-    payload
-);
-  
-const notificationTitle = payload.notification.title;
+
+  console.log("Received background message", payload);
+
+  const notificationTitle = payload.notification.title;
+
   const notificationOptions = {
     body: payload.notification.body,
-    icon: "./1.png"
+    icon: "/1.png"
   };
+
   self.registration.showNotification(notificationTitle, notificationOptions);
+
+});
+
+self.addEventListener("notificationclick", function (event) {
+  event.notification.close();
+
+  event.waitUntil(
+    clients.openWindow("/")
+  );
 });

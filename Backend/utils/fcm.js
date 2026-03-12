@@ -107,21 +107,44 @@ export const sendNotificationToMultiple = async (tokens, notification) => {
       },
     };
 
-    // Correct method for latest Firebase Admin SDK
     const response = await admin.messaging().sendEachForMulticast(message);
 
     console.log(`✅ Sent ${response.successCount} notifications`);
     console.log(`❌ Failed ${response.failureCount} notifications`);
 
-    if (response.failureCount > 0) {
-      response.responses.forEach((resp, idx) => {
-        if (!resp.success) {
-          console.error(`❌ Failed token ${tokens[idx]}:`, resp.error);
+    const invalidTokens = [];
+
+    response.responses.forEach((resp, idx) => {
+      if (!resp.success) {
+        const errorCode = resp.error?.code;
+
+        console.error(`❌ Failed token ${tokens[idx]}:`, resp.error);
+
+        if (
+          errorCode === "messaging/registration-token-not-registered" ||
+          errorCode === "messaging/invalid-registration-token"
+        ) {
+          invalidTokens.push(tokens[idx]);
         }
-      });
+      }
+    });
+
+    // Remove invalid tokens from DB
+    if (invalidTokens.length > 0) {
+      const { default: User } = await import("../models/user.js");
+
+      await User.updateMany(
+        { fcmtoken: { $in: invalidTokens } },
+        { $unset: { fcmtoken: "" } }
+      );
+
+      console.log(`🧹 Removed ${invalidTokens.length} invalid tokens from DB`);
     }
 
-    return response;
+    return {
+      successCount: response.successCount,
+      failureCount: response.failureCount,
+    };
 
   } catch (error) {
     console.error("❌ Error sending multiple notifications:", error);
@@ -195,3 +218,4 @@ export const sendNotificationToUser = async (userId, notification) => {
     return false;
   }
 };
+

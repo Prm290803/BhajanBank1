@@ -6,7 +6,7 @@ import { sendNotificationToMultiple } from "../utils/fcm.js";
 const startDailyCheck = () => {
 
   // Run every day at 7:00 PM
-  cron.schedule("0 19 * * *", async () => {
+  cron.schedule("* * * * *", async () => {
     console.log("⏰ Running Daily Task Check (7 PM)");
 
     try {

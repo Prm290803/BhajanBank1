@@ -36,8 +36,11 @@ function Register() {
     setIsLoading(true);
 
     try {
-      const result = await register(name, email, password);
-
+      const result = await register(
+      name.trim(),
+      email.trim().toLowerCase(),
+      password.trim()
+    );
       if (result.success) {
         navigate('/data');
       } else {

@@ -92,7 +92,17 @@ export default function Home() {
             className="w-auto h-10 sm:h-14 md:h-16 lg:h-20 object-contain"
           />
         </div>
-        
+         {/* Sanskrit Blessing Text */}
+        <motion.div
+          className="mb-2 flex items-end justify-center  sm:mb-3 md:mb-4"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+        >
+          <p className="text-xs sm:text-sm  mt-1 md:text-base lg:text-lg font-bold text-orange-600">
+            ।। श्री स्वामिनारायणो विजयतेतराम् ।।
+          </p>
+        </motion.div> 
         {/* Top Right Logo - Umreth */}
         <div className="absolute top-4 right-3 sm:top-6 sm:right-4 md:top-6 md:right-6 lg:top-8 lg:right-8">
           <img
@@ -106,86 +116,77 @@ export default function Home() {
       {/* Main Content */}
       <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-3 sm:px-4 md:px-6 text-center pt-20 sm:pt-24 md:pt-16">
         
-        {/* Sanskrit Blessing Text */}
-        <motion.div
-          className="mb-2 sm:mb-3 md:mb-4"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-        >
-          <p className="text-xs sm:text-sm md:text-base lg:text-lg font-bold text-orange-600">
-            ।। श्री स्वामिनारायणो विजयतेतराम् ।।
-          </p>
-        </motion.div> 
+       
 
-        {/* Three Images Container - FIXED RESPONSIVE LAYOUT */}
-        <div className="flex flex-wrap items-center justify-center  gap-5 sm:gap-4 md:gap-6 lg:gap-55 mb-4 sm:mb-6 md:mb-8 px-2">
-          
-          
-          {/* Laxminarayan Image */}
-          <motion.div
-            className="relative group mt-12 sm:mt-16 md:mt-12 lg:mt-8"
-             whileHover={{ scale: 1.05 }}
-            transition={{ duration: 0.8 }}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-          >
-            <div className="relative overflow-hidden rounded-xl shadow-sm border-3 border-orange-300">
-              <img
-                src="/luxminarayandev.png"
-                alt="Laxminarayan Bhagwan"
-                className="h-28 w-28 xs:h-28 xs:w-28 sm:h-32 sm:w-32 md:h-36 md:w-36 lg:h-40 lg:w-40 object-cover "
-              />
-            </div>
-            <p className="mt-1 sm:mt-2 text-[10px] xs:text-xs sm:text-sm font-semibold text-orange-700 whitespace-nowrap">
-              श्री लक्ष्मीनारायण देव
-            </p>
-          </motion.div>
-          {/* Maharaj Image with CSS Mask */}
-          <motion.div
-            className="relative"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8 }}
-          >
-            <div className="relative">
-              <img
-                src="https://res.cloudinary.com/dq85wnwj3/image/upload/v1772954406/img2_dcfres.png"
-                alt="Shri Maharaj"
-                className="h-40 w-24 xs:h-36 xs:w-28 sm:h-44 sm:w-32 md:h-52 md:w-36 lg:h-60 lg:w-40 object-cover"
-                style={{
-                  maskImage: 'linear-gradient(to bottom, black 80%, transparent 99%)',
-                  WebkitMaskImage: 'linear-gradient(to bottom, black 80%, transparent 99%)'
-                }}
-              />
-              {/* Bottom Fade Effect */}
-              <div className="absolute bottom-0 left-0 right-0 h-6 xs:h-8 sm:h-10 bg-gradient-to-t from-saffron-50 to-transparent"></div>
-            </div>
-          </motion.div>
-        {/* Acharya Maharaj Image */}
-          <motion.div
-            className="relative group mt-12 sm:mt-16 md:mt-12 lg:mt-12"
-            whileHover={{ scale: 1.05 }}
-            transition={{ duration: 0.8 }}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-          
-          >
-            <div className="relative overflow-hidden rounded-xl  shadow-sm border-3 border-orange-300">
-              <img
-                src="/maharajshree.png"
-                alt="Acharya Maharaj Shree"
-                className="h-24 w-24 xs:h-28 xs:w-28 sm:h-32 sm:w-32 md:h-36 md:w-36 lg:h-40 lg:w-40 object-cover"
-              />
-            </div>
-            <div className="mt-1 sm:mt-2 text-[10px] xs:text-xs sm:text-sm">
-              <p className="font-semibold text-orange-700 whitespace-nowrap">પ.પૂ. ધ.ધુ. ૧૦૦૮</p>
-              <p className="font-semibold text-orange-700 whitespace-nowrap">આચાર્ય મહારાજ શ્રી</p>
-              <p className="font-semibold text-orange-700 whitespace-nowrap">રાકેશ પ્રસાદજી મહારાજ</p>
-            </div>
-          </motion.div>
-          
-        </div>
+        
+        {/* Three Images Container - PERFECTLY ALIGNED */}
+<div className="flex flex-wrap items-end justify-center gap-4 xs:gap-5 sm:gap-6 md:gap-8 lg:gap-10 mb-4 sm:mb-6 md:mb-8 px-2">
+  
+  {/* Laxminarayan Image */}
+  <motion.div
+    className="flex flex-col items-center"
+    whileHover={{ scale: 1.05 }}
+    transition={{ duration: 0.8 }}
+    initial={{ opacity: 0, scale: 0.9 }}
+    animate={{ opacity: 1, scale: 1 }}
+  >
+    <div className="relative overflow-hidden rounded-xl shadow-sm border-2 sm:border-3 border-orange-300 bg-white">
+      <img
+        src="/dev1.png"
+        alt="Laxminarayan Bhagwan"
+        className="h-26 w-26 xs:h-28 xs:w-28 sm:h-32 sm:w-32 md:h-38 md:w-38 lg:h-40 lg:w-40 object-cover"
+      />
+    </div>
+    <p className="mt-3 text-[10px] xs:text-xs sm:text-sm font-semibold text-orange-700 whitespace-nowrap">
+      श्री लक्ष्मीनारायण देव
+    </p>
+  </motion.div>
+
+  {/* Maharaj Image with CSS Mask - CENTER PIECE (TALLER) */}
+  <motion.div
+    className="flex flex-col items-center -mb-1"
+    initial={{ opacity: 0, scale: 0.9 }}
+    animate={{ opacity: 1, scale: 1 }}
+    transition={{ duration: 0.8 }}
+  >
+    <div className="relative">
+      <img
+        src="https://res.cloudinary.com/dq85wnwj3/image/upload/v1772954406/img2_dcfres.png"
+        alt="Shri Maharaj"
+        className="h-36 w-20 xs:h-40 xs:w-24 sm:h-44 sm:w-28 md:h-52 md:w-32 lg:h-60 lg:w-36 object-contain"
+        style={{
+          maskImage: 'linear-gradient(to bottom, black 85%, transparent 99%)',
+          WebkitMaskImage: 'linear-gradient(to bottom, black 85%, transparent 99%)'
+        }}
+      />
+      {/* Bottom Fade Effect */}
+      <div className="absolute bottom-0 left-0 right-0 h-6 xs:h-8 sm:h-10 bg-gradient-to-t from-saffron-50 to-transparent"></div>
+    </div>
+  </motion.div>
+
+  {/* Acharya Maharaj Image */}
+  <motion.div
+    className="flex flex-col items-center"
+    whileHover={{ scale: 1.05 }}
+    transition={{ duration: 0.8 }}
+    initial={{ opacity: 0, scale: 0.9 }}
+    animate={{ opacity: 1, scale: 1 }}
+  >
+    <div className="relative overflow-hidden rounded-xl shadow-sm border-2 sm:border-3 border-orange-300 bg-white">
+      <img
+        src="/maharajshree.png"
+        alt="Acharya Maharaj Shree"
+        className="h-24 w-24 xs:h-28 xs:w-28 sm:h-32 sm:w-32 md:h-36 md:w-36 lg:h-40 lg:w-40 object-cover p-1"
+      />
+    </div>
+    <div className="mt-2 text-[10px] xs:text-xs sm:text-sm text-center">
+      <p className="font-semibold text-orange-700 whitespace-nowrap">પ.પૂ. ધ.ધુ. ૧૦૦૮ આચાર્ય</p>
+      <p className="font-semibold text-orange-700 whitespace-nowrap"></p>
+      <p className="font-semibold text-orange-700 whitespace-nowrap"> શ્રી રાકેશ પ્રસાદજી મહારાજ</p>
+    </div>
+  </motion.div>
+  
+</div>
 
         {/* Main Heading */}
         <motion.h1

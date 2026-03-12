@@ -74,7 +74,10 @@ useEffect(() => {
   try {
     setLoading(true);
 
-    const res = await axios.post(`${backend_url}/api/login`, { email, password });
+    const res = await axios.post(`${backend_url}/api/login`, {
+  email: email.trim().toLowerCase(),
+  password: password.trim()
+});
 
     const newToken = res.data.token;
     const newUser = res.data.user;
