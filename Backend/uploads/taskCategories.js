@@ -38,7 +38,9 @@ const seedTaskCategories = async () => {
   { name: "Mahila Sabha (મહિલા સભા)", displayName: "Mahila Sabha", points: 15, categoryType: "Satsang" },
   { name: "Ravi Sabha (રવિ સભા)", displayName: "Ravi Sabha", points: 15, categoryType: "Satsang" },
   { name: "Shikshapatri Paarayan (શિક્ષાપત્રી પારાયણ)", displayName: "Shikshapatri Paarayan", points: 212, categoryType: "Path" },
-  { name: "Pad Yatra (પદ યાત્રા)", displayName: "Pad Yatra", points: 10, categoryType: "Tap" }
+  { name: "Pad Yatra (પદ યાત્રા)", displayName: "Pad Yatra", points: 10, categoryType: "Tap" },
+  { name: "Satsang Vartalap (સત્સંગ વર્તાલાપ)", displayName: "Satsang Vartalap", points: 5, categoryType: "Satsang" },
+ {name: "Dandwat Pranam (દંડવત પ્રણામ)", displayName: "Dandwat Pranam", points: 1, categoryType: "Tap"}
 ]
 
     // Optional: clean existing collection before inserting
